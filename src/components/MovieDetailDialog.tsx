@@ -1,0 +1,162 @@
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { Tv, Film, ExternalLink, Clapperboard, Tag, Edit } from 'lucide-react';
+import { Movie } from "../types/movie";
+import { CustomSection } from "../types/customSection";
+import { Separator } from "./ui/separator";
+import { MovieFormDialog } from "./MovieFormDialog";
+
+interface MovieDetailDialogProps {
+  movie: Movie | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onUpdate: (id: string, updates: Partial<Movie>) => void;
+  customSections?: CustomSection[];
+}
+
+export function MovieDetailDialog({ 
+  movie, 
+  open, 
+  onOpenChange,
+  onUpdate,
+  customSections = []
+}: MovieDetailDialogProps) {
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  if (!movie) return null;
+
+  const hasDetails = movie.platform || movie.studio || movie.genre || (movie.type === 'tv-show' && (movie.seasons || movie.episodes)) || movie.notes;
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                {movie.type === 'tv-show' ? (
+                  <Tv className="h-5 w-5" />
+                ) : movie.type === 'movie' ? (
+                  <Film className="h-5 w-5" />
+                ) : null}
+                {movie.title}
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setIsEditDialogOpen(true)}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            </DialogTitle>
+            <DialogDescription>
+              View and manage details for this item.
+            </DialogDescription>
+          </DialogHeader>
+
+        {hasDetails ? (
+          <div className="space-y-4">
+            {/* Streaming Platform */}
+            {movie.platform && (
+              <div className="space-y-3">
+                <div>
+                  <h4 className="mb-2">
+                    {movie.type === 'restaurant' ? 'Cuisine Type' : movie.type === 'place' ? 'Location' : 'Where to Watch'}
+                  </h4>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="secondary" className="gap-2 px-3 py-1">
+                      <ExternalLink className="h-4 w-4" />
+                      {movie.platform}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Studio */}
+            {movie.studio && (
+              <div className="space-y-2">
+                <div className="text-muted-foreground">Studio</div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="gap-2 px-3 py-1">
+                    <Clapperboard className="h-4 w-4" />
+                    {movie.studio}
+                  </Badge>
+                </div>
+              </div>
+            )}
+
+            {/* Genre/Type */}
+            {movie.genre && (
+              <div className="space-y-2">
+                <div className="text-muted-foreground">Genre/Type</div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="gap-2 px-3 py-1">
+                    <Tag className="h-4 w-4" />
+                    {movie.genre}
+                  </Badge>
+                </div>
+              </div>
+            )}
+
+            {/* Seasons/Episodes for TV Shows */}
+            {movie.type === 'tv-show' && (movie.seasons || movie.episodes) && (
+              <>
+                <Separator />
+                <div className="grid grid-cols-2 gap-4">
+                  {movie.seasons && (
+                    <div className="space-y-2">
+                      <div className="text-muted-foreground">Seasons</div>
+                      <p>{movie.seasons} {movie.seasons === 1 ? 'season' : 'seasons'}</p>
+                    </div>
+                  )}
+                  {movie.episodes && (
+                    <div className="space-y-2">
+                      <div className="text-muted-foreground">Episodes</div>
+                      <p>{movie.episodes} {movie.episodes === 1 ? 'episode' : 'episodes'}</p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* Notes */}
+            {movie.notes && (
+              <>
+                <Separator />
+                <div className="space-y-2">
+                  <div className="text-muted-foreground">Notes</div>
+                  <p className="bg-muted p-3 rounded-lg">
+                    {movie.notes}
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            No additional details available. Use the menu to edit and add more information.
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+
+    <MovieFormDialog
+      movie={movie}
+      open={isEditDialogOpen}
+      onOpenChange={setIsEditDialogOpen}
+      onUpdate={onUpdate}
+      customSections={customSections}
+    />
+    </>
+  );
+}
