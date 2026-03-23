@@ -22,15 +22,12 @@ import {
 } from "./components/ui/alert-dialog";
 import { Toaster } from "./components/ui/sonner";
 import ghibliBackground from 'figma:asset/dd104f7b8489f1285cea3966c272ab6ab1c18fb9.png';
-import { Movie } from "./types/movie";
-import { CustomTab } from "./types/customTab";
-import { CustomSection } from "./types/customSection";
+import { Movie, CustomTab, CustomSection } from "./types";
 import { getTheme } from "./utils/themeConfig";
 import { getContentTypeName, getSectionDisplayName, getCategoryDisplayName, getSectionContent } from "./utils/contentHelpers";
 import { useAuth } from "./hooks/useAuth";
 import { useMovies } from "./hooks/useMovies";
-import { useCustomTabs } from "./hooks/useCustomTabs";
-import { useCustomSections } from "./hooks/useCustomSections";
+import { useCustomTabs, useCustomSections } from "./hooks/useCollections";
 import { usePreferences } from "./hooks/usePreferences";
 
 export default function App() {
@@ -86,18 +83,176 @@ export default function App() {
   };
 
   // Counts
-  const movieCount = movies.filter(m => m.type === 'movie').length;
-  const tvShowCount = movies.filter(m => m.type === 'tv-show').length;
-  const restaurantCount = movies.filter(m => m.type === 'restaurant').length;
-  const placeCount = movies.filter(m => m.type === 'place').length;
+  const movieCount = movies.filter((collectionItem) => collectionItem.type === 'movie').length;
+  const tvShowCount = movies.filter((collectionItem) => collectionItem.type === 'tv-show').length;
+  const restaurantCount = movies.filter((collectionItem) => collectionItem.type === 'restaurant').length;
+  const placeCount = movies.filter((collectionItem) => collectionItem.type === 'place').length;
 
   // Theme
-  const currentThemeId = backgroundColors[contentType as keyof typeof backgroundColors] || 'current';
-  const currentTheme = getTheme(currentThemeId);
+  const activeThemeId = backgroundColors[contentType as keyof typeof backgroundColors] || 'current';
+  const currentTheme = getTheme(activeThemeId);
 
   // Bound helpers
-  const getTypeName = (type: string, plural?: boolean) => getContentTypeName(type, plural, customTabs);
-  const getFilteredContent = (sectionId: string) => getSectionContent(sectionId, movies, contentType);
+  const getContentTypeDisplayName = (type: string, plural?: boolean) => getContentTypeName(type, plural, customTabs);
+  const getItemsForSection = (sectionId: string) => getSectionContent(sectionId, movies, contentType);
+
+  // Decide what page to show based on auth state
+  let mainPageContent;
+  if (!auth.isSignedIn) {
+    if (auth.showSignInPage) {
+      mainPageContent = (
+        <SignInPage onSignIn={auth.handleSignIn} onBack={auth.handleBackToLanding} />
+      );
+    } else {
+      mainPageContent = (
+        <LandingPage onSignIn={auth.handleGoToSignIn} />
+      );
+    }
+  } else {
+    mainPageContent = (
+      <>
+        <SidebarLayout
+          currentUser={auth.currentUser}
+          movies={movies}
+          customTabs={customTabs}
+          customSections={customSections}
+          contentType={contentType}
+          activeSection={activeSection}
+          expandedCategory={expandedCategory}
+          viewMode={viewMode}
+          movieCount={movieCount}
+          tvShowCount={tvShowCount}
+          restaurantCount={restaurantCount}
+          placeCount={placeCount}
+          currentTheme={currentTheme}
+          onContentTypeChange={setContentType}
+          onActiveSectionChange={setActiveSection}
+          onExpandedCategoryChange={setExpandedCategory}
+          onViewModeChange={setViewMode}
+          onAddDialogOpen={() => setIsAddDialogOpen(true)}
+          onAddSectionDialogOpen={() => setIsAddSectionDialogOpen(true)}
+          onAddTabDialogOpen={() => setIsAddTabDialogOpen(true)}
+          onProfileDialogOpen={() => setIsProfileDialogOpen(true)}
+          onSettingsDialogOpen={() => setIsSettingsDialogOpen(true)}
+          onProfileSwitcherOpen={() => setIsProfileSwitcherOpen(true)}
+          onLogout={auth.handleLogout}
+          onTabDelete={(tab) => setTabToDelete(tab)}
+          onMovieUpdate={updateMovie}
+          onMovieDelete={deleteMovie}
+          onMovieClick={setSelectedMovie}
+          onShareDialogOpen={() => setIsShareDialogOpen(true)}
+          getContentTypeName={getContentTypeDisplayName}
+          getSectionContent={getItemsForSection}
+        />
+
+        <MovieFormDialog
+          open={isAddDialogOpen}
+          onOpenChange={setIsAddDialogOpen}
+          onAdd={addMovie}
+          contentType={contentType}
+          customSections={customSections}
+          activeSection={activeSection}
+        />
+
+        <AddTabDialog
+          open={isAddTabDialogOpen}
+          onOpenChange={setIsAddTabDialogOpen}
+          onAdd={handleAddCustomTab}
+        />
+
+        <AddSectionDialog
+          open={isAddSectionDialogOpen}
+          onOpenChange={setIsAddSectionDialogOpen}
+          onAdd={handleAddCustomSection}
+          contentType={contentType}
+        />
+
+        <ProfileDialog
+          open={isProfileDialogOpen}
+          onOpenChange={setIsProfileDialogOpen}
+          currentUser={auth.currentUser}
+          movieCount={movieCount}
+          tvShowCount={tvShowCount}
+          restaurantCount={restaurantCount}
+          placeCount={placeCount}
+          movies={movies}
+          customTabs={customTabs}
+          customSections={customSections}
+          onImport={handleImportData}
+        />
+
+        <ProfileSwitcherDialog
+          open={isProfileSwitcherOpen}
+          onOpenChange={setIsProfileSwitcherOpen}
+          users={auth.users}
+          currentUserId={auth.currentUserId}
+          onSwitchProfile={auth.handleSwitchProfile}
+        />
+
+        <SettingsDialog
+          open={isSettingsDialogOpen}
+          onOpenChange={setIsSettingsDialogOpen}
+          movies={movies}
+          customTabs={customTabs}
+          customSections={customSections}
+          onImport={handleImportData}
+          backgroundColors={backgroundColors}
+          onBackgroundColorsChange={setBackgroundColors}
+        />
+
+        <MovieDetailDialog
+          movie={selectedMovie}
+          open={!!selectedMovie}
+          onOpenChange={(isOpen: boolean) => {
+            if (!isOpen) {
+              setSelectedMovie(null);
+            }
+          }}
+          onUpdate={updateMovie}
+          customSections={customSections}
+        />
+
+        <ShareDialog
+          open={isShareDialogOpen}
+          onOpenChange={setIsShareDialogOpen}
+          movies={getItemsForSection(activeSection)}
+          categoryName={getCategoryDisplayName(contentType, customTabs)}
+          sectionName={getSectionDisplayName(activeSection, contentType, customSections, customTabs)}
+        />
+
+        <AlertDialog
+          open={!!tabToDelete}
+          onOpenChange={(isOpen: boolean) => {
+            if (!isOpen) {
+              setTabToDelete(null);
+            }
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete "{tabToDelete?.name}" Tab?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete this tab and all {movies.filter((collectionItem) => collectionItem.type === tabToDelete?.id).length} items associated with it. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (tabToDelete) {
+                    handleDeleteCustomTab(tabToDelete.id);
+                  }
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete Tab
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -120,140 +275,7 @@ export default function App() {
         style={{ background: currentTheme.backgroundGradient, opacity: 0.95 }}
       />
 
-      {!auth.isSignedIn ? (
-        auth.showSignInPage ? (
-          <SignInPage onSignIn={auth.handleSignIn} onBack={auth.handleBackToLanding} />
-        ) : (
-          <LandingPage onSignIn={auth.handleGoToSignIn} />
-        )
-      ) : (
-        <>
-          <SidebarLayout
-            currentUser={auth.currentUser}
-            movies={movies}
-            customTabs={customTabs}
-            customSections={customSections}
-            contentType={contentType}
-            activeSection={activeSection}
-            expandedCategory={expandedCategory}
-            viewMode={viewMode}
-            movieCount={movieCount}
-            tvShowCount={tvShowCount}
-            restaurantCount={restaurantCount}
-            placeCount={placeCount}
-            currentTheme={currentTheme}
-            onContentTypeChange={setContentType}
-            onActiveSectionChange={setActiveSection}
-            onExpandedCategoryChange={setExpandedCategory}
-            onViewModeChange={setViewMode}
-            onAddDialogOpen={() => setIsAddDialogOpen(true)}
-            onAddSectionDialogOpen={() => setIsAddSectionDialogOpen(true)}
-            onAddTabDialogOpen={() => setIsAddTabDialogOpen(true)}
-            onProfileDialogOpen={() => setIsProfileDialogOpen(true)}
-            onSettingsDialogOpen={() => setIsSettingsDialogOpen(true)}
-            onProfileSwitcherOpen={() => setIsProfileSwitcherOpen(true)}
-            onLogout={auth.handleLogout}
-            onTabDelete={(tab) => setTabToDelete(tab)}
-            onMovieUpdate={updateMovie}
-            onMovieDelete={deleteMovie}
-            onMovieClick={setSelectedMovie}
-            onShareDialogOpen={() => setIsShareDialogOpen(true)}
-            getContentTypeName={getTypeName}
-            getSectionContent={getFilteredContent}
-          />
-
-          <MovieFormDialog
-            open={isAddDialogOpen}
-            onOpenChange={setIsAddDialogOpen}
-            onAdd={addMovie}
-            contentType={contentType}
-            customSections={customSections}
-            activeSection={activeSection}
-          />
-
-          <AddTabDialog
-            open={isAddTabDialogOpen}
-            onOpenChange={setIsAddTabDialogOpen}
-            onAdd={handleAddCustomTab}
-          />
-
-          <AddSectionDialog
-            open={isAddSectionDialogOpen}
-            onOpenChange={setIsAddSectionDialogOpen}
-            onAdd={handleAddCustomSection}
-            contentType={contentType}
-          />
-
-          <ProfileDialog
-            open={isProfileDialogOpen}
-            onOpenChange={setIsProfileDialogOpen}
-            currentUser={auth.currentUser}
-            movieCount={movieCount}
-            tvShowCount={tvShowCount}
-            restaurantCount={restaurantCount}
-            placeCount={placeCount}
-            movies={movies}
-            customTabs={customTabs}
-            customSections={customSections}
-            onImport={handleImportData}
-          />
-
-          <ProfileSwitcherDialog
-            open={isProfileSwitcherOpen}
-            onOpenChange={setIsProfileSwitcherOpen}
-            users={auth.users}
-            currentUserId={auth.currentUserId}
-            onSwitchProfile={auth.handleSwitchProfile}
-          />
-
-          <SettingsDialog
-            open={isSettingsDialogOpen}
-            onOpenChange={setIsSettingsDialogOpen}
-            movies={movies}
-            customTabs={customTabs}
-            customSections={customSections}
-            onImport={handleImportData}
-            backgroundColors={backgroundColors}
-            onBackgroundColorsChange={setBackgroundColors}
-          />
-
-          <MovieDetailDialog
-            movie={selectedMovie}
-            open={!!selectedMovie}
-            onOpenChange={(open) => !open && setSelectedMovie(null)}
-            onUpdate={updateMovie}
-            customSections={customSections}
-          />
-
-          <ShareDialog
-            open={isShareDialogOpen}
-            onOpenChange={setIsShareDialogOpen}
-            movies={getFilteredContent(activeSection)}
-            categoryName={getCategoryDisplayName(contentType, customTabs)}
-            sectionName={getSectionDisplayName(activeSection, contentType, customSections, customTabs)}
-          />
-
-          <AlertDialog open={!!tabToDelete} onOpenChange={(open) => !open && setTabToDelete(null)}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete "{tabToDelete?.name}" Tab?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will permanently delete this tab and all {movies.filter(m => m.type === tabToDelete?.id).length} items associated with it. This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => tabToDelete && handleDeleteCustomTab(tabToDelete.id)}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  Delete Tab
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </>
-      )}
+      {mainPageContent}
 
       <Toaster />
     </div>

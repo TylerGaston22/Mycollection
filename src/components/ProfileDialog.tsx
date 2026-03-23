@@ -12,10 +12,7 @@ import { Separator } from "./ui/separator";
 import { Badge } from "./ui/badge";
 import { toast } from "sonner@2.0.3";
 
-import { User as UserType } from "../types/user";
-import { Movie } from "../types/movie";
-import { CustomTab } from "../types/customTab";
-import { CustomSection } from "../types/customSection";
+import { User as UserType, Movie, CustomTab, CustomSection } from "../types";
 
 interface ProfileDialogProps {
   open: boolean;
@@ -44,12 +41,12 @@ export function ProfileDialog({
   customSections,
   onImport
 }: ProfileDialogProps) {
-  const totalItems = movieCount + tvShowCount + restaurantCount + placeCount;
-  const watchedCount = movies?.filter(m => m.status === 'watched').length ?? 0;
-  const favoriteCount = movies?.filter(m => m.favorite).length ?? 0;
+  const totalCollectionItemCount = movieCount + tvShowCount + restaurantCount + placeCount;
+  const numberOfItemsWatched = movies?.filter((collectionItem) => collectionItem.status === 'watched').length ?? 0;
+  const numberOfItemsFavorited = movies?.filter((collectionItem) => collectionItem.favorite).length ?? 0;
 
   const handleExportData = () => {
-    const data = {
+    const collectionDataForExport = {
       movies: movies || [],
       customTabs: customTabs || [],
       customSections: customSections || [],
@@ -62,16 +59,16 @@ export function ProfileDialog({
       }
     };
 
-    const dataStr = JSON.stringify(data, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${currentUser.username}-collection-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const collectionDataJsonString = JSON.stringify(collectionDataForExport, null, 2);
+    const jsonFileBlob = new Blob([collectionDataJsonString], { type: 'application/json' });
+    const downloadableFileUrl = URL.createObjectURL(jsonFileBlob);
+    const downloadLinkElement = document.createElement('a');
+    downloadLinkElement.href = downloadableFileUrl;
+    downloadLinkElement.download = `${currentUser.username}-collection-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(downloadLinkElement);
+    downloadLinkElement.click();
+    document.body.removeChild(downloadLinkElement);
+    URL.revokeObjectURL(downloadableFileUrl);
 
     toast.success('Collection exported successfully!', {
       description: 'Your data has been downloaded as a JSON file.'
@@ -79,32 +76,32 @@ export function ProfileDialog({
   };
 
   const handleImportData = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
+    const hiddenFileInputElement = document.createElement('input');
+    hiddenFileInputElement.type = 'file';
+    hiddenFileInputElement.accept = '.json';
+    hiddenFileInputElement.onchange = (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = (event) => {
+      const fileContentReader = new FileReader();
+      fileContentReader.onload = (readerEvent) => {
         try {
-          const data = JSON.parse(event.target?.result as string);
+          const parsedData = JSON.parse(readerEvent.target?.result as string);
 
-          if (!data.movies || !Array.isArray(data.movies)) {
+          if (!parsedData.movies || !Array.isArray(parsedData.movies)) {
             throw new Error('Invalid data format: movies array not found');
           }
 
           if (onImport) {
             onImport({
-              movies: data.movies || [],
-              customTabs: data.customTabs || [],
-              customSections: data.customSections || []
+              movies: parsedData.movies || [],
+              customTabs: parsedData.customTabs || [],
+              customSections: parsedData.customSections || []
             });
           }
 
           toast.success('Collection imported successfully!', {
-            description: `Imported ${data.movies.length} items, ${data.customTabs?.length || 0} custom categories, and ${data.customSections?.length || 0} custom sections.`
+            description: `Imported ${parsedData.movies.length} items, ${parsedData.customTabs?.length || 0} custom categories, and ${parsedData.customSections?.length || 0} custom sections.`
           });
 
           onOpenChange(false);
@@ -114,10 +111,21 @@ export function ProfileDialog({
           });
         }
       };
-      reader.readAsText(file);
+      fileContentReader.readAsText(file);
     };
-    input.click();
+    hiddenFileInputElement.click();
   };
+
+  let avatarContent;
+  if (currentUser.profileImage) {
+    avatarContent = <AvatarImage src={currentUser.profileImage} alt="Profile" />;
+  } else {
+    avatarContent = (
+      <AvatarFallback className="bg-primary text-primary-foreground text-3xl">
+        <User className="h-16 w-16" />
+      </AvatarFallback>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -133,13 +141,7 @@ export function ProfileDialog({
           {/* Profile Picture Section */}
           <div className="flex flex-col items-center gap-4">
             <Avatar className="h-32 w-32">
-              {currentUser.profileImage ? (
-                <AvatarImage src={currentUser.profileImage} alt="Profile" />
-              ) : (
-                <AvatarFallback className="bg-primary text-primary-foreground text-3xl">
-                  <User className="h-16 w-16" />
-                </AvatarFallback>
-              )}
+              {avatarContent}
             </Avatar>
             <div className="text-center">
               <h3 className="mb-1">{currentUser.name}</h3>
@@ -184,15 +186,15 @@ export function ProfileDialog({
 
             <div className="grid grid-cols-3 gap-3">
               <div className="text-center p-3 border rounded-lg bg-muted/30">
-                <div className="text-2xl mb-1">{totalItems}</div>
+                <div className="text-2xl mb-1">{totalCollectionItemCount}</div>
                 <div className="text-xs text-muted-foreground">Total Items</div>
               </div>
               <div className="text-center p-3 border rounded-lg bg-muted/30">
-                <div className="text-2xl mb-1">{watchedCount}</div>
+                <div className="text-2xl mb-1">{numberOfItemsWatched}</div>
                 <div className="text-xs text-muted-foreground">Watched</div>
               </div>
               <div className="text-center p-3 border rounded-lg bg-muted/30">
-                <div className="text-2xl mb-1">{favoriteCount}</div>
+                <div className="text-2xl mb-1">{numberOfItemsFavorited}</div>
                 <div className="text-xs text-muted-foreground">Favorites</div>
               </div>
             </div>

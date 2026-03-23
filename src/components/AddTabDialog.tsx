@@ -10,7 +10,7 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { CustomTab } from "../types/customTab";
+import { CustomTab } from "../types";
 import {
   BookOpen,
   Coffee,
@@ -56,21 +56,21 @@ interface AddTabDialogProps {
 }
 
 export function AddTabDialog({ open, onOpenChange, onAdd }: AddTabDialogProps) {
-  const [name, setName] = useState('');
-  const [selectedIcon, setSelectedIcon] = useState('Star');
+  const [categoryTabName, setCategoryTabName] = useState('');
+  const [selectedCategoryIconName, setSelectedCategoryIconName] = useState('Star');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!categoryTabName.trim()) return;
 
     onAdd({
-      name: name.trim(),
-      icon: selectedIcon,
+      name: categoryTabName.trim(),
+      icon: selectedCategoryIconName,
     });
 
     // Reset form
-    setName('');
-    setSelectedIcon('Star');
+    setCategoryTabName('');
+    setSelectedCategoryIconName('Star');
     onOpenChange(false);
   };
 
@@ -82,14 +82,14 @@ export function AddTabDialog({ open, onOpenChange, onAdd }: AddTabDialogProps) {
             <DialogTitle>Create New Tab</DialogTitle>
             <DialogDescription>Enter the name and choose an icon for your new tab.</DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-6 py-6">
             <div className="space-y-2">
               <Label htmlFor="tab-name">Tab Name</Label>
               <Input
                 id="tab-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={categoryTabName}
+                onChange={(event) => setCategoryTabName(event.target.value)}
                 placeholder="e.g., Books, Concerts, Recipes..."
                 autoFocus
               />
@@ -98,20 +98,24 @@ export function AddTabDialog({ open, onOpenChange, onAdd }: AddTabDialogProps) {
             <div className="space-y-2">
               <Label>Choose an Icon</Label>
               <div className="grid grid-cols-8 gap-2">
-                {availableIcons.map(({ name: iconName, icon: Icon }) => (
-                  <button
-                    key={iconName}
-                    type="button"
-                    onClick={() => setSelectedIcon(iconName)}
-                    className={`p-3 rounded-md border-2 transition-all hover:border-primary/50 ${
-                      selectedIcon === iconName
-                        ? 'border-primary bg-primary/10'
-                        : 'border-border'
-                    }`}
-                  >
-                    <Icon className="h-5 w-5 mx-auto" />
-                  </button>
-                ))}
+                {availableIcons.map(({ name: iconName, icon: IconComponent }) => {
+                  let iconButtonBorderClass;
+                  if (selectedCategoryIconName === iconName) {
+                    iconButtonBorderClass = 'border-primary bg-primary/10';
+                  } else {
+                    iconButtonBorderClass = 'border-border';
+                  }
+                  return (
+                    <button
+                      key={iconName}
+                      type="button"
+                      onClick={() => setSelectedCategoryIconName(iconName)}
+                      className={`p-3 rounded-md border-2 transition-all hover:border-primary/50 ${iconButtonBorderClass}`}
+                    >
+                      <IconComponent className="h-5 w-5 mx-auto" />
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -124,7 +128,7 @@ export function AddTabDialog({ open, onOpenChange, onAdd }: AddTabDialogProps) {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={!name.trim()}>
+            <Button type="submit" disabled={!categoryTabName.trim()}>
               Create Tab
             </Button>
           </DialogFooter>

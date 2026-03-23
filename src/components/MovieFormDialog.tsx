@@ -13,8 +13,7 @@ import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Checkbox } from "./ui/checkbox";
-import { Movie } from "../types/movie";
-import { CustomSection } from "../types/customSection";
+import { Movie, CustomSection } from "../types";
 
 interface MovieFormDialogProps {
   open: boolean;
@@ -39,8 +38,8 @@ export function MovieFormDialog({
   movie,
   onUpdate,
 }: MovieFormDialogProps) {
-  const type = movie?.type ?? contentType ?? 'movie';
-  const isEdit = !!movie;
+  const itemContentType = movie?.type ?? contentType ?? 'movie';
+  const isEditingExistingItem = !!movie;
 
   const [title, setTitle] = useState('');
   const [year, setYear] = useState('');
@@ -54,7 +53,7 @@ export function MovieFormDialog({
   const [episodes, setEpisodes] = useState('');
   const [selectedSections, setSelectedSections] = useState<string[]>([]);
 
-  const relevantSections = customSections.filter(s => s.contentType === type);
+  const sectionsForCurrentContentType = customSections.filter((section) => section.contentType === itemContentType);
 
   useEffect(() => {
     if (!open) return;
@@ -74,17 +73,25 @@ export function MovieFormDialog({
       setTitle(''); setYear(''); setPosterUrl(''); setStatus('watched');
       setNotes(''); setPlatform(''); setStudio(''); setGenre('');
       setSeasons(''); setEpisodes('');
-      const autoSection = activeSection && customSections.some(s => s.id === activeSection && s.contentType === contentType)
-        ? [activeSection] : [];
-      setSelectedSections(autoSection);
+
+      let preSelectedSectionIds: string[] = [];
+      if (activeSection) {
+        const activeSectionBelongsToCurrentContentType = customSections.some(
+          (section) => section.id === activeSection && section.contentType === contentType
+        );
+        if (activeSectionBelongsToCurrentContentType) {
+          preSelectedSectionIds = [activeSection];
+        }
+      }
+      setSelectedSections(preSelectedSectionIds);
     }
   }, [open, movie]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
     if (!title.trim()) return;
 
-    const fields = {
+    const formDataToSave = {
       title: title.trim(),
       year: year.trim() || undefined,
       posterUrl: posterUrl.trim() || undefined,
@@ -98,81 +105,171 @@ export function MovieFormDialog({
       sections: selectedSections.length > 0 ? selectedSections : undefined,
     };
 
-    if (isEdit && movie) {
-      onUpdate?.(movie.id, fields);
+    if (isEditingExistingItem && movie) {
+      onUpdate?.(movie.id, formDataToSave);
     } else {
-      onAdd?.({ ...fields, type, favorite: false });
+      onAdd?.({ ...formDataToSave, type: itemContentType, favorite: false });
     }
     onOpenChange(false);
   };
 
-  const typeLabel = type === 'movie' ? 'Movie'
-    : type === 'tv-show' ? 'TV Show'
-    : type === 'restaurant' ? 'Restaurant'
-    : 'Place';
+  let contentTypeDisplayLabel;
+  if (itemContentType === 'movie') {
+    contentTypeDisplayLabel = 'Movie';
+  } else if (itemContentType === 'tv-show') {
+    contentTypeDisplayLabel = 'TV Show';
+  } else if (itemContentType === 'restaurant') {
+    contentTypeDisplayLabel = 'Restaurant';
+  } else {
+    contentTypeDisplayLabel = 'Place';
+  }
 
-  const isMediaType = type === 'movie' || type === 'tv-show';
-  const locationLabel = type === 'restaurant' || type === 'place' ? 'Location' : 'Year';
-  const locationPlaceholder = type === 'restaurant' || type === 'place' ? 'City, Country' : '2024';
+  const isMovieOrTvShow = itemContentType === 'movie' || itemContentType === 'tv-show';
+
+  let yearOrLocationFieldLabel;
+  if (itemContentType === 'restaurant' || itemContentType === 'place') {
+    yearOrLocationFieldLabel = 'Location';
+  } else {
+    yearOrLocationFieldLabel = 'Year';
+  }
+
+  let yearOrLocationFieldPlaceholder;
+  if (itemContentType === 'restaurant' || itemContentType === 'place') {
+    yearOrLocationFieldPlaceholder = 'City, Country';
+  } else {
+    yearOrLocationFieldPlaceholder = '2024';
+  }
+
+  let dialogActionWord;
+  if (isEditingExistingItem) {
+    dialogActionWord = 'Edit';
+  } else {
+    dialogActionWord = 'Add';
+  }
+
+  let dialogDescriptionText;
+  if (isEditingExistingItem) {
+    dialogDescriptionText = 'Update the details of this item';
+  } else {
+    dialogDescriptionText = `Add a new ${contentTypeDisplayLabel.toLowerCase()} to your collection`;
+  }
+
+  let itemTitleFieldLabel;
+  if (itemContentType === 'restaurant') {
+    itemTitleFieldLabel = 'Name';
+  } else if (itemContentType === 'place') {
+    itemTitleFieldLabel = 'Place Name';
+  } else {
+    itemTitleFieldLabel = 'Title';
+  }
+
+  let itemTitleFieldInputTypeWord;
+  if (itemContentType === 'restaurant' || itemContentType === 'place') {
+    itemTitleFieldInputTypeWord = 'name';
+  } else {
+    itemTitleFieldInputTypeWord = 'title';
+  }
+
+  let mediaImageUrlLabel;
+  if (isMovieOrTvShow) {
+    mediaImageUrlLabel = 'Poster URL';
+  } else {
+    mediaImageUrlLabel = 'Photo URL';
+  }
+
+  let watchedStatusLabel;
+  if (isMovieOrTvShow) {
+    watchedStatusLabel = 'Watched';
+  } else {
+    watchedStatusLabel = 'Visited';
+  }
+
+  let wantToSeeStatusLabel;
+  if (isMovieOrTvShow) {
+    wantToSeeStatusLabel = 'Want to See';
+  } else {
+    wantToSeeStatusLabel = 'Want to Visit';
+  }
+
+  let platformOrInfoFieldLabel;
+  if (isMovieOrTvShow) {
+    platformOrInfoFieldLabel = 'Where to Watch';
+  } else {
+    platformOrInfoFieldLabel = 'Additional Info';
+  }
+
+  let platformOrInfoFieldPlaceholder;
+  if (isMovieOrTvShow) {
+    platformOrInfoFieldPlaceholder = 'Netflix, Disney+, Hulu, etc.';
+  } else {
+    platformOrInfoFieldPlaceholder = 'Additional details...';
+  }
+
+  let submitButtonLabel;
+  if (isEditingExistingItem) {
+    submitButtonLabel = 'Save Changes';
+  } else {
+    submitButtonLabel = `Add ${contentTypeDisplayLabel}`;
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{isEdit ? 'Edit' : 'Add'} {typeLabel}</DialogTitle>
+            <DialogTitle>{dialogActionWord} {contentTypeDisplayLabel}</DialogTitle>
             <DialogDescription>
-              {isEdit ? 'Update the details of this item' : `Add a new ${typeLabel.toLowerCase()} to your collection`}
+              {dialogDescriptionText}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="mf-title">
-                {type === 'restaurant' ? 'Name' : type === 'place' ? 'Place Name' : 'Title'} *
+                {itemTitleFieldLabel} *
               </Label>
               <Input
                 id="mf-title"
-                placeholder={`Enter ${typeLabel.toLowerCase()} ${type === 'restaurant' || type === 'place' ? 'name' : 'title'}`}
+                placeholder={`Enter ${contentTypeDisplayLabel.toLowerCase()} ${itemTitleFieldInputTypeWord}`}
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(event) => setTitle(event.target.value)}
                 required
               />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="mf-year">{locationLabel}</Label>
+              <Label htmlFor="mf-year">{yearOrLocationFieldLabel}</Label>
               <Input
                 id="mf-year"
-                placeholder={locationPlaceholder}
+                placeholder={yearOrLocationFieldPlaceholder}
                 value={year}
-                onChange={(e) => setYear(e.target.value)}
+                onChange={(event) => setYear(event.target.value)}
               />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="mf-poster">{isMediaType ? 'Poster URL' : 'Photo URL'}</Label>
+              <Label htmlFor="mf-poster">{mediaImageUrlLabel}</Label>
               <Input
                 id="mf-poster"
                 placeholder="https://..."
                 value={posterUrl}
-                onChange={(e) => setPosterUrl(e.target.value)}
+                onChange={(event) => setPosterUrl(event.target.value)}
               />
             </div>
 
             <div className="grid gap-2">
               <Label>Status</Label>
-              <RadioGroup value={status} onValueChange={(v) => setStatus(v as 'watched' | 'want-to-see')}>
+              <RadioGroup value={status} onValueChange={(newValue) => setStatus(newValue as 'watched' | 'want-to-see')}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="watched" id="mf-watched" />
                   <Label htmlFor="mf-watched" className="cursor-pointer">
-                    {isMediaType ? 'Watched' : 'Visited'}
+                    {watchedStatusLabel}
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="want-to-see" id="mf-want-to-see" />
                   <Label htmlFor="mf-want-to-see" className="cursor-pointer">
-                    {isMediaType ? 'Want to See' : 'Want to Visit'}
+                    {wantToSeeStatusLabel}
                   </Label>
                 </div>
               </RadioGroup>
@@ -180,17 +277,17 @@ export function MovieFormDialog({
 
             <div className="grid gap-2">
               <Label htmlFor="mf-platform">
-                {isMediaType ? 'Where to Watch' : 'Additional Info'}
+                {platformOrInfoFieldLabel}
               </Label>
               <Input
                 id="mf-platform"
-                placeholder={isMediaType ? 'Netflix, Disney+, Hulu, etc.' : 'Additional details...'}
+                placeholder={platformOrInfoFieldPlaceholder}
                 value={platform}
-                onChange={(e) => setPlatform(e.target.value)}
+                onChange={(event) => setPlatform(event.target.value)}
               />
             </div>
 
-            {isMediaType && (
+            {isMovieOrTvShow && (
               <>
                 <div className="grid gap-2">
                   <Label htmlFor="mf-studio">Studio</Label>
@@ -198,7 +295,7 @@ export function MovieFormDialog({
                     id="mf-studio"
                     placeholder="Studio Ghibli, Pixar, etc."
                     value={studio}
-                    onChange={(e) => setStudio(e.target.value)}
+                    onChange={(event) => setStudio(event.target.value)}
                   />
                 </div>
                 <div className="grid gap-2">
@@ -207,21 +304,21 @@ export function MovieFormDialog({
                     id="mf-genre"
                     placeholder="Animated, Korean Drama, Action, etc."
                     value={genre}
-                    onChange={(e) => setGenre(e.target.value)}
+                    onChange={(event) => setGenre(event.target.value)}
                   />
                 </div>
               </>
             )}
 
-            {type === 'tv-show' && (
+            {itemContentType === 'tv-show' && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="mf-seasons">Seasons</Label>
-                  <Input id="mf-seasons" type="number" min="1" placeholder="1" value={seasons} onChange={(e) => setSeasons(e.target.value)} />
+                  <Input id="mf-seasons" type="number" min="1" placeholder="1" value={seasons} onChange={(event) => setSeasons(event.target.value)} />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="mf-episodes">Episodes</Label>
-                  <Input id="mf-episodes" type="number" min="1" placeholder="10" value={episodes} onChange={(e) => setEpisodes(e.target.value)} />
+                  <Input id="mf-episodes" type="number" min="1" placeholder="10" value={episodes} onChange={(event) => setEpisodes(event.target.value)} />
                 </div>
               </div>
             )}
@@ -232,26 +329,27 @@ export function MovieFormDialog({
                 id="mf-notes"
                 placeholder="Add your thoughts..."
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={(event) => setNotes(event.target.value)}
                 rows={3}
               />
             </div>
 
-            {relevantSections.length > 0 && (
+            {sectionsForCurrentContentType.length > 0 && (
               <div className="grid gap-2">
                 <Label>Add to Sections</Label>
                 <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-3">
-                  {relevantSections.map(section => (
+                  {sectionsForCurrentContentType.map((section) => (
                     <div key={section.id} className="flex items-center space-x-2">
                       <Checkbox
                         id={`mf-section-${section.id}`}
                         checked={selectedSections.includes(section.id)}
-                        onCheckedChange={(checked) =>
-                          setSelectedSections(checked
-                            ? [...selectedSections, section.id]
-                            : selectedSections.filter(id => id !== section.id)
-                          )
-                        }
+                        onCheckedChange={(isNowChecked) => {
+                          if (isNowChecked) {
+                            setSelectedSections([...selectedSections, section.id]);
+                          } else {
+                            setSelectedSections(selectedSections.filter((sectionId) => sectionId !== section.id));
+                          }
+                        }}
                       />
                       <Label htmlFor={`mf-section-${section.id}`} className="cursor-pointer">
                         {section.name}
@@ -266,7 +364,7 @@ export function MovieFormDialog({
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit" disabled={!title.trim()}>
-              {isEdit ? 'Save Changes' : `Add ${typeLabel}`}
+              {submitButtonLabel}
             </Button>
           </DialogFooter>
         </form>

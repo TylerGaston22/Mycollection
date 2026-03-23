@@ -10,52 +10,54 @@ interface SignInPageProps {
 }
 
 export function SignInPage({ onSignIn, onBack }: SignInPageProps) {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [enteredUsername, setEnteredUsername] = useState("");
+  const [enteredPassword, setEnteredPassword] = useState("");
+  const [formValidationError, setFormValidationError] = useState("");
+  const [isSignInRequestLoading, setIsSignInRequestLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    setFormValidationError("");
+
     // Validation
-    if (!username.trim()) {
-      setError("Please enter your username or email");
+    if (!enteredUsername.trim()) {
+      setFormValidationError("Please enter your username or email");
       return;
     }
-    
-    if (!password.trim()) {
-      setError("Please enter your password");
+
+    if (!enteredPassword.trim()) {
+      setFormValidationError("Please enter your password");
       return;
     }
-    
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+
+    if (enteredPassword.length < 6) {
+      setFormValidationError("Password must be at least 6 characters");
       return;
     }
-    
+
     // Simulate loading
-    setIsLoading(true);
+    setIsSignInRequestLoading(true);
     setTimeout(() => {
-      onSignIn(username, password);
-      setIsLoading(false);
+      onSignIn(enteredUsername, enteredPassword);
+      setIsSignInRequestLoading(false);
     }, 800);
   };
 
   const handleDemoLogin = () => {
-    const demoEmail = import.meta.env.VITE_DEMO_EMAIL as string;
-    const demoPassword = import.meta.env.VITE_DEMO_PASSWORD as string;
-    setUsername(demoEmail);
-    setPassword(demoPassword);
-    setError("");
-
-    setIsLoading(true);
-    setTimeout(() => {
-      onSignIn(demoEmail, demoPassword);
-      setIsLoading(false);
-    }, 800);
+    onSignIn('demo', 'demo');
   };
+
+  let signInButtonContent;
+  if (isSignInRequestLoading) {
+    signInButtonContent = (
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        <span>Signing in...</span>
+      </div>
+    );
+  } else {
+    signInButtonContent = "Sign In";
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 relative z-10">
@@ -111,10 +113,10 @@ export function SignInPage({ onSignIn, onBack }: SignInPageProps) {
                 id="username"
                 type="text"
                 placeholder="Enter your username or email"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={enteredUsername}
+                onChange={(event) => setEnteredUsername(event.target.value)}
                 className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-orange-500/50 focus:ring-orange-500/20"
-                disabled={isLoading}
+                disabled={isSignInRequestLoading}
               />
             </div>
 
@@ -126,17 +128,17 @@ export function SignInPage({ onSignIn, onBack }: SignInPageProps) {
                 id="password"
                 type="password"
                 placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={enteredPassword}
+                onChange={(event) => setEnteredPassword(event.target.value)}
                 className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-orange-500/50 focus:ring-orange-500/20"
-                disabled={isLoading}
+                disabled={isSignInRequestLoading}
               />
             </div>
 
             {/* Error Message */}
-            {error && (
+            {formValidationError && (
               <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                <p className="text-red-400 text-sm">{error}</p>
+                <p className="text-red-400 text-sm">{formValidationError}</p>
               </div>
             )}
 
@@ -144,16 +146,9 @@ export function SignInPage({ onSignIn, onBack }: SignInPageProps) {
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
-              disabled={isLoading}
+              disabled={isSignInRequestLoading}
             >
-              {isLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Signing in...</span>
-                </div>
-              ) : (
-                "Sign In"
-              )}
+              {signInButtonContent}
             </Button>
           </form>
 
@@ -173,36 +168,11 @@ export function SignInPage({ onSignIn, onBack }: SignInPageProps) {
             onClick={handleDemoLogin}
             variant="outline"
             className="w-full border-white/10 text-black hover:bg-white/5 hover:text-white py-6 rounded-xl transition-all"
-            disabled={isLoading}
+            disabled={isSignInRequestLoading}
           >
             Try Demo Account
           </Button>
 
-          {/* Footer Links */}
-          <div className="mt-6 text-center space-y-2">
-            <button
-              type="button"
-              className="text-sm text-gray-400 hover:text-orange-400 transition-colors"
-            >
-              Forgot password?
-            </button>
-            <div className="text-sm text-gray-400">
-              Don't have an account?{" "}
-              <button
-                type="button"
-                className="text-orange-400 hover:text-orange-300 transition-colors font-semibold"
-              >
-                Sign up
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Additional Info */}
-        <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500">
-            By signing in, you agree to our Terms of Service and Privacy Policy
-          </p>
         </div>
       </div>
     </div>

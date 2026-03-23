@@ -10,7 +10,7 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { CustomSection } from "../types/customSection";
+import { CustomSection } from "../types";
 
 interface AddSectionDialogProps {
   open: boolean;
@@ -20,19 +20,32 @@ interface AddSectionDialogProps {
 }
 
 export function AddSectionDialog({ open, onOpenChange, onAdd, contentType }: AddSectionDialogProps) {
-  const [name, setName] = useState('');
+  const [subcategoryName, setSubcategoryName] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
+  let contentTypePluralName;
+  if (contentType === 'movie') {
+    contentTypePluralName = 'movies';
+  } else if (contentType === 'tv-show') {
+    contentTypePluralName = 'TV shows';
+  } else if (contentType === 'restaurant') {
+    contentTypePluralName = 'restaurants';
+  } else if (contentType === 'place') {
+    contentTypePluralName = 'places';
+  } else {
+    contentTypePluralName = 'items';
+  }
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!subcategoryName.trim()) return;
 
     onAdd({
-      name: name.trim(),
+      name: subcategoryName.trim(),
       contentType,
     });
 
     // Reset form
-    setName('');
+    setSubcategoryName('');
     onOpenChange(false);
   };
 
@@ -43,17 +56,17 @@ export function AddSectionDialog({ open, onOpenChange, onAdd, contentType }: Add
           <DialogHeader>
             <DialogTitle>Create Subcategory</DialogTitle>
             <DialogDescription>
-              Add a custom subcategory to organize your {contentType === 'movie' ? 'movies' : contentType === 'tv-show' ? 'TV shows' : contentType === 'restaurant' ? 'restaurants' : contentType === 'place' ? 'places' : 'items'}
+              Add a custom subcategory to organize your {contentTypePluralName}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-6">
             <div className="space-y-2">
               <Label htmlFor="section-name">Subcategory Name</Label>
               <Input
                 id="section-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={subcategoryName}
+                onChange={(event) => setSubcategoryName(event.target.value)}
                 placeholder="e.g., Top Ten, Must Watch Soon, Action, Classics..."
                 autoFocus
               />
@@ -71,7 +84,7 @@ export function AddSectionDialog({ open, onOpenChange, onAdd, contentType }: Add
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={!name.trim()}>
+            <Button type="submit" disabled={!subcategoryName.trim()}>
               Create Subcategory
             </Button>
           </DialogFooter>

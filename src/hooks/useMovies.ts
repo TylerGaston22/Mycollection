@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
 import { toast } from "sonner@2.0.3";
-import { Movie } from '../types/movie';
+import { Movie } from '../types';
 
 export function useMovies(currentUserId: string) {
   const [movies, setMovies] = useState<Movie[]>([]);
 
   useEffect(() => {
-    const stored = localStorage.getItem(`movies-${currentUserId}`);
-    setMovies(stored ? (JSON.parse(stored) as Movie[]) : []);
+    const savedMoviesJsonString = localStorage.getItem(`movies-${currentUserId}`);
+    if (savedMoviesJsonString) {
+      setMovies(JSON.parse(savedMoviesJsonString) as Movie[]);
+    } else {
+      setMovies([]);
+    }
   }, [currentUserId]);
 
   useEffect(() => {
@@ -16,7 +20,7 @@ export function useMovies(currentUserId: string) {
 
   const addMovie = (movie: Omit<Movie, 'id'>) => {
     const isDuplicate = movies.some(
-      m => m.title.toLowerCase() === movie.title.toLowerCase() && m.type === movie.type
+      (existingMovie) => existingMovie.title.toLowerCase() === movie.title.toLowerCase() && existingMovie.type === movie.type
     );
     if (isDuplicate) {
       toast.error('Duplicate item', {
@@ -24,23 +28,28 @@ export function useMovies(currentUserId: string) {
       });
       return;
     }
-    setMovies(prev => [{ ...movie, id: Date.now().toString() }, ...prev]);
+    setMovies((previousMoviesList) => [{ ...movie, id: Date.now().toString() }, ...previousMoviesList]);
   };
 
   const updateMovie = (id: string, updates: Partial<Movie>) => {
-    setMovies(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+    setMovies((previousMoviesList) => previousMoviesList.map((collectionItem) => {
+      if (collectionItem.id === id) {
+        return { ...collectionItem, ...updates };
+      }
+      return collectionItem;
+    }));
   };
 
   const deleteMovie = (id: string) => {
-    setMovies(prev => prev.filter(m => m.id !== id));
+    setMovies((previousMoviesList) => previousMoviesList.filter((collectionItem) => collectionItem.id !== id));
   };
 
-  const removeByType = (type: string) => {
-    setMovies(prev => prev.filter(m => m.type !== type));
+  const removeByType = (typeToRemove: string) => {
+    setMovies((previousMoviesList) => previousMoviesList.filter((collectionItem) => collectionItem.type !== typeToRemove));
   };
 
-  const importMovies = (imported: Movie[]) => {
-    setMovies(imported);
+  const importMovies = (importedMoviesArray: Movie[]) => {
+    setMovies(importedMoviesArray);
   };
 
   return {

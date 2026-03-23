@@ -8,9 +8,8 @@ import {
 } from "./ui/dialog";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Tv, Film, ExternalLink, Clapperboard, Tag, Edit } from 'lucide-react';
-import { Movie } from "../types/movie";
-import { CustomSection } from "../types/customSection";
+import { Tv, Film, ExternalLink, Edit } from 'lucide-react';
+import { Movie, CustomSection } from "../types";
 import { Separator } from "./ui/separator";
 import { MovieFormDialog } from "./MovieFormDialog";
 
@@ -22,18 +21,134 @@ interface MovieDetailDialogProps {
   customSections?: CustomSection[];
 }
 
-export function MovieDetailDialog({ 
-  movie, 
-  open, 
+export function MovieDetailDialog({
+  movie,
+  open,
   onOpenChange,
   onUpdate,
   customSections = []
 }: MovieDetailDialogProps) {
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isMovieEditDialogOpen, setIsMovieEditDialogOpen] = useState(false);
 
   if (!movie) return null;
 
-  const hasDetails = movie.platform || movie.studio || movie.genre || (movie.type === 'tv-show' && (movie.seasons || movie.episodes)) || movie.notes;
+  const movieHasAdditionalDetails = movie.platform || movie.studio || movie.genre || (movie.type === 'tv-show' && (movie.seasons || movie.episodes)) || movie.notes;
+
+  let contentTypeHeaderIcon = null;
+  if (movie.type === 'tv-show') {
+    contentTypeHeaderIcon = <Tv className="h-5 w-5" />;
+  } else if (movie.type === 'movie') {
+    contentTypeHeaderIcon = <Film className="h-5 w-5" />;
+  }
+
+  let platformFieldHeadingText;
+  if (movie.type === 'restaurant') {
+    platformFieldHeadingText = 'Cuisine Type';
+  } else if (movie.type === 'place') {
+    platformFieldHeadingText = 'Location';
+  } else {
+    platformFieldHeadingText = 'Where to Watch';
+  }
+
+  let seasonsPluralLabel;
+  if (movie.seasons === 1) {
+    seasonsPluralLabel = 'season';
+  } else {
+    seasonsPluralLabel = 'seasons';
+  }
+
+  let episodesPluralLabel;
+  if (movie.episodes === 1) {
+    episodesPluralLabel = 'episode';
+  } else {
+    episodesPluralLabel = 'episodes';
+  }
+
+  let movieDetailsContent;
+  if (movieHasAdditionalDetails) {
+    movieDetailsContent = (
+      <div className="space-y-4">
+        {/* Streaming Platform */}
+        {movie.platform && (
+          <div className="space-y-3">
+            <div>
+              <h4 className="mb-2">{platformFieldHeadingText}</h4>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary" className="gap-2 px-3 py-1">
+                  <ExternalLink className="h-4 w-4" />
+                  {movie.platform}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Studio */}
+        {movie.studio && (
+          <div className="space-y-2">
+            <div className="text-muted-foreground">Studio</div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="gap-2 px-3 py-1">
+                {movie.studio}
+              </Badge>
+            </div>
+          </div>
+        )}
+
+        {/* Genre/Type */}
+        {movie.genre && (
+          <div className="space-y-2">
+            <div className="text-muted-foreground">Genre/Type</div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="gap-2 px-3 py-1">
+                {movie.genre}
+              </Badge>
+            </div>
+          </div>
+        )}
+
+        {/* Seasons/Episodes for TV Shows */}
+        {movie.type === 'tv-show' && (movie.seasons || movie.episodes) && (
+          <>
+            <Separator />
+            <div className="grid grid-cols-2 gap-4">
+              {movie.seasons && (
+                <div className="space-y-2">
+                  <div className="text-muted-foreground">Seasons</div>
+                  <p>{movie.seasons} {seasonsPluralLabel}</p>
+                </div>
+              )}
+              {movie.episodes && (
+                <div className="space-y-2">
+                  <div className="text-muted-foreground">Episodes</div>
+                  <p>{movie.episodes} {episodesPluralLabel}</p>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Notes */}
+        {movie.notes && (
+          <>
+            <Separator />
+            <div className="space-y-2">
+              <div className="text-muted-foreground">Notes</div>
+              <p className="bg-muted p-3 rounded-lg">
+                {movie.notes}
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  } else {
+    movieDetailsContent = (
+      <div className="text-center py-8 text-muted-foreground">
+        No additional details available. Use the menu to edit and add more information.
+      </div>
+    );
+  }
 
   return (
     <>
@@ -42,17 +157,13 @@ export function MovieDetailDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                {movie.type === 'tv-show' ? (
-                  <Tv className="h-5 w-5" />
-                ) : movie.type === 'movie' ? (
-                  <Film className="h-5 w-5" />
-                ) : null}
+                {contentTypeHeaderIcon}
                 {movie.title}
               </div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
-                onClick={() => setIsEditDialogOpen(true)}
+                onClick={() => setIsMovieEditDialogOpen(true)}
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
@@ -63,100 +174,17 @@ export function MovieDetailDialog({
             </DialogDescription>
           </DialogHeader>
 
-        {hasDetails ? (
-          <div className="space-y-4">
-            {/* Streaming Platform */}
-            {movie.platform && (
-              <div className="space-y-3">
-                <div>
-                  <h4 className="mb-2">
-                    {movie.type === 'restaurant' ? 'Cuisine Type' : movie.type === 'place' ? 'Location' : 'Where to Watch'}
-                  </h4>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="secondary" className="gap-2 px-3 py-1">
-                      <ExternalLink className="h-4 w-4" />
-                      {movie.platform}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            )}
+          {movieDetailsContent}
+        </DialogContent>
+      </Dialog>
 
-            {/* Studio */}
-            {movie.studio && (
-              <div className="space-y-2">
-                <div className="text-muted-foreground">Studio</div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="gap-2 px-3 py-1">
-                    <Clapperboard className="h-4 w-4" />
-                    {movie.studio}
-                  </Badge>
-                </div>
-              </div>
-            )}
-
-            {/* Genre/Type */}
-            {movie.genre && (
-              <div className="space-y-2">
-                <div className="text-muted-foreground">Genre/Type</div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="gap-2 px-3 py-1">
-                    <Tag className="h-4 w-4" />
-                    {movie.genre}
-                  </Badge>
-                </div>
-              </div>
-            )}
-
-            {/* Seasons/Episodes for TV Shows */}
-            {movie.type === 'tv-show' && (movie.seasons || movie.episodes) && (
-              <>
-                <Separator />
-                <div className="grid grid-cols-2 gap-4">
-                  {movie.seasons && (
-                    <div className="space-y-2">
-                      <div className="text-muted-foreground">Seasons</div>
-                      <p>{movie.seasons} {movie.seasons === 1 ? 'season' : 'seasons'}</p>
-                    </div>
-                  )}
-                  {movie.episodes && (
-                    <div className="space-y-2">
-                      <div className="text-muted-foreground">Episodes</div>
-                      <p>{movie.episodes} {movie.episodes === 1 ? 'episode' : 'episodes'}</p>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* Notes */}
-            {movie.notes && (
-              <>
-                <Separator />
-                <div className="space-y-2">
-                  <div className="text-muted-foreground">Notes</div>
-                  <p className="bg-muted p-3 rounded-lg">
-                    {movie.notes}
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            No additional details available. Use the menu to edit and add more information.
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
-
-    <MovieFormDialog
-      movie={movie}
-      open={isEditDialogOpen}
-      onOpenChange={setIsEditDialogOpen}
-      onUpdate={onUpdate}
-      customSections={customSections}
-    />
+      <MovieFormDialog
+        movie={movie}
+        open={isMovieEditDialogOpen}
+        onOpenChange={setIsMovieEditDialogOpen}
+        onUpdate={onUpdate}
+        customSections={customSections}
+      />
     </>
   );
 }

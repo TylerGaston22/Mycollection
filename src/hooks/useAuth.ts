@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { mockUsers } from '../mock';
-import { User } from '../types/user';
+import { User } from '../types';
 
 export function useAuth() {
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -8,7 +8,11 @@ export function useAuth() {
   const [currentUserId, setCurrentUserId] = useState('user-demo');
 
   const users: User[] = mockUsers;
-  const currentUser = users.find(u => u.id === currentUserId) || users[0];
+
+  let currentUser = users.find((user) => user.id === currentUserId);
+  if (!currentUser) {
+    currentUser = users[0];
+  }
 
   // Always clear auth on page load — landing page is the entry point
   useEffect(() => {
@@ -28,17 +32,17 @@ export function useAuth() {
   const handleLogout = () => {
     setIsSignedIn(false);
     setShowSignInPage(false);
-    setCurrentUserId('user-guest');
+    setCurrentUserId('user-demo');
     localStorage.setItem('isSignedIn', 'false');
-    localStorage.setItem('currentUserId', 'user-guest');
+    localStorage.setItem('currentUserId', 'user-demo');
   };
 
   const handleGoToSignIn = () => setShowSignInPage(true);
   const handleBackToLanding = () => setShowSignInPage(false);
 
-  const handleSwitchProfile = (userId: string) => {
-    setCurrentUserId(userId);
-    localStorage.setItem('currentUserId', userId);
+  const handleSwitchProfile = (userIdToSwitchTo: string) => {
+    setCurrentUserId(userIdToSwitchTo);
+    localStorage.setItem('currentUserId', userIdToSwitchTo);
   };
 
   return {

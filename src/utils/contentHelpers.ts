@@ -1,18 +1,42 @@
-import { Movie } from '../types/movie';
-import { CustomTab } from '../types/customTab';
-import { CustomSection } from '../types/customSection';
+import { Movie, CustomTab, CustomSection } from '../types';
 
 export function getContentTypeName(
   type: string,
   plural: boolean = true,
   customTabs: CustomTab[] = []
 ): string {
-  if (type === 'movie') return plural ? 'movies' : 'movie';
-  if (type === 'tv-show') return plural ? 'TV shows' : 'TV show';
-  if (type === 'restaurant') return plural ? 'restaurants' : 'restaurant';
-  if (type === 'place') return plural ? 'places' : 'place';
-  const tab = customTabs.find(t => t.id === type);
-  return tab?.name || (plural ? 'items' : 'item');
+  if (type === 'movie') {
+    if (plural) {
+      return 'movies';
+    }
+    return 'movie';
+  }
+  if (type === 'tv-show') {
+    if (plural) {
+      return 'TV shows';
+    }
+    return 'TV show';
+  }
+  if (type === 'restaurant') {
+    if (plural) {
+      return 'restaurants';
+    }
+    return 'restaurant';
+  }
+  if (type === 'place') {
+    if (plural) {
+      return 'places';
+    }
+    return 'place';
+  }
+  const matchingCustomTab = customTabs.find((tab) => tab.id === type);
+  if (matchingCustomTab) {
+    return matchingCustomTab.name;
+  }
+  if (plural) {
+    return 'items';
+  }
+  return 'item';
 }
 
 export function getSectionDisplayName(
@@ -21,19 +45,50 @@ export function getSectionDisplayName(
   customSections: CustomSection[],
   customTabs: CustomTab[]
 ): string {
-  if (sectionId === 'all') return `All ${getContentTypeName(contentType, true, customTabs)}`;
-  if (sectionId === 'watched') return (contentType === 'movie' || contentType === 'tv-show') ? 'Watched' : 'Visited';
-  if (sectionId === 'want-to-see') return (contentType === 'movie' || contentType === 'tv-show') ? 'Want to See' : 'Want to Visit';
-  if (sectionId === 'favorites') return 'Favorites';
-  return customSections.find(s => s.id === sectionId)?.name || sectionId;
+  if (sectionId === 'all') {
+    return `All ${getContentTypeName(contentType, true, customTabs)}`;
+  }
+  const isMediaContentType = contentType === 'movie' || contentType === 'tv-show';
+  if (sectionId === 'watched') {
+    if (isMediaContentType) {
+      return 'Watched';
+    }
+    return 'Visited';
+  }
+  if (sectionId === 'want-to-see') {
+    if (isMediaContentType) {
+      return 'Want to See';
+    }
+    return 'Want to Visit';
+  }
+  if (sectionId === 'favorites') {
+    return 'Favorites';
+  }
+  const matchingCustomSection = customSections.find((section) => section.id === sectionId);
+  if (matchingCustomSection) {
+    return matchingCustomSection.name;
+  }
+  return sectionId;
 }
 
 export function getCategoryDisplayName(contentType: string, customTabs: CustomTab[]): string {
-  if (contentType === 'movie') return 'Movies';
-  if (contentType === 'tv-show') return 'TV Shows';
-  if (contentType === 'restaurant') return 'Restaurants';
-  if (contentType === 'place') return 'Places';
-  return customTabs.find(t => t.id === contentType)?.name || 'My Collection';
+  if (contentType === 'movie') {
+    return 'Movies';
+  }
+  if (contentType === 'tv-show') {
+    return 'TV Shows';
+  }
+  if (contentType === 'restaurant') {
+    return 'Restaurants';
+  }
+  if (contentType === 'place') {
+    return 'Places';
+  }
+  const matchingCustomTab = customTabs.find((tab) => tab.id === contentType);
+  if (matchingCustomTab) {
+    return matchingCustomTab.name;
+  }
+  return 'My Collection';
 }
 
 export function getSectionContent(
@@ -41,10 +96,18 @@ export function getSectionContent(
   movies: Movie[],
   contentType: string
 ): Movie[] {
-  const current = movies.filter(m => m.type === contentType);
-  if (sectionId === 'all') return current;
-  if (sectionId === 'watched') return current.filter(m => m.status === 'watched');
-  if (sectionId === 'want-to-see') return current.filter(m => m.status === 'want-to-see');
-  if (sectionId === 'favorites') return current.filter(m => m.favorite);
-  return current.filter(m => m.sections?.includes(sectionId));
+  const allItemsMatchingContentType = movies.filter((collectionItem) => collectionItem.type === contentType);
+  if (sectionId === 'all') {
+    return allItemsMatchingContentType;
+  }
+  if (sectionId === 'watched') {
+    return allItemsMatchingContentType.filter((collectionItem) => collectionItem.status === 'watched');
+  }
+  if (sectionId === 'want-to-see') {
+    return allItemsMatchingContentType.filter((collectionItem) => collectionItem.status === 'want-to-see');
+  }
+  if (sectionId === 'favorites') {
+    return allItemsMatchingContentType.filter((collectionItem) => collectionItem.favorite);
+  }
+  return allItemsMatchingContentType.filter((collectionItem) => collectionItem.sections?.includes(sectionId));
 }

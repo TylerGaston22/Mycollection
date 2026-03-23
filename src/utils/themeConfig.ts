@@ -67,55 +67,30 @@ export const colorThemes: Record<string, ThemeConfig> = {
 };
 
 export function getTheme(themeId: string): ThemeConfig {
-  return colorThemes[themeId] || colorThemes.current;
+  const matchingTheme = colorThemes[themeId];
+  if (matchingTheme) {
+    return matchingTheme;
+  }
+  return colorThemes.current;
 }
 
 // Helper function to convert color to rgba with opacity
 export function colorToRgba(color: string, opacity: number): string {
   // If already rgb format
   if (color.startsWith('rgb(')) {
-    const values = color.match(/\d+/g);
-    if (values && values.length === 3) {
-      return `rgba(${values[0]}, ${values[1]}, ${values[2]}, ${opacity})`;
+    const rgbNumberValues = color.match(/\d+/g);
+    if (rgbNumberValues && rgbNumberValues.length === 3) {
+      return `rgba(${rgbNumberValues[0]}, ${rgbNumberValues[1]}, ${rgbNumberValues[2]}, ${opacity})`;
     }
   }
   // If hex format
   if (color.startsWith('#')) {
-    const hex = color.replace('#', '');
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    const hexColorString = color.replace('#', '');
+    const redValue = parseInt(hexColorString.substring(0, 2), 16);
+    const greenValue = parseInt(hexColorString.substring(2, 4), 16);
+    const blueValue = parseInt(hexColorString.substring(4, 6), 16);
+    return `rgba(${redValue}, ${greenValue}, ${blueValue}, ${opacity})`;
   }
   // Fallback
   return color;
-}
-
-export function createCustomTheme(
-  categoryType: string,
-  sidebarColor: string,
-  backgroundGradientColor: string,
-  accentColor: string
-): ThemeConfig {
-  const id = `custom-${categoryType}`;
-  const name = `Custom ${categoryType.charAt(0).toUpperCase() + categoryType.slice(1)}`;
-  
-  return {
-    id,
-    name,
-    sidebarGradient: `linear-gradient(to bottom, ${sidebarColor}, ${sidebarColor}dd, ${sidebarColor})`,
-    backgroundGradient: `linear-gradient(to bottom right, ${sidebarColor}, ${backgroundGradientColor}, #000000)`,
-    accentColor,
-    isCustom: true
-  };
-}
-
-export function registerCustomTheme(theme: ThemeConfig): void {
-  colorThemes[theme.id] = theme;
-}
-
-export function deleteCustomTheme(themeId: string): void {
-  if (colorThemes[themeId]?.isCustom) {
-    delete colorThemes[themeId];
-  }
 }

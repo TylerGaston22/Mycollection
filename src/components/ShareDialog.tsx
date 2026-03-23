@@ -11,7 +11,7 @@ import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { Separator } from "./ui/separator";
 import { Copy, Download, Check, Share2 } from 'lucide-react';
-import { Movie } from "../types/movie";
+import { Movie } from "../types";
 import { toast } from "sonner@2.0.3";
 
 interface ShareDialogProps {
@@ -22,15 +22,15 @@ interface ShareDialogProps {
   sectionName: string;
 }
 
-export function ShareDialog({ 
-  open, 
+export function ShareDialog({
+  open,
   onOpenChange,
   movies,
   categoryName,
   sectionName
 }: ShareDialogProps) {
-  const [copied, setCopied] = useState(false);
-  const [shareText, setShareText] = useState('');
+  const [hasRecentlyCopied, setHasRecentlyCopied] = useState(false);
+  const [formattedShareableText, setFormattedShareableText] = useState('');
 
   useEffect(() => {
     if (open) {
@@ -39,55 +39,50 @@ export function ShareDialog({
   }, [open, movies, categoryName, sectionName]);
 
   const generateShareText = () => {
-    const header = `${categoryName} - ${sectionName}`;
-    const divider = '='.repeat(header.length);
-    
-    let text = `${header}\n${divider}\n\n`;
-    
+    const listHeaderText = `${categoryName} - ${sectionName}`;
+    const headerDividerLine = '='.repeat(listHeaderText.length);
+
+    let shareText = `${listHeaderText}\n${headerDividerLine}\n\n`;
+
     movies.forEach((movie, index) => {
-      text += `${index + 1}. ${movie.title}`;
-      
+      shareText += `${index + 1}. ${movie.title}`;
+
       if (movie.year) {
-        text += ` (${movie.year})`;
+        shareText += ` (${movie.year})`;
       }
-      
+
       if (movie.rating) {
-        text += ` - ⭐ ${movie.rating}/10`;
+        shareText += ` - ⭐ ${movie.rating}/10`;
       }
-      
+
       if (movie.status === 'watched') {
-        text += ` ✓`;
+        shareText += ` ✓`;
       } else if (movie.status === 'want-to-see') {
-        text += ` ○`;
+        shareText += ` ○`;
       }
-      
+
       if (movie.favorite) {
-        text += ` ❤️`;
+        shareText += ` ❤️`;
       }
-      
-      text += '\n';
-      
-      if (movie.description) {
-        text += `   ${movie.description}\n`;
-      }
-      
-      text += '\n';
+
+      shareText += '\n';
+      shareText += '\n';
     });
-    
-    text += `\nTotal: ${movies.length} items\n`;
-    text += `Generated on ${new Date().toLocaleDateString()}`;
-    
-    setShareText(text);
+
+    shareText += `\nTotal: ${movies.length} items\n`;
+    shareText += `Generated on ${new Date().toLocaleDateString()}`;
+
+    setFormattedShareableText(shareText);
   };
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(shareText);
-      setCopied(true);
+      await navigator.clipboard.writeText(formattedShareableText);
+      setHasRecentlyCopied(true);
       toast.success('Copied to clipboard!', {
         description: 'You can now paste this list anywhere.'
       });
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setHasRecentlyCopied(false), 2000);
     } catch (error) {
       toast.error('Failed to copy', {
         description: 'Please try again.'
@@ -96,21 +91,45 @@ export function ShareDialog({
   };
 
   const handleDownload = () => {
-    const blob = new Blob([shareText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    const fileName = `${categoryName}-${sectionName}-${new Date().toISOString().split('T')[0]}.txt`;
-    link.download = fileName.replace(/\s+/g, '-').toLowerCase();
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
+    const jsonFileBlob = new Blob([formattedShareableText], { type: 'text/plain' });
+    const downloadableFileUrl = URL.createObjectURL(jsonFileBlob);
+    const downloadLinkElement = document.createElement('a');
+    downloadLinkElement.href = downloadableFileUrl;
+    const rawFileName = `${categoryName}-${sectionName}-${new Date().toISOString().split('T')[0]}.txt`;
+    downloadLinkElement.download = rawFileName.replace(/\s+/g, '-').toLowerCase();
+    document.body.appendChild(downloadLinkElement);
+    downloadLinkElement.click();
+    document.body.removeChild(downloadLinkElement);
+    URL.revokeObjectURL(downloadableFileUrl);
+
     toast.success('List downloaded!', {
       description: 'Check your downloads folder.'
     });
   };
+
+  let itemCountSuffixText;
+  if (movies.length !== 1) {
+    itemCountSuffixText = 's';
+  } else {
+    itemCountSuffixText = '';
+  }
+
+  let copyButtonContent;
+  if (hasRecentlyCopied) {
+    copyButtonContent = (
+      <>
+        <Check className="h-4 w-4" />
+        Copied!
+      </>
+    );
+  } else {
+    copyButtonContent = (
+      <>
+        <Copy className="h-4 w-4" />
+        Copy to Clipboard
+      </>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -129,13 +148,13 @@ export function ShareDialog({
           {/* Preview */}
           <div>
             <Label>Preview</Label>
-            <Textarea 
-              value={shareText}
+            <Textarea
+              value={formattedShareableText}
               readOnly
               className="mt-2 font-mono text-sm h-64 resize-none"
             />
             <p className="text-xs text-muted-foreground mt-2">
-              {movies.length} item{movies.length !== 1 ? 's' : ''} in this list
+              {movies.length} item{itemCountSuffixText} in this list
             </p>
           </div>
 
@@ -143,25 +162,15 @@ export function ShareDialog({
 
           {/* Actions */}
           <div className="grid grid-cols-2 gap-3">
-            <Button 
+            <Button
               variant="outline"
               onClick={handleCopy}
               className="flex items-center gap-2"
             >
-              {copied ? (
-                <>
-                  <Check className="h-4 w-4" />
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <Copy className="h-4 w-4" />
-                  Copy to Clipboard
-                </>
-              )}
+              {copyButtonContent}
             </Button>
-            
-            <Button 
+
+            <Button
               variant="outline"
               onClick={handleDownload}
               className="flex items-center gap-2"
