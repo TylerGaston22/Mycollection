@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 import { toast } from "sonner@2.0.3";
 import { Movie } from '../types';
+import { mockItems, DEMO_USER_ID } from '../mock';
 
 export function useMovies(currentUserId: string) {
   const [movies, setMovies] = useState<Movie[]>([]);
 
   useEffect(() => {
-    const savedMoviesJsonString = localStorage.getItem(`movies-${currentUserId}`);
-    if (savedMoviesJsonString) {
-      setMovies(JSON.parse(savedMoviesJsonString) as Movie[]);
+    if (currentUserId === DEMO_USER_ID) {
+      setMovies(mockItems);
     } else {
-      setMovies([]);
+      const savedMoviesJsonString = localStorage.getItem(`movies-${currentUserId}`);
+      setMovies(savedMoviesJsonString ? JSON.parse(savedMoviesJsonString) as Movie[] : []);
     }
   }, [currentUserId]);
 

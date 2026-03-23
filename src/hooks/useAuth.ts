@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { mockUsers } from '../mock';
+import { mockUsers, DEMO_USER_ID } from '../mock';
 import { User } from '../types';
 
 export function useAuth() {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [showSignInPage, setShowSignInPage] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState('user-demo');
+  const [currentUserId, setCurrentUserId] = useState(DEMO_USER_ID);
 
   const users: User[] = mockUsers;
 
@@ -19,7 +19,7 @@ export function useAuth() {
     localStorage.removeItem('isSignedIn');
     localStorage.removeItem('currentUserId');
     setIsSignedIn(false);
-    setCurrentUserId('user-demo');
+    setCurrentUserId(DEMO_USER_ID);
   }, []);
 
   const handleSignIn = (_username: string, _password: string) => {
@@ -32,9 +32,9 @@ export function useAuth() {
   const handleLogout = () => {
     setIsSignedIn(false);
     setShowSignInPage(false);
-    setCurrentUserId('user-demo');
+    setCurrentUserId(DEMO_USER_ID);
     localStorage.setItem('isSignedIn', 'false');
-    localStorage.setItem('currentUserId', 'user-demo');
+    localStorage.setItem('currentUserId', DEMO_USER_ID);
   };
 
   const handleGoToSignIn = () => setShowSignInPage(true);

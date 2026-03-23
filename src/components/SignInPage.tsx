@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DEMO_CREDENTIALS } from "../mock";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -44,7 +45,7 @@ export function SignInPage({ onSignIn, onBack }: SignInPageProps) {
   };
 
   const handleDemoLogin = () => {
-    onSignIn('demo', 'demo');
+    onSignIn(DEMO_CREDENTIALS.username, DEMO_CREDENTIALS.password);
   };
 
   let signInButtonContent;
