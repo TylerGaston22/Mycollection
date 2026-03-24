@@ -1,4 +1,12 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  flexRender,
+  createColumnHelper,
+  SortingState,
+} from "@tanstack/react-table";
 import { Movie } from "../types";
 import {
   Table,
@@ -38,51 +46,48 @@ interface ListViewProps {
   isDarkMode?: boolean;
 }
 
-type SortField = 'favorite' | 'title' | 'platform' | 'genre' | 'rating' | 'status';
-type SortOrder = 'asc' | 'desc' | null;
+const columnHelper = createColumnHelper<Movie>();
 
 export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode }: ListViewProps) {
+  const [sorting, setSorting] = useState<SortingState>([]);
   const [movieBeingEdited, setMovieBeingEdited] = useState<Movie | null>(null);
-  const [activeSortField, setActiveSortField] = useState<SortField | null>(null);
-  const [currentSortOrder, setCurrentSortOrder] = useState<SortOrder>(null);
   const [movieBeingQuickEdited, setMovieBeingQuickEdited] = useState<Movie | null>(null);
   const [fieldBeingQuickEdited, setFieldBeingQuickEdited] = useState<'platform' | 'genre' | 'notes' | null>(null);
   const [currentEditFieldValue, setCurrentEditFieldValue] = useState('');
 
   useEffect(() => {
-    if (movieBeingQuickEdited && fieldBeingQuickEdited) {
-      let initialEditFieldValue: string;
-      if (fieldBeingQuickEdited === 'notes') {
-        initialEditFieldValue = movieBeingQuickEdited.notes || '';
-      } else if (fieldBeingQuickEdited === 'platform') {
-        initialEditFieldValue = movieBeingQuickEdited.platform || '';
-      } else {
-        initialEditFieldValue = movieBeingQuickEdited.genre || '';
-      }
-      setCurrentEditFieldValue(initialEditFieldValue);
+    if (!movieBeingQuickEdited || !fieldBeingQuickEdited) return;
+    if (fieldBeingQuickEdited === 'notes') {
+      setCurrentEditFieldValue(movieBeingQuickEdited.notes || '');
+    } else if (fieldBeingQuickEdited === 'platform') {
+      setCurrentEditFieldValue(movieBeingQuickEdited.platform || '');
+    } else {
+      setCurrentEditFieldValue(movieBeingQuickEdited.genre || '');
     }
   }, [movieBeingQuickEdited, fieldBeingQuickEdited]);
 
-  const toggleFavorite = (movie: Movie) => onUpdate(movie.id, { favorite: !movie.favorite });
-
-  const toggleStatus = (movie: Movie) => {
-    let updatedItemStatus: 'watched' | 'want-to-see';
-    if (movie.status === 'watched') {
-      updatedItemStatus = 'want-to-see';
-    } else {
-      updatedItemStatus = 'watched';
-    }
-    onUpdate(movie.id, { status: updatedItemStatus });
+  const toggleFavorite = (movie: Movie) => {
+    onUpdate(movie.id, { favorite: !movie.favorite });
   };
 
-  const setRating = (movie: Movie, starRatingNumber: number) => {
-    let newRatingValue: number | undefined;
-    if (movie.rating === starRatingNumber) {
-      newRatingValue = undefined;
+  const toggleStatus = (movie: Movie) => {
+    let newStatus: 'watched' | 'want-to-see';
+    if (movie.status === 'watched') {
+      newStatus = 'want-to-see';
     } else {
-      newRatingValue = starRatingNumber;
+      newStatus = 'watched';
     }
-    onUpdate(movie.id, { rating: newRatingValue });
+    onUpdate(movie.id, { status: newStatus });
+  };
+
+  const setRating = (movie: Movie, star: number) => {
+    let newRating: number | undefined;
+    if (movie.rating === star) {
+      newRating = undefined;
+    } else {
+      newRating = star;
+    }
+    onUpdate(movie.id, { rating: newRating });
   };
 
   const openQuickEdit = (movie: Movie, field: 'platform' | 'genre' | 'notes') => {
@@ -102,168 +107,306 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
     closeQuickEdit();
   };
 
-  const handleSort = (fieldToSortBy: SortField) => {
-    if (activeSortField === fieldToSortBy) {
-      if (currentSortOrder === 'asc') {
-        setCurrentSortOrder('desc');
-      } else {
-        setCurrentSortOrder(null);
-        setActiveSortField(null);
-      }
+  let textColor = '';
+  if (isDarkMode) {
+    textColor = 'text-white';
+  }
+
+  let headerHover = 'hover:text-foreground';
+  if (isDarkMode) {
+    headerHover = 'hover:text-orange-300';
+  }
+
+  const SortHeader = ({ label, isSorted }: { label: string; isSorted: false | 'asc' | 'desc' }) => {
+    let sortIcon;
+    if (isSorted === 'asc') {
+      sortIcon = <ArrowUp className="h-3 w-3 ml-1" />;
+    } else if (isSorted === 'desc') {
+      sortIcon = <ArrowDown className="h-3 w-3 ml-1" />;
     } else {
-      setActiveSortField(fieldToSortBy);
-      setCurrentSortOrder('asc');
+      sortIcon = <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
     }
+    return (
+      <span className={`flex items-center transition-colors ${headerHover}`}>
+        {label}{sortIcon}
+      </span>
+    );
   };
 
-  const sortedMovies = useMemo(() => {
-    if (!activeSortField || !currentSortOrder) return movies;
-    return [...movies].sort((firstMovie, secondMovie) => {
-      switch (activeSortField) {
-        case 'favorite': {
-          if (firstMovie.favorite === secondMovie.favorite) {
-            return 0;
-          }
-          if (currentSortOrder === 'asc') {
-            if (firstMovie.favorite) {
-              return -1;
-            }
-            return 1;
-          }
-          if (firstMovie.favorite) {
-            return 1;
-          }
-          return -1;
+  const columns = [
+    columnHelper.accessor('favorite', {
+      header: ({ column }) => (
+        <button onClick={column.getToggleSortingHandler()}>
+          <SortHeader label="Fav" isSorted={column.getIsSorted()} />
+        </button>
+      ),
+      cell: ({ row }) => {
+        let heartClass = 'text-white stroke-white stroke-2';
+        if (row.original.favorite) {
+          heartClass = 'fill-red-500 text-red-500';
         }
-        case 'title': {
-          const alphabeticalComparisonResult = firstMovie.title.localeCompare(secondMovie.title);
-          if (currentSortOrder === 'asc') {
-            return alphabeticalComparisonResult;
+        return (
+          <button onClick={() => toggleFavorite(row.original)} className="hover:scale-110 transition-transform">
+            <Heart className={`h-5 w-5 ${heartClass}`} />
+          </button>
+        );
+      },
+      sortingFn: (a, b) => {
+        if (a.original.favorite === b.original.favorite) return 0;
+        if (a.original.favorite) return -1;
+        return 1;
+      },
+    }),
+    columnHelper.accessor('title', {
+      header: ({ column }) => (
+        <button onClick={column.getToggleSortingHandler()}>
+          <SortHeader label="Title" isSorted={column.getIsSorted()} />
+        </button>
+      ),
+      cell: ({ row }) => (
+        <button
+          onClick={() => onMovieClick?.(row.original)}
+          onContextMenu={(e) => { e.preventDefault(); onMovieClick?.(row.original); }}
+          className={`hover:opacity-70 transition-opacity cursor-pointer text-left ${textColor}`}
+        >
+          {row.original.title}
+        </button>
+      ),
+    }),
+    columnHelper.accessor('platform', {
+      header: ({ column }) => (
+        <button onClick={column.getToggleSortingHandler()}>
+          <SortHeader label="Where to Watch" isSorted={column.getIsSorted()} />
+        </button>
+      ),
+      cell: ({ row }) => {
+        const movie = row.original;
+        let platformContent;
+        if (movie.platform) {
+          let badgeClass = 'cursor-pointer';
+          if (isDarkMode) {
+            badgeClass += ' text-white border-white/30';
           }
-          return -alphabeticalComparisonResult;
+          platformContent = <Badge variant="outline" className={badgeClass}>{movie.platform}</Badge>;
+        } else {
+          let emptyClass = 'cursor-pointer text-muted-foreground';
+          if (isDarkMode) {
+            emptyClass = 'cursor-pointer text-gray-400';
+          }
+          platformContent = <span className={emptyClass}>-</span>;
         }
-        case 'platform': {
-          const alphabeticalComparisonResult = (firstMovie.platform || '').localeCompare(secondMovie.platform || '');
-          if (currentSortOrder === 'asc') {
-            return alphabeticalComparisonResult;
+        return (
+          <button onClick={() => openQuickEdit(movie, 'platform')} className="hover:opacity-70 transition-opacity">
+            {platformContent}
+          </button>
+        );
+      },
+    }),
+    columnHelper.accessor('genre', {
+      header: ({ column }) => (
+        <button onClick={column.getToggleSortingHandler()}>
+          <SortHeader label="Genre" isSorted={column.getIsSorted()} />
+        </button>
+      ),
+      cell: ({ row }) => {
+        const movie = row.original;
+        let genreContent;
+        if (movie.genre) {
+          let badgeClass = 'cursor-pointer';
+          if (isDarkMode) {
+            badgeClass += ' text-white bg-white/10';
           }
-          return -alphabeticalComparisonResult;
+          genreContent = <Badge variant="secondary" className={badgeClass}>{movie.genre}</Badge>;
+        } else {
+          let emptyClass = 'cursor-pointer text-muted-foreground';
+          if (isDarkMode) {
+            emptyClass = 'cursor-pointer text-gray-400';
+          }
+          genreContent = <span className={emptyClass}>-</span>;
         }
-        case 'genre': {
-          const alphabeticalComparisonResult = (firstMovie.genre || '').localeCompare(secondMovie.genre || '');
-          if (currentSortOrder === 'asc') {
-            return alphabeticalComparisonResult;
-          }
-          return -alphabeticalComparisonResult;
-        }
-        case 'rating': {
-          const firstMovieRating = firstMovie.rating || 0;
-          const secondMovieRating = secondMovie.rating || 0;
-          if (currentSortOrder === 'asc') {
-            return secondMovieRating - firstMovieRating;
-          }
-          return firstMovieRating - secondMovieRating;
-        }
-        case 'status': {
-          let firstMovieStatusRank = 0;
-          if (firstMovie.status === 'watched') {
-            firstMovieStatusRank = 1;
-          }
-          let secondMovieStatusRank = 0;
-          if (secondMovie.status === 'watched') {
-            secondMovieStatusRank = 1;
-          }
-          if (currentSortOrder === 'asc') {
-            return secondMovieStatusRank - firstMovieStatusRank;
-          }
-          return firstMovieStatusRank - secondMovieStatusRank;
-        }
-        default:
-          return 0;
-      }
-    });
-  }, [movies, activeSortField, currentSortOrder]);
+        return (
+          <button onClick={() => openQuickEdit(movie, 'genre')} className="hover:opacity-70 transition-opacity">
+            {genreContent}
+          </button>
+        );
+      },
+    }),
+    columnHelper.accessor('status', {
+      header: ({ column }) => (
+        <button onClick={column.getToggleSortingHandler()}>
+          <SortHeader label="Status" isSorted={column.getIsSorted()} />
+        </button>
+      ),
+      cell: ({ row }) => {
+        const movie = row.original;
+        const isMedia = movie.type === 'movie' || movie.type === 'tv-show';
 
-  const getSortDirectionIcon = (fieldToCheck: SortField) => {
-    if (activeSortField !== fieldToCheck) {
-      return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
-    }
-    if (currentSortOrder === 'asc') {
-      return <ArrowUp className="h-3 w-3 ml-1" />;
-    }
-    return <ArrowDown className="h-3 w-3 ml-1" />;
-  };
+        let watchedLabel = 'Visited';
+        if (isMedia) {
+          watchedLabel = 'Watched';
+        }
+        let wantLabel = 'Want to Visit';
+        if (isMedia) {
+          wantLabel = 'Want to See';
+        }
 
-  let tableHeaderHoverColorClass;
-  if (isDarkMode) {
-    tableHeaderHoverColorClass = 'hover:text-orange-300';
-  } else {
-    tableHeaderHoverColorClass = 'hover:text-foreground';
-  }
+        let badgeVariant: 'default' | 'secondary' = 'secondary';
+        if (movie.status === 'watched') {
+          badgeVariant = 'default';
+        }
 
-  let tableTextColorClass = '';
-  if (isDarkMode) {
-    tableTextColorClass = 'text-white';
-  }
+        let badgeClass = 'cursor-pointer';
+        if (isDarkMode) {
+          badgeClass += ' text-white border-white/30 bg-transparent';
+        }
 
-  const SortButton = ({ field, label }: { field: SortField; label: string }) => (
-    <button
-      onClick={() => handleSort(field)}
-      className={`flex items-center transition-colors ${tableHeaderHoverColorClass}`}
-    >
-      {label}{getSortDirectionIcon(field)}
-    </button>
-  );
+        let statusContent;
+        if (movie.status === 'watched') {
+          statusContent = <><Eye className="h-3 w-3 mr-1" />{watchedLabel}</>;
+        } else {
+          statusContent = <><Clock className="h-3 w-3 mr-1" />{wantLabel}</>;
+        }
+
+        return (
+          <button onClick={() => toggleStatus(movie)} className="hover:opacity-80 transition-opacity">
+            <Badge variant={badgeVariant} className={badgeClass}>
+              {statusContent}
+            </Badge>
+          </button>
+        );
+      },
+    }),
+    columnHelper.accessor('rating', {
+      header: ({ column }) => (
+        <button onClick={column.getToggleSortingHandler()}>
+          <SortHeader label="Rating" isSorted={column.getIsSorted()} />
+        </button>
+      ),
+      cell: ({ row }) => {
+        const movie = row.original;
+        if (movie.status !== 'watched') return null;
+        return (
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map((star) => {
+              let starClass = 'text-muted-foreground/40';
+              if (movie.rating && star <= movie.rating) {
+                starClass = 'fill-yellow-500 text-yellow-500';
+              }
+              return (
+                <button key={star} onClick={() => setRating(movie, star)} className="hover:scale-110 transition-transform">
+                  <Star className={`h-4 w-4 ${starClass}`} />
+                </button>
+              );
+            })}
+          </div>
+        );
+      },
+      sortingFn: (a, b) => (b.original.rating ?? 0) - (a.original.rating ?? 0),
+    }),
+    columnHelper.accessor('notes', {
+      header: 'Notes',
+      enableSorting: false,
+      cell: ({ row }) => (
+        <button onClick={() => openQuickEdit(row.original, 'notes')} className="hover:opacity-70 transition-opacity w-full text-left max-w-[300px] block">
+          <p className="truncate text-muted-foreground cursor-pointer">{row.original.notes || '-'}</p>
+        </button>
+      ),
+    }),
+    columnHelper.display({
+      id: 'actions',
+      enableSorting: false,
+      cell: ({ row }) => {
+        const movie = row.original;
+        const isMedia = movie.type === 'movie' || movie.type === 'tv-show';
+
+        let watchedLabel = 'Visited';
+        if (isMedia) {
+          watchedLabel = 'Watched';
+        }
+        let wantLabel = 'Want to Visit';
+        if (isMedia) {
+          wantLabel = 'Want to See';
+        }
+
+        let statusMenuItemContent;
+        if (movie.status === 'watched') {
+          statusMenuItemContent = <><Clock className="h-4 w-4 mr-2" />Mark as {wantLabel}</>;
+        } else {
+          statusMenuItemContent = <><Eye className="h-4 w-4 mr-2" />Mark as {watchedLabel}</>;
+        }
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setMovieBeingEdited(movie); }}>
+                <Edit className="mr-2 h-4 w-4" />Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); toggleStatus(movie); }}>
+                {statusMenuItemContent}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={(e) => { e.stopPropagation(); onDelete(movie.id); }}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    }),
+  ];
+
+  const table = useReactTable({
+    data: movies,
+    columns,
+    state: { sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
 
   let quickEditDialogTitle = '';
+  let quickEditFieldLabel = '';
+  let quickEditInputPlaceholder = '';
   if (fieldBeingQuickEdited === 'platform') {
     quickEditDialogTitle = 'Edit Where to Watch';
+    quickEditFieldLabel = 'Platform';
+    quickEditInputPlaceholder = 'e.g., Netflix, Hulu, Disney+';
   } else if (fieldBeingQuickEdited === 'genre') {
     quickEditDialogTitle = 'Edit Genre';
+    quickEditFieldLabel = 'Genre';
+    quickEditInputPlaceholder = 'e.g., Action, Comedy, Drama';
   } else if (fieldBeingQuickEdited === 'notes') {
     quickEditDialogTitle = 'Edit Notes';
-  }
-
-  let quickEditFieldLabel = '';
-  if (fieldBeingQuickEdited === 'platform') {
-    quickEditFieldLabel = 'Platform';
-  } else if (fieldBeingQuickEdited === 'genre') {
-    quickEditFieldLabel = 'Genre';
-  } else if (fieldBeingQuickEdited === 'notes') {
     quickEditFieldLabel = 'Notes';
   }
 
-  let quickEditInputPlaceholder = '';
-  if (fieldBeingQuickEdited === 'platform') {
-    quickEditInputPlaceholder = 'e.g., Netflix, Hulu, Disney+';
-  } else if (fieldBeingQuickEdited === 'genre') {
-    quickEditInputPlaceholder = 'e.g., Action, Comedy, Drama';
-  }
-
-  let quickEditInputComponent = null;
+  let quickEditInput;
   if (fieldBeingQuickEdited === 'notes') {
-    quickEditInputComponent = (
+    quickEditInput = (
       <Textarea
         id="qe-field"
         value={currentEditFieldValue}
-        onChange={(event) => setCurrentEditFieldValue(event.target.value)}
+        onChange={(e) => setCurrentEditFieldValue(e.target.value)}
         placeholder="Add your notes here..."
         rows={4}
         autoFocus
       />
     );
-  } else if (fieldBeingQuickEdited) {
-    quickEditInputComponent = (
+  } else {
+    quickEditInput = (
       <Input
         id="qe-field"
         value={currentEditFieldValue}
-        onChange={(event) => setCurrentEditFieldValue(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            handleQuickEditSave();
-          }
-        }}
+        onChange={(e) => setCurrentEditFieldValue(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleQuickEditSave(); } }}
         placeholder={quickEditInputPlaceholder}
         autoFocus
       />
@@ -274,218 +417,26 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
     <div className="rounded-md border">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead className={`w-[50px] ${tableTextColorClass}`}>
-              <SortButton field="favorite" label="Favorite" />
-            </TableHead>
-            <TableHead className={tableTextColorClass}>
-              <SortButton field="title" label="Title" />
-            </TableHead>
-            <TableHead className={tableTextColorClass}>
-              <SortButton field="platform" label="Where to Watch" />
-            </TableHead>
-            <TableHead className={tableTextColorClass}>
-              <SortButton field="genre" label="Genre" />
-            </TableHead>
-            <TableHead className={tableTextColorClass}>
-              <SortButton field="status" label="Status" />
-            </TableHead>
-            <TableHead className={tableTextColorClass}>
-              <SortButton field="rating" label="Rating" />
-            </TableHead>
-            <TableHead className={`max-w-[300px] ${tableTextColorClass}`}>Notes</TableHead>
-            <TableHead className="w-[50px]" />
-          </TableRow>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id} className={textColor}>
+                  {flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
         </TableHeader>
         <TableBody>
-          {sortedMovies.map((movie) => {
-            const isMediaContentType = movie.type === 'movie' || movie.type === 'tv-show';
-
-            let heartIconColorClass;
-            if (movie.favorite) {
-              heartIconColorClass = 'fill-red-500 text-red-500';
-            } else {
-              heartIconColorClass = 'text-white stroke-white stroke-2';
-            }
-
-            let platformCellContent;
-            if (movie.platform) {
-              let platformBadgeClassName = 'cursor-pointer';
-              if (isDarkMode) {
-                platformBadgeClassName += ' text-white border-white/30';
-              }
-              platformCellContent = <Badge variant="outline" className={platformBadgeClassName}>{movie.platform}</Badge>;
-            } else {
-              let platformEmptySpanClassName = 'cursor-pointer ';
-              if (isDarkMode) {
-                platformEmptySpanClassName += 'text-gray-400';
-              } else {
-                platformEmptySpanClassName += 'text-muted-foreground';
-              }
-              platformCellContent = <span className={platformEmptySpanClassName}>-</span>;
-            }
-
-            let genreCellContent;
-            if (movie.genre) {
-              let genreBadgeClassName = 'cursor-pointer';
-              if (isDarkMode) {
-                genreBadgeClassName += ' text-white bg-white/10';
-              }
-              genreCellContent = <Badge variant="secondary" className={genreBadgeClassName}>{movie.genre}</Badge>;
-            } else {
-              let genreEmptySpanClassName = 'cursor-pointer ';
-              if (isDarkMode) {
-                genreEmptySpanClassName += 'text-gray-400';
-              } else {
-                genreEmptySpanClassName += 'text-muted-foreground';
-              }
-              genreCellContent = <span className={genreEmptySpanClassName}>-</span>;
-            }
-
-            let statusBadgeVariant: 'default' | 'secondary';
-            if (movie.status === 'watched') {
-              statusBadgeVariant = 'default';
-            } else {
-              statusBadgeVariant = 'secondary';
-            }
-
-            let statusBadgeClassName = 'cursor-pointer';
-            if (isDarkMode) {
-              statusBadgeClassName += ' text-white border-white/30 bg-transparent';
-            }
-
-            let watchedStatusLabel;
-            if (isMediaContentType) {
-              watchedStatusLabel = 'Watched';
-            } else {
-              watchedStatusLabel = 'Visited';
-            }
-
-            let wantToSeeStatusLabel;
-            if (isMediaContentType) {
-              wantToSeeStatusLabel = 'Want to See';
-            } else {
-              wantToSeeStatusLabel = 'Want to Visit';
-            }
-
-            let statusBadgeContent;
-            if (movie.status === 'watched') {
-              statusBadgeContent = (
-                <><Eye className="h-3 w-3 mr-1" />{watchedStatusLabel}</>
-              );
-            } else {
-              statusBadgeContent = (
-                <><Clock className="h-3 w-3 mr-1" />{wantToSeeStatusLabel}</>
-              );
-            }
-
-            let dropdownStatusMenuItemContent;
-            if (movie.status === 'watched') {
-              let markAsLabel;
-              if (isMediaContentType) {
-                markAsLabel = 'Want to See';
-              } else {
-                markAsLabel = 'Want to Visit';
-              }
-              dropdownStatusMenuItemContent = (
-                <><Clock className="h-4 w-4 mr-2" />Mark as {markAsLabel}</>
-              );
-            } else {
-              let markAsLabel;
-              if (isMediaContentType) {
-                markAsLabel = 'Watched';
-              } else {
-                markAsLabel = 'Visited';
-              }
-              dropdownStatusMenuItemContent = (
-                <><Eye className="h-4 w-4 mr-2" />Mark as {markAsLabel}</>
-              );
-            }
-
-            return (
-              <TableRow key={movie.id} className="hover:bg-muted/50">
-                <TableCell>
-                  <button onClick={() => toggleFavorite(movie)} className="hover:scale-110 transition-transform">
-                    <Heart className={`h-5 w-5 ${heartIconColorClass}`} />
-                  </button>
+          {table.getRowModel().rows.map((row) => (
+            <TableRow key={row.id} className="hover:bg-muted/50">
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
-                <TableCell className={tableTextColorClass}>
-                  <button
-                    onClick={() => onMovieClick?.(movie)}
-                    onContextMenu={(event) => { event.preventDefault(); onMovieClick?.(movie); }}
-                    className="hover:opacity-70 transition-opacity cursor-pointer text-left"
-                  >
-                    {movie.title}
-                  </button>
-                </TableCell>
-                <TableCell>
-                  <button onClick={() => openQuickEdit(movie, 'platform')} className="hover:opacity-70 transition-opacity">
-                    {platformCellContent}
-                  </button>
-                </TableCell>
-                <TableCell>
-                  <button onClick={() => openQuickEdit(movie, 'genre')} className="hover:opacity-70 transition-opacity">
-                    {genreCellContent}
-                  </button>
-                </TableCell>
-                <TableCell>
-                  <button onClick={() => toggleStatus(movie)} className="hover:opacity-80 transition-opacity">
-                    <Badge variant={statusBadgeVariant} className={statusBadgeClassName}>
-                      {statusBadgeContent}
-                    </Badge>
-                  </button>
-                </TableCell>
-                <TableCell>
-                  {movie.status === 'watched' && (
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((starRatingNumber) => {
-                        let starIconColorClass;
-                        if (movie.rating && starRatingNumber <= movie.rating) {
-                          starIconColorClass = 'fill-yellow-500 text-yellow-500';
-                        } else {
-                          starIconColorClass = 'text-muted-foreground/40';
-                        }
-                        return (
-                          <button key={starRatingNumber} onClick={() => setRating(movie, starRatingNumber)} className="hover:scale-110 transition-transform">
-                            <Star className={`h-4 w-4 ${starIconColorClass}`} />
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell className="max-w-[300px]">
-                  <button onClick={() => openQuickEdit(movie, 'notes')} className="hover:opacity-70 transition-opacity w-full text-left">
-                    <p className="truncate text-muted-foreground cursor-pointer">{movie.notes || '-'}</p>
-                  </button>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={(event: React.MouseEvent) => { event.stopPropagation(); setMovieBeingEdited(movie); }}>
-                        <Edit className="mr-2 h-4 w-4" />Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={(event: React.MouseEvent) => { event.stopPropagation(); toggleStatus(movie); }}>
-                        {dropdownStatusMenuItemContent}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={(event: React.MouseEvent) => { event.stopPropagation(); onDelete(movie.id); }}
-                        className="text-destructive focus:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            );
-          })}
+              ))}
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
 
@@ -496,20 +447,15 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
         onUpdate={onUpdate}
       />
 
-      {/* Quick Edit Dialog */}
       {movieBeingQuickEdited && fieldBeingQuickEdited && (
         <Dialog open={true} onOpenChange={(isOpen: boolean) => { if (!isOpen) closeQuickEdit(); }}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>
-                {quickEditDialogTitle}
-              </DialogTitle>
+              <DialogTitle>{quickEditDialogTitle}</DialogTitle>
             </DialogHeader>
             <div className="py-4 space-y-2">
-              <Label htmlFor="qe-field">
-                {quickEditFieldLabel}
-              </Label>
-              {quickEditInputComponent}
+              <Label htmlFor="qe-field">{quickEditFieldLabel}</Label>
+              {quickEditInput}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={closeQuickEdit}>Cancel</Button>

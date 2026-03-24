@@ -1,7 +1,5 @@
 # Tech Stack
 
-## 🧱 Updated Stack (Adjusted for You)
-
 ### Frontend
 - **React** + **TypeScript**
 - **Vite**
