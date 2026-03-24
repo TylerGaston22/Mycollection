@@ -17,8 +17,12 @@ export function usePreferences(currentUserId: string) {
   const [backgroundColors, setBackgroundColors] = useState(DEFAULT_BACKGROUND_COLORS);
 
   useEffect(() => {
-    const stored = localStorage.getItem(`backgroundColors-${currentUserId}`);
-    setBackgroundColors(stored ? JSON.parse(stored) : DEFAULT_BACKGROUND_COLORS);
+    const savedPreferencesJsonString = localStorage.getItem(`backgroundColors-${currentUserId}`);
+    if (savedPreferencesJsonString) {
+      setBackgroundColors(JSON.parse(savedPreferencesJsonString));
+    } else {
+      setBackgroundColors(DEFAULT_BACKGROUND_COLORS);
+    }
   }, [currentUserId]);
 
   useEffect(() => {

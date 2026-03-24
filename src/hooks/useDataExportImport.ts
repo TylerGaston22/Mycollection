@@ -118,6 +118,11 @@ export function useDataExportImport() {
             if (!['movie', 'tv-show', 'restaurant', 'place'].includes(parsedCsvRow.type)) continue;
 
             // Combine timestamp + line index to guarantee unique IDs within a single bulk import
+            let parsedRatingValue: number | undefined = undefined;
+            if (parsedCsvRow.rating) {
+              parsedRatingValue = parseInt(parsedCsvRow.rating);
+            }
+
             newMovies.push({
               id: `bulk-${Date.now()}-${lineIndex}`,
               title: parsedCsvRow.title,
@@ -126,7 +131,7 @@ export function useDataExportImport() {
               favorite: false,
               platform: parsedCsvRow.platform || undefined,
               genre: parsedCsvRow.genre || undefined,
-              rating: parsedCsvRow.rating ? parseInt(parsedCsvRow.rating) : undefined,
+              rating: parsedRatingValue,
               notes: parsedCsvRow.notes || undefined,
             });
           }
@@ -143,7 +148,11 @@ export function useDataExportImport() {
           toast.success('Bulk import successful!', { description: `Added ${newMovies.length} items to your collection.` });
           onComplete?.();
         } catch (error) {
-          toast.error('Import failed', { description: error instanceof Error ? error.message : 'The file format is invalid.' });
+          let importErrorMessage = 'The file format is invalid.';
+          if (error instanceof Error) {
+            importErrorMessage = error.message;
+          }
+          toast.error('Import failed', { description: importErrorMessage });
         }
       };
       fileContentReader.readAsText(file);

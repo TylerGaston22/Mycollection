@@ -70,10 +70,10 @@ export function Sidebar({
   onTabDelete,
 }: SidebarProps) {
   // Filter items for the currently selected category to get sub-section counts
-  const allItemsInCurrentCategory = movies.filter((item) => item.type === contentType);
-  const watchedItems = allItemsInCurrentCategory.filter((item) => item.status === 'watched');
-  const wantToSeeItems = allItemsInCurrentCategory.filter((item) => item.status === 'want-to-see');
-  const favoriteItems = allItemsInCurrentCategory.filter((item) => item.favorite);
+  const allItemsInCurrentCategory = movies.filter((collectionItem) => collectionItem.type === contentType);
+  const watchedItems = allItemsInCurrentCategory.filter((collectionItem) => collectionItem.status === 'watched');
+  const wantToSeeItems = allItemsInCurrentCategory.filter((collectionItem) => collectionItem.status === 'want-to-see');
+  const favoriteItems = allItemsInCurrentCategory.filter((collectionItem) => collectionItem.favorite);
 
   // Clicking a category selects it and toggles its sub-nav expansion
   const handleCategoryClick = (categoryId: string) => {
@@ -197,7 +197,7 @@ export function Sidebar({
 
         {/* Custom Tabs */}
         {customTabs.map((tab) => {
-          const numberOfItemsInTab = movies.filter((item) => item.type === tab.id).length;
+          const numberOfItemsInTab = movies.filter((collectionItem) => collectionItem.type === tab.id).length;
           return (
             <ContextMenu key={tab.id}>
               <ContextMenuTrigger asChild>

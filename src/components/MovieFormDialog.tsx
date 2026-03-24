@@ -102,6 +102,21 @@ export function MovieFormDialog({
     event.preventDefault();
     if (!title.trim()) return;
 
+    let parsedSeasonsValue: number | undefined = undefined;
+    if (seasons) {
+      parsedSeasonsValue = parseInt(seasons);
+    }
+
+    let parsedEpisodesValue: number | undefined = undefined;
+    if (episodes) {
+      parsedEpisodesValue = parseInt(episodes);
+    }
+
+    let sectionsToSave: string[] | undefined = undefined;
+    if (selectedSections.length > 0) {
+      sectionsToSave = selectedSections;
+    }
+
     const formDataToSave = {
       title: title.trim(),
       year: year.trim() || undefined,
@@ -111,9 +126,9 @@ export function MovieFormDialog({
       platform: platform.trim() || undefined,
       studio: studio.trim() || undefined,
       genre: genre.trim() || undefined,
-      seasons: seasons ? parseInt(seasons) : undefined,
-      episodes: episodes ? parseInt(episodes) : undefined,
-      sections: selectedSections.length > 0 ? selectedSections : undefined,
+      seasons: parsedSeasonsValue,
+      episodes: parsedEpisodesValue,
+      sections: sectionsToSave,
     };
 
     if (isEditingExistingItem && movie) {

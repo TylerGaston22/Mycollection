@@ -15,11 +15,17 @@ export function isMediaContentType(contentType: string): boolean {
 }
 
 export function getWatchedLabel(contentType: string): string {
-  return isMediaContentType(contentType) ? 'Watched' : 'Visited';
+  if (isMediaContentType(contentType)) {
+    return 'Watched';
+  }
+  return 'Visited';
 }
 
 export function getWantToSeeLabel(contentType: string): string {
-  return isMediaContentType(contentType) ? 'Want to See' : 'Want to Visit';
+  if (isMediaContentType(contentType)) {
+    return 'Want to See';
+  }
+  return 'Want to Visit';
 }
 
 export function getStatusLabel(contentType: string, status: 'watched' | 'want-to-see'): string {
@@ -50,9 +56,9 @@ export interface ContentTypeFieldConfig {
 }
 
 export function getContentTypeFieldConfig(contentType: string): ContentTypeFieldConfig {
-  const isMedia = isMediaContentType(contentType);
+  const isMovieOrTvShowType = isMediaContentType(contentType);
   // Restaurants and places share field labels ("Name" instead of "Title", "Location" instead of "Year")
-  const isPlace = contentType === 'restaurant' || contentType === 'place';
+  const isRestaurantOrPlaceType = contentType === 'restaurant' || contentType === 'place';
 
   let displayLabel: string;
   if (contentType === 'movie') displayLabel = 'Movie';
@@ -61,15 +67,66 @@ export function getContentTypeFieldConfig(contentType: string): ContentTypeField
   else if (contentType === 'place') displayLabel = 'Place';
   else displayLabel = 'Item';
 
+  let titleFieldLabel: string;
+  if (contentType === 'restaurant') {
+    titleFieldLabel = 'Name';
+  } else if (contentType === 'place') {
+    titleFieldLabel = 'Place Name';
+  } else {
+    titleFieldLabel = 'Title';
+  }
+
+  let titleFieldWord: string;
+  if (isRestaurantOrPlaceType) {
+    titleFieldWord = 'name';
+  } else {
+    titleFieldWord = 'title';
+  }
+
+  let yearFieldLabel: string;
+  if (isRestaurantOrPlaceType) {
+    yearFieldLabel = 'Location';
+  } else {
+    yearFieldLabel = 'Year';
+  }
+
+  let yearFieldPlaceholder: string;
+  if (isRestaurantOrPlaceType) {
+    yearFieldPlaceholder = 'City, Country';
+  } else {
+    yearFieldPlaceholder = '2024';
+  }
+
+  let imageUrlLabel: string;
+  if (isMovieOrTvShowType) {
+    imageUrlLabel = 'Poster URL';
+  } else {
+    imageUrlLabel = 'Photo URL';
+  }
+
+  let platformFieldLabel: string;
+  if (isMovieOrTvShowType) {
+    platformFieldLabel = 'Where to Watch';
+  } else {
+    platformFieldLabel = 'Additional Info';
+  }
+
+  let platformFieldPlaceholder: string;
+  if (isMovieOrTvShowType) {
+    platformFieldPlaceholder = 'Netflix, Disney+, Hulu, etc.';
+  } else {
+    platformFieldPlaceholder = 'Additional details...';
+  }
+
   return {
     displayLabel,
-    titleFieldLabel: contentType === 'restaurant' ? 'Name' : contentType === 'place' ? 'Place Name' : 'Title',
-    titleFieldWord: isPlace ? 'name' : 'title',
-    yearFieldLabel: isPlace ? 'Location' : 'Year',
-    yearFieldPlaceholder: isPlace ? 'City, Country' : '2024',
-    imageUrlLabel: isMedia ? 'Poster URL' : 'Photo URL',
-    platformFieldLabel: isMedia ? 'Where to Watch' : 'Additional Info',
-    platformFieldPlaceholder: isMedia ? 'Netflix, Disney+, Hulu, etc.' : 'Additional details...',
+    titleFieldLabel,
+    titleFieldWord,
+    yearFieldLabel,
+    yearFieldPlaceholder,
+    imageUrlLabel,
+    platformFieldLabel,
+    platformFieldPlaceholder,
   };
 }
 

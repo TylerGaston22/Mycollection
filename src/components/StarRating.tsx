@@ -8,24 +8,24 @@ import { Movie } from "../types";
 
 interface StarRatingProps {
   movie: Movie;
-  onRate: (movie: Movie, star: number) => void;
+  onRate: (movie: Movie, starRatingNumber: number) => void;
 }
 
 export function StarRating({ movie, onRate }: StarRatingProps) {
   return (
     <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map((star) => {
-        let starClass = 'text-muted-foreground/40';
-        if (movie.rating && star <= movie.rating) {
-          starClass = 'fill-yellow-500 text-yellow-500';
+      {[1, 2, 3, 4, 5].map((starRatingNumber) => {
+        let starIconColorClass = 'text-muted-foreground/40';
+        if (movie.rating && starRatingNumber <= movie.rating) {
+          starIconColorClass = 'fill-yellow-500 text-yellow-500';
         }
         return (
           <button
-            key={star}
-            onClick={() => onRate(movie, star)}
+            key={starRatingNumber}
+            onClick={() => onRate(movie, starRatingNumber)}
             className="hover:scale-110 transition-transform"
           >
-            <Star className={`h-4 w-4 ${starClass}`} />
+            <Star className={`h-4 w-4 ${starIconColorClass}`} />
           </button>
         );
       })}

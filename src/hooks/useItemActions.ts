@@ -22,14 +22,14 @@ export function useItemActions(onUpdate: (id: string, updates: Partial<Movie>) =
   };
 
   // Clicking the current rating clears it (toggle behaviour)
-  const setRating = (movie: Movie, star: number) => {
-    let newRating: number | undefined;
-    if (movie.rating === star) {
-      newRating = undefined;
+  const setRating = (movie: Movie, starRatingNumber: number) => {
+    let newRatingValue: number | undefined;
+    if (movie.rating === starRatingNumber) {
+      newRatingValue = undefined;
     } else {
-      newRating = star;
+      newRatingValue = starRatingNumber;
     }
-    onUpdate(movie.id, { rating: newRating });
+    onUpdate(movie.id, { rating: newRatingValue });
   };
 
   return { toggleFavorite, toggleStatus, setRating };

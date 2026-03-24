@@ -61,7 +61,7 @@ export function QuickEditDialog({ movie, field, onSave, onClose }: QuickEditDial
       <Textarea
         id="qe-field"
         value={currentEditFieldValue}
-        onChange={(e) => setCurrentEditFieldValue(e.target.value)}
+        onChange={(event) => setCurrentEditFieldValue(event.target.value)}
         placeholder="Add your notes here..."
         rows={4}
         autoFocus
@@ -72,8 +72,8 @@ export function QuickEditDialog({ movie, field, onSave, onClose }: QuickEditDial
       <Input
         id="qe-field"
         value={currentEditFieldValue}
-        onChange={(e) => setCurrentEditFieldValue(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSave(); } }} // Enter-to-save for single-line inputs
+        onChange={(event) => setCurrentEditFieldValue(event.target.value)}
+        onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); handleSave(); } }} // Enter-to-save for single-line inputs
         placeholder={config.placeholder}
         autoFocus
       />

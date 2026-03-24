@@ -67,7 +67,12 @@ export function FormatGuideDialog({ open, onOpenChange }: FormatGuideDialogProps
   };
 
   const handleCopyPrompt = (promptType: 'csv' | 'txt') => {
-    const promptTextToCopy = promptType === 'csv' ? AI_PROMPT_CSV : AI_PROMPT_TXT;
+    let promptTextToCopy: string;
+    if (promptType === 'csv') {
+      promptTextToCopy = AI_PROMPT_CSV;
+    } else {
+      promptTextToCopy = AI_PROMPT_TXT;
+    }
     if (copyToClipboard(promptTextToCopy)) {
       setRecentlyCopiedPromptType(promptType);
       toast.success('AI Prompt copied to clipboard!');

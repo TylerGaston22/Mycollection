@@ -18,7 +18,11 @@ export function useMovies(currentUserId: string) {
       setMovies(mockItems);
     } else {
       const savedMoviesJsonString = localStorage.getItem(`movies-${currentUserId}`);
-      setMovies(savedMoviesJsonString ? JSON.parse(savedMoviesJsonString) as Movie[] : []);
+      if (savedMoviesJsonString) {
+        setMovies(JSON.parse(savedMoviesJsonString) as Movie[]);
+      } else {
+        setMovies([]);
+      }
     }
   }, [currentUserId]);
 

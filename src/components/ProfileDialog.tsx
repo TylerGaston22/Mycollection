@@ -52,8 +52,8 @@ export function ProfileDialog({
   const { exportData, importData } = useDataExportImport();
 
   const totalCollectionItemCount = movieCount + tvShowCount + restaurantCount + placeCount;
-  const numberOfItemsWatched = movies?.filter((item) => item.status === 'watched').length ?? 0;
-  const numberOfItemsFavorited = movies?.filter((item) => item.favorite).length ?? 0;
+  const numberOfItemsWatched = movies?.filter((collectionItem) => collectionItem.status === 'watched').length ?? 0;
+  const numberOfItemsFavorited = movies?.filter((collectionItem) => collectionItem.favorite).length ?? 0;
 
   const handleExportData = () => {
     exportData({

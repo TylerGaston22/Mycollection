@@ -78,7 +78,7 @@ export function SubCategoryNav({
       )}
 
       {customSectionsForCategory.map((section) => {
-        const numberOfItemsInSection = allItems.filter((item) => item.sections?.includes(section.id)).length;
+        const numberOfItemsInSection = allItems.filter((collectionItem) => collectionItem.sections?.includes(section.id)).length;
         return (
           <SectionButton
             key={section.id}
