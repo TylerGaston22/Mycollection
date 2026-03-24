@@ -9,8 +9,7 @@ import { useState } from 'react';
 import { Movie } from "../types";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
-import { Star, Heart, Trash2, Eye, Clock, MoreVertical } from 'lucide-react';
+import { Heart, Trash2, MoreVertical } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +18,9 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { useItemActions } from "../hooks/useItemActions";
-import { getStatusLabel, getOppositeStatusLabel } from "../utils/contentHelpers";
+import { StarRating } from "./StarRating";
+import { StatusBadge } from "./StatusBadge";
+import { StatusToggleMenuContent } from "./StatusToggleMenuContent";
 
 // Base64-encoded SVG placeholder shown when a poster image fails to load
 const ERROR_IMG =
@@ -51,47 +52,6 @@ export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
     heartIconColorClass = 'fill-red-500 text-red-500';
   } else {
     heartIconColorClass = 'text-white stroke-white stroke-2';
-  }
-
-  let statusBadgeVariant: 'default' | 'secondary';
-  if (movie.status === 'watched') {
-    statusBadgeVariant = 'default';
-  } else {
-    statusBadgeVariant = 'secondary';
-  }
-
-  let statusBadgeContent;
-  if (movie.status === 'watched') {
-    statusBadgeContent = (
-      <>
-        <Eye className="h-3 w-3 mr-1" />
-        {getStatusLabel(movie.type, 'watched')}
-      </>
-    );
-  } else {
-    statusBadgeContent = (
-      <>
-        <Clock className="h-3 w-3 mr-1" />
-        {getStatusLabel(movie.type, 'want-to-see')}
-      </>
-    );
-  }
-
-  let toggleStatusMenuItemContent;
-  if (movie.status === 'watched') {
-    toggleStatusMenuItemContent = (
-      <>
-        <Clock className="h-4 w-4 mr-2" />
-        Mark as {getOppositeStatusLabel(movie.type, movie.status)}
-      </>
-    );
-  } else {
-    toggleStatusMenuItemContent = (
-      <>
-        <Eye className="h-4 w-4 mr-2" />
-        Mark as {getOppositeStatusLabel(movie.type, movie.status)}
-      </>
-    );
   }
 
   let favoriteMenuItemText: string;
@@ -136,9 +96,7 @@ export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
 
         {/* Status badge */}
         <div className="absolute top-2 left-2">
-          <Badge variant={statusBadgeVariant}>
-            {statusBadgeContent}
-          </Badge>
+          <StatusBadge status={movie.status} contentType={movie.type} />
         </div>
       </div>
 
@@ -160,7 +118,7 @@ export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => toggleStatus(movie)}>
-                {toggleStatusMenuItemContent}
+                <StatusToggleMenuContent currentStatus={movie.status} contentType={movie.type} />
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => toggleFavorite(movie)}>
                 <Heart className="h-4 w-4 mr-2" />
@@ -180,24 +138,8 @@ export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
 
         {/* Rating */}
         {movie.status === 'watched' && (
-          <div className="flex gap-1 mb-2">
-            {[1, 2, 3, 4, 5].map((starRatingNumber) => {
-              let starIconColorClass: string;
-              if (movie.rating && starRatingNumber <= movie.rating) {
-                starIconColorClass = 'fill-yellow-500 text-yellow-500';
-              } else {
-                starIconColorClass = 'text-muted-foreground/40';
-              }
-              return (
-                <button
-                  key={starRatingNumber}
-                  onClick={() => setRating(movie, starRatingNumber)}
-                  className="hover:scale-110 transition-transform"
-                >
-                  <Star className={`h-4 w-4 ${starIconColorClass}`} />
-                </button>
-              );
-            })}
+          <div className="mb-2">
+            <StarRating movie={movie} onRate={setRating} />
           </div>
         )}
 

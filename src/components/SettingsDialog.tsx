@@ -6,10 +6,11 @@
  */
 
 import { useState } from 'react';
-import { Lock, Palette, Download, Upload, FileText, Info, ImageIcon, Film, Tv, UtensilsCrossed, MapPin } from 'lucide-react';
+import { Lock, Palette, Upload, FileText, Info, ImageIcon, Film, Tv, UtensilsCrossed, MapPin } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
+import { DataManagementButtons } from "./DataManagementButtons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Movie, CustomTab, CustomSection } from "../types";
 import { ColorPicker } from "./ColorPicker";
@@ -112,22 +113,7 @@ export function SettingsDialog({ open, onOpenChange, movies, customTabs, customS
                   <p className="text-sm text-muted-foreground mb-4">
                     Export your collection to backup your data or import a previously saved collection.
                   </p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button variant="outline" className="flex flex-col items-center gap-2 h-auto py-4" onClick={handleExportData}>
-                      <Download className="h-5 w-5" />
-                      <div className="text-center">
-                        <div className="font-medium">Export</div>
-                        <div className="text-xs text-muted-foreground">Download backup</div>
-                      </div>
-                    </Button>
-                    <Button variant="outline" className="flex flex-col items-center gap-2 h-auto py-4" onClick={handleImportData}>
-                      <Upload className="h-5 w-5" />
-                      <div className="text-center">
-                        <div className="font-medium">Import</div>
-                        <div className="text-xs text-muted-foreground">Restore backup</div>
-                      </div>
-                    </Button>
-                  </div>
+                  <DataManagementButtons onExport={handleExportData} onImport={handleImportData} />
                   <p className="text-xs text-muted-foreground">
                     Exported data includes: Movies ({totalMoviesCount}), TV Shows, Restaurants, Places, Custom Categories ({totalCustomTabsCount}), and Custom Sections ({totalCustomSectionsCount}).
                   </p>

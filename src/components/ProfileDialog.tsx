@@ -14,9 +14,10 @@ import {
 } from "./ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { User, Download, Upload, Mail, Calendar, MapPin as MapPinIcon } from 'lucide-react';
+import { User, Mail, Calendar, MapPin as MapPinIcon } from 'lucide-react';
 import { Separator } from "./ui/separator";
-import { Badge } from "./ui/badge";
+import { DataManagementButtons } from "./DataManagementButtons";
+import { CategoryCountRow } from "./CategoryCountRow";
 
 import { User as UserType, Movie, CustomTab, CustomSection } from "../types";
 import { useDataExportImport } from "../hooks/useDataExportImport";
@@ -157,37 +158,10 @@ export function ProfileDialog({
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">Movies</Badge>
-                  <span className="text-sm text-muted-foreground">Films in your collection</span>
-                </div>
-                <span className="text-lg">{movieCount}</span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">TV Shows</Badge>
-                  <span className="text-sm text-muted-foreground">Series you're tracking</span>
-                </div>
-                <span className="text-lg">{tvShowCount}</span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">Restaurants</Badge>
-                  <span className="text-sm text-muted-foreground">Places to eat</span>
-                </div>
-                <span className="text-lg">{restaurantCount}</span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">Places</Badge>
-                  <span className="text-sm text-muted-foreground">Destinations to visit</span>
-                </div>
-                <span className="text-lg">{placeCount}</span>
-              </div>
+              <CategoryCountRow label="Movies" description="Films in your collection" count={movieCount} />
+              <CategoryCountRow label="TV Shows" description="Series you're tracking" count={tvShowCount} />
+              <CategoryCountRow label="Restaurants" description="Places to eat" count={restaurantCount} />
+              <CategoryCountRow label="Places" description="Destinations to visit" count={placeCount} />
             </div>
           </div>
 
@@ -199,30 +173,7 @@ export function ProfileDialog({
             <p className="text-sm text-muted-foreground">
               Export your collection to backup your data or import a previously saved collection.
             </p>
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                className="flex flex-col items-center gap-2 h-auto py-4"
-                onClick={handleExportData}
-              >
-                <Download className="h-5 w-5" />
-                <div className="text-center">
-                  <div className="font-medium">Export</div>
-                  <div className="text-xs text-muted-foreground">Download backup</div>
-                </div>
-              </Button>
-              <Button
-                variant="outline"
-                className="flex flex-col items-center gap-2 h-auto py-4"
-                onClick={handleImportData}
-              >
-                <Upload className="h-5 w-5" />
-                <div className="text-center">
-                  <div className="font-medium">Import</div>
-                  <div className="text-xs text-muted-foreground">Restore backup</div>
-                </div>
-              </Button>
-            </div>
+            <DataManagementButtons onExport={handleExportData} onImport={handleImportData} />
             <p className="text-xs text-muted-foreground">
               Exported data includes: Movies ({movieCount}), TV Shows ({tvShowCount}), Restaurants ({restaurantCount}), Places ({placeCount}), Custom Categories ({customTabs?.length || 0}), and Custom Sections ({customSections?.length || 0}).
             </p>

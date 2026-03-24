@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
-import { Heart, Star, MoreVertical, Trash2, Eye, Clock, Edit, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Heart, MoreVertical, Trash2, Edit, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import {
@@ -36,8 +36,10 @@ import {
 } from "./ui/dropdown-menu";
 import { MovieFormDialog } from "./MovieFormDialog";
 import { QuickEditDialog } from "./QuickEditDialog";
+import { StarRating } from "./StarRating";
+import { StatusBadge } from "./StatusBadge";
+import { StatusToggleMenuContent } from "./StatusToggleMenuContent";
 import { useItemActions } from "../hooks/useItemActions";
-import { getStatusLabel, getOppositeStatusLabel } from "../utils/contentHelpers";
 
 interface ListViewProps {
   movies: Movie[];
@@ -190,25 +192,13 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
       ),
       cell: ({ row }) => {
         const movie = row.original;
-        let badgeVariant: 'default' | 'secondary' = 'secondary';
-        if (movie.status === 'watched') {
-          badgeVariant = 'default';
-        }
         let badgeClass = 'cursor-pointer';
         if (isDarkMode) {
           badgeClass += ' text-white border-white/30 bg-transparent';
         }
-        let statusContent;
-        if (movie.status === 'watched') {
-          statusContent = <><Eye className="h-3 w-3 mr-1" />{getStatusLabel(movie.type, 'watched')}</>;
-        } else {
-          statusContent = <><Clock className="h-3 w-3 mr-1" />{getStatusLabel(movie.type, 'want-to-see')}</>;
-        }
         return (
           <button onClick={() => toggleStatus(movie)} className="hover:opacity-80 transition-opacity">
-            <Badge variant={badgeVariant} className={badgeClass}>
-              {statusContent}
-            </Badge>
+            <StatusBadge status={movie.status} contentType={movie.type} className={badgeClass} />
           </button>
         );
       },
@@ -222,21 +212,7 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
       cell: ({ row }) => {
         const movie = row.original;
         if (movie.status !== 'watched') return null;
-        return (
-          <div className="flex gap-1">
-            {[1, 2, 3, 4, 5].map((star) => {
-              let starClass = 'text-muted-foreground/40';
-              if (movie.rating && star <= movie.rating) {
-                starClass = 'fill-yellow-500 text-yellow-500';
-              }
-              return (
-                <button key={star} onClick={() => setRating(movie, star)} className="hover:scale-110 transition-transform">
-                  <Star className={`h-4 w-4 ${starClass}`} />
-                </button>
-              );
-            })}
-          </div>
-        );
+        return <StarRating movie={movie} onRate={setRating} />;
       },
       sortingFn: (a, b) => (b.original.rating ?? 0) - (a.original.rating ?? 0),
     }),
@@ -254,12 +230,6 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
       enableSorting: false,
       cell: ({ row }) => {
         const movie = row.original;
-        let statusMenuItemContent;
-        if (movie.status === 'watched') {
-          statusMenuItemContent = <><Clock className="h-4 w-4 mr-2" />Mark as {getOppositeStatusLabel(movie.type, movie.status)}</>;
-        } else {
-          statusMenuItemContent = <><Eye className="h-4 w-4 mr-2" />Mark as {getOppositeStatusLabel(movie.type, movie.status)}</>;
-        }
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -272,7 +242,7 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
                 <Edit className="mr-2 h-4 w-4" />Edit
               </DropdownMenuItem>
               <DropdownMenuItem onClick={(e: React.MouseEvent) => { e.stopPropagation(); toggleStatus(movie); }}>
-                {statusMenuItemContent}
+                <StatusToggleMenuContent currentStatus={movie.status} contentType={movie.type} />
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
