@@ -4,13 +4,13 @@
  * area side by side. Acts as a thin pass-through for props from App.
  */
 
-import { Movie, CustomTab, CustomSection } from "../types";
+import { Movie, CustomTab, CustomSection, User } from "../types";
 import { ThemeConfig } from "../utils/themeConfig";
 import { Sidebar } from "./Sidebar";
 import { MainContent } from "./MainContent";
 
 interface SidebarLayoutProps {
-  currentUser: any;
+  currentUser: User;
   movies: Movie[];
   customTabs: CustomTab[];
   customSections: CustomSection[];

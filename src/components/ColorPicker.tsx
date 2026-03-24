@@ -5,6 +5,7 @@
  * The selected theme gets a ring highlight and a radio-dot indicator.
  */
 
+import { LucideIcon } from 'lucide-react';
 import { Label } from "./ui/label";
 import { colorThemes, ThemeConfig } from "../utils/themeConfig";
 
@@ -12,7 +13,7 @@ const availableColorThemeOptions = Object.values(colorThemes);
 
 interface ColorPickerProps {
   label: string;
-  icon: any;
+  icon: LucideIcon;
   type: 'movie' | 'tv-show' | 'restaurant' | 'place';
   selectedColor: string;
   onColorChange: (type: 'movie' | 'tv-show' | 'restaurant' | 'place', colorId: string) => void;

@@ -94,7 +94,7 @@ export function MovieFormDialog({
       }
       setSelectedSections(preSelectedSectionIds);
     }
-  }, [open, movie]);
+  }, [open, movie, activeSection, customSections, contentType]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();

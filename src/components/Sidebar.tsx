@@ -9,6 +9,7 @@
 import { Button } from "./ui/button";
 import { Plus, Film, Tv, UtensilsCrossed, MapPin, User, Settings, LogOut, Users, Star } from 'lucide-react';
 import { Movie, CustomTab, CustomSection } from "../types";
+import type { User as UserType } from "../types";
 import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
 import { CategoryButton } from "./CategoryButton";
 import { SubCategoryNav } from "./SubCategoryNav";
@@ -20,7 +21,7 @@ import {
 } from "./ui/context-menu";
 
 interface SidebarProps {
-  currentUser: any;
+  currentUser: UserType;
   movies: Movie[];
   customTabs: CustomTab[];
   customSections: CustomSection[];
