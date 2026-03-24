@@ -1,4 +1,4 @@
-import { Button } from "./ui/button";
+import { Button } from "../components/ui/button";
 import { Film, Tv, UtensilsCrossed, MapPin, Star, CheckCircle2, Grid3x3, List, Sparkles } from "lucide-react";
 
 interface LandingPageProps {

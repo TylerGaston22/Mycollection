@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { DEMO_CREDENTIALS } from "../mock";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
 import { Sparkles, Film, Tv, UtensilsCrossed, MapPin, ArrowLeft } from "lucide-react";
 
 interface SignInPageProps {

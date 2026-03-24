@@ -8,8 +8,8 @@
 
 import { useState, useEffect } from 'react';
 import { SidebarLayout } from "./components/SidebarLayout";
-import { LandingPage } from "./components/LandingPage";
-import { SignInPage } from "./components/SignInPage";
+import { LandingPage } from "./pages/LandingPage";
+import { SignInPage } from "./pages/SignInPage";
 import { MovieFormDialog } from "./components/MovieFormDialog";
 import { ProfileDialog } from "./components/ProfileDialog";
 import { SettingsDialog } from "./components/SettingsDialog";
