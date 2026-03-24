@@ -1,3 +1,8 @@
+/**
+ * Mock movies – seed data for the demo account's movie collection.
+ * Contains 40 popular films across various genres and streaming
+ * platforms, pre-populated with watch statuses and ratings.
+ */
 import { Movie } from "../types";
 
 export const mockMovies: Movie[] = [

@@ -1,3 +1,7 @@
+/**
+ * Separator – visual divider primitive (shadcn/ui).
+ * Wraps Radix UI Separator with horizontal and vertical orientation support.
+ */
 "use client";
 
 import * as React from "react";

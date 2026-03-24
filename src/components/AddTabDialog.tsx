@@ -1,3 +1,8 @@
+/**
+ * AddTabDialog – modal form for creating a custom sidebar tab.
+ * Lets the user pick a name and an icon from a curated set of
+ * Lucide icons, then delegates the new tab back via onAdd.
+ */
 import { useState } from 'react';
 import {
   Dialog,

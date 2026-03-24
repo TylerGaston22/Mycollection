@@ -1,3 +1,7 @@
+/**
+ * Label – accessible form label primitive (shadcn/ui).
+ * Wraps Radix UI Label with consistent styling and disabled-state handling.
+ */
 "use client";
 
 import * as React from "react";

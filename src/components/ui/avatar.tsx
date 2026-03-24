@@ -1,3 +1,7 @@
+/**
+ * Avatar – user avatar primitive (shadcn/ui).
+ * Wraps Radix UI Avatar with image and fallback support for profile displays.
+ */
 "use client";
 
 import * as React from "react";

@@ -1,3 +1,8 @@
+/**
+ * ShareDialog – export a filtered item list as formatted text.
+ * Generates a human-readable preview with titles, ratings, and status
+ * symbols, then offers copy-to-clipboard and download-as-txt actions.
+ */
 import { useState, useEffect } from 'react';
 import {
   Dialog,

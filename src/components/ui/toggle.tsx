@@ -1,3 +1,7 @@
+/**
+ * Toggle – two-state toggle button primitive (shadcn/ui).
+ * Wraps Radix UI Toggle with variant and size props via class-variance-authority.
+ */
 "use client";
 
 import * as React from "react";

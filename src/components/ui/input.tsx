@@ -1,3 +1,7 @@
+/**
+ * Input – styled text input primitive (shadcn/ui).
+ * Provides a single-line input with consistent focus, validation, and file input styling.
+ */
 import * as React from "react";
 
 import { cn } from "./utils";

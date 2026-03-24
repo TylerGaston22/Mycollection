@@ -1,3 +1,9 @@
+/**
+ * MovieDetailDialog – read-only detail view for a collection item.
+ * Displays platform, studio, genre, season/episode counts, and notes.
+ * Field labels adapt to the content type (movie, TV show, restaurant,
+ * or place). An inline "Edit" button opens the MovieFormDialog.
+ */
 import { useState } from 'react';
 import {
   Dialog,

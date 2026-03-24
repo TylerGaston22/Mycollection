@@ -51,6 +51,7 @@ export interface ContentTypeFieldConfig {
 
 export function getContentTypeFieldConfig(contentType: string): ContentTypeFieldConfig {
   const isMedia = isMediaContentType(contentType);
+  // Restaurants and places share field labels ("Name" instead of "Title", "Location" instead of "Year")
   const isPlace = contentType === 'restaurant' || contentType === 'place';
 
   let displayLabel: string;
@@ -120,6 +121,7 @@ export function getSectionDisplayName(
   if (sectionId === 'all') {
     return `All ${getContentTypeName(contentType, true, customTabs)}`;
   }
+  // Local re-check (not calling the exported function) to keep this function self-contained
   const isMediaContentType = contentType === 'movie' || contentType === 'tv-show';
   if (sectionId === 'watched') {
     if (isMediaContentType) {
@@ -181,5 +183,6 @@ export function getSectionContent(
   if (sectionId === 'favorites') {
     return allItemsMatchingContentType.filter((collectionItem) => collectionItem.favorite);
   }
+  // For custom sections, filter items whose sections array includes this section ID
   return allItemsMatchingContentType.filter((collectionItem) => collectionItem.sections?.includes(sectionId));
 }

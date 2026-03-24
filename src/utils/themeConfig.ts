@@ -84,6 +84,7 @@ export function getTheme(themeId: string): ThemeConfig {
 export function colorToRgba(color: string, opacity: number): string {
   // If already rgb format
   if (color.startsWith('rgb(')) {
+    // Extract the three numeric R/G/B values from an "rgb(r, g, b)" string
     const rgbNumberValues = color.match(/\d+/g);
     if (rgbNumberValues && rgbNumberValues.length === 3) {
       return `rgba(${rgbNumberValues[0]}, ${rgbNumberValues[1]}, ${rgbNumberValues[2]}, ${opacity})`;

@@ -44,6 +44,7 @@ export function MovieFormDialog({
   movie,
   onUpdate,
 }: MovieFormDialogProps) {
+  // Determine content type: from the item being edited, the active tab, or default to 'movie'
   const itemContentType = movie?.type ?? contentType ?? 'movie';
   const isEditingExistingItem = !!movie;
   const fieldConfig = getContentTypeFieldConfig(itemContentType);
@@ -83,6 +84,7 @@ export function MovieFormDialog({
       setNotes(''); setPlatform(''); setStudio(''); setGenre('');
       setSeasons(''); setEpisodes('');
 
+      // Pre-select the currently active section if it belongs to this content type
       let preSelectedSectionIds: string[] = [];
       if (activeSection) {
         const activeSectionBelongsToCurrentContentType = customSections.some(

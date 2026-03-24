@@ -6,6 +6,7 @@
 export function copyToClipboard(textToCopy: string): boolean {
   const hiddenTextarea = document.createElement('textarea');
   hiddenTextarea.value = textToCopy;
+  // Position off-screen and invisible to prevent layout shift during the copy operation
   hiddenTextarea.style.position = 'fixed';
   hiddenTextarea.style.opacity = '0';
   document.body.appendChild(hiddenTextarea);

@@ -1,3 +1,7 @@
+/**
+ * Textarea – styled multi-line text input primitive (shadcn/ui).
+ * Provides a resizable textarea with consistent focus and validation styling.
+ */
 import * as React from "react";
 
 import { cn } from "./utils";

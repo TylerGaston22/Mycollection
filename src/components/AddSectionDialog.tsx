@@ -1,3 +1,8 @@
+/**
+ * AddSectionDialog – modal form for creating a new subcategory.
+ * Accepts a content type and delegates the new section back to the
+ * parent via the onAdd callback. Resets its form state on submission.
+ */
 import { useState } from 'react';
 import {
   Dialog,

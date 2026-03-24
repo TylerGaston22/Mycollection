@@ -1,3 +1,7 @@
+/**
+ * Table – styled HTML table primitive (shadcn/ui).
+ * Provides Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, and TableCaption sub-components.
+ */
 "use client";
 
 import * as React from "react";

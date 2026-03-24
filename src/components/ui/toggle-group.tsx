@@ -1,3 +1,7 @@
+/**
+ * ToggleGroup – grouped toggle button primitive (shadcn/ui).
+ * Wraps Radix UI ToggleGroup with shared variant and size context for grouped toggle items.
+ */
 "use client";
 
 import * as React from "react";

@@ -1,3 +1,7 @@
+/**
+ * Checkbox – styled checkbox input primitive (shadcn/ui).
+ * Wraps Radix UI Checkbox with consistent styling and a check icon indicator.
+ */
 "use client";
 
 import * as React from "react";

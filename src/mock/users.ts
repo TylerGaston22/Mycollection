@@ -1,3 +1,8 @@
+/**
+ * Mock users – demo account credentials and user profile data.
+ * Defines the demo user identity and login credentials used for
+ * the one-click demo sign-in flow.
+ */
 import { User } from "../types";
 
 export const DEMO_USER_ID = "user-demo";

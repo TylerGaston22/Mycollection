@@ -107,14 +107,17 @@ export function useDataExportImport() {
           for (let lineIndex = 1; lineIndex < allFileLines.length; lineIndex++) {
             const currentLine = allFileLines[lineIndex].trim();
             if (!currentLine) continue;
+            // Simple split — does not handle commas within quoted fields
             const columnValues = currentLine.split(',').map((value) => value.trim().replace(/^"|"$/g, ''));
             const parsedCsvRow: Record<string, string> = {};
             csvColumnHeaders.forEach((columnName, columnIndex) => {
               parsedCsvRow[columnName] = columnValues[columnIndex] || '';
             });
 
+            // Skip rows with unrecognised type values (e.g., typos in the CSV)
             if (!['movie', 'tv-show', 'restaurant', 'place'].includes(parsedCsvRow.type)) continue;
 
+            // Combine timestamp + line index to guarantee unique IDs within a single bulk import
             newMovies.push({
               id: `bulk-${Date.now()}-${lineIndex}`,
               title: parsedCsvRow.title,

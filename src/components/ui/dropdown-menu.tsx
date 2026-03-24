@@ -1,3 +1,7 @@
+/**
+ * DropdownMenu – accessible dropdown menu primitive (shadcn/ui).
+ * Wraps Radix UI DropdownMenu with items, checkbox items, radio items, sub-menus, and keyboard shortcut display.
+ */
 "use client";
 
 import * as React from "react";

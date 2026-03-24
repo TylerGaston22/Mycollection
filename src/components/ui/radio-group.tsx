@@ -1,3 +1,7 @@
+/**
+ * RadioGroup – radio button group primitive (shadcn/ui).
+ * Wraps Radix UI RadioGroup with styled radio items and a filled-circle indicator.
+ */
 "use client";
 
 import * as React from "react";

@@ -1,3 +1,7 @@
+/**
+ * Toaster – toast notification provider (shadcn/ui).
+ * Wraps the Sonner toast library with theme-aware styling via next-themes.
+ */
 "use client";
 
 import { useTheme } from "next-themes@0.4.6";

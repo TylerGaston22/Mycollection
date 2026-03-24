@@ -29,6 +29,7 @@ export function useAuth() {
     setCurrentUserId(DEMO_USER_ID);
   }, []);
 
+  // Credentials are accepted but not validated (demo-only auth)
   const handleSignIn = (_username: string, _password: string) => {
     setIsSignedIn(true);
     setShowSignInPage(false);

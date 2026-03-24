@@ -1,3 +1,8 @@
+/**
+ * ProfileSwitcherDialog – modal for switching between user profiles.
+ * Lists all non-guest users with avatar badges, highlights the
+ * currently active profile, and triggers a switch on selection.
+ */
 import {
   Dialog,
   DialogContent,

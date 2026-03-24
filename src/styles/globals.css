@@ -1,3 +1,9 @@
+/**
+ * globals.css – design-token definitions and base typography.
+ * Declares CSS custom properties for light/dark themes, maps them
+ * to Tailwind v4 colour tokens via @theme, and sets default
+ * typographic styles for headings, paragraphs, and form elements.
+ */
 @custom-variant dark (&:is(.dark *));
 
 :root {

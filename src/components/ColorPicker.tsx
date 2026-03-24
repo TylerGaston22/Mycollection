@@ -42,6 +42,7 @@ export function ColorPicker({ label, icon: Icon, type, selectedColor, onColorCha
               className={colorButtonClassName}
               title={colorTheme.name}
             >
+              {/* Split preview: sidebar gradient on left half, background gradient on right half */}
               <div className="absolute inset-0 flex">
                 <div className="w-1/2" style={{ background: colorTheme.sidebarGradient }} />
                 <div className="w-1/2" style={{ background: colorTheme.backgroundGradient }} />

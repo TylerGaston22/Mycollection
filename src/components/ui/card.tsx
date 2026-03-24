@@ -1,3 +1,7 @@
+/**
+ * Card – content container primitive (shadcn/ui).
+ * Provides Card, CardHeader, CardTitle, CardDescription, CardContent, CardAction, and CardFooter sub-components.
+ */
 import * as React from "react";
 
 import { cn } from "./utils";

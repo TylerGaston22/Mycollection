@@ -1,3 +1,7 @@
+/**
+ * AlertDialog – accessible confirmation dialog primitive (shadcn/ui).
+ * Wraps Radix UI AlertDialog with consistent styling and animated transitions.
+ */
 "use client";
 
 import * as React from "react";

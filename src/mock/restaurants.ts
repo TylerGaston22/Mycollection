@@ -1,3 +1,8 @@
+/**
+ * Mock restaurants – seed data for the demo account's restaurant list.
+ * Contains 20 world-renowned restaurants with cuisine types, booking
+ * platforms, visit statuses, and personal notes.
+ */
 import { Movie } from "../types";
 
 export const mockRestaurants: Movie[] = [

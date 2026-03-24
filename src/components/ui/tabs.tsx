@@ -1,3 +1,7 @@
+/**
+ * Tabs – tabbed navigation primitive (shadcn/ui).
+ * Wraps Radix UI Tabs with styled list, trigger, and content sub-components.
+ */
 "use client";
 
 import * as React from "react";

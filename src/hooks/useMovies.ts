@@ -12,6 +12,7 @@ import { mockItems, DEMO_USER_ID } from '../mock';
 export function useMovies(currentUserId: string) {
   const [movies, setMovies] = useState<Movie[]>([]);
 
+  // Demo user always loads fresh mock data; other users read from localStorage
   useEffect(() => {
     if (currentUserId === DEMO_USER_ID) {
       setMovies(mockItems);
@@ -26,6 +27,7 @@ export function useMovies(currentUserId: string) {
   }, [movies, currentUserId]);
 
   const addMovie = (movie: Omit<Movie, 'id'>) => {
+    // Duplicate detection: case-insensitive title match within the same content type
     const isDuplicate = movies.some(
       (existingMovie) => existingMovie.title.toLowerCase() === movie.title.toLowerCase() && existingMovie.type === movie.type
     );

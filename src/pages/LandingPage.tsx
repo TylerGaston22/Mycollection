@@ -1,3 +1,9 @@
+/**
+ * LandingPage – public marketing page shown before sign-in.
+ * Showcases the app's key features (multi-category tracking, custom
+ * organisation, flexible views, personal profiles) with a hero
+ * section and a call-to-action that routes to the sign-in flow.
+ */
 import { Button } from "../components/ui/button";
 import { Film, Tv, UtensilsCrossed, MapPin, Star, CheckCircle2, Grid3x3, List, Sparkles } from "lucide-react";
 

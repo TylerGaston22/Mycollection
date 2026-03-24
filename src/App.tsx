@@ -76,6 +76,7 @@ export default function App() {
     setActiveSection(newSection.id);
   };
 
+  // Cascade-delete: remove the tab, its items, and its sections, then fall back to 'movie'
   const handleDeleteCustomTab = (tabId: string) => {
     removeTab(tabId);
     removeByType(tabId);
@@ -90,13 +91,13 @@ export default function App() {
     setCustomSections(data.customSections);
   };
 
-  // Counts
+  // Counts are computed from the unified `movies` array, which holds all content types
   const movieCount = movies.filter((collectionItem) => collectionItem.type === 'movie').length;
   const tvShowCount = movies.filter((collectionItem) => collectionItem.type === 'tv-show').length;
   const restaurantCount = movies.filter((collectionItem) => collectionItem.type === 'restaurant').length;
   const placeCount = movies.filter((collectionItem) => collectionItem.type === 'place').length;
 
-  // Theme
+  // Custom tabs don't have a saved theme, so fall back to 'current' (default Ghibli theme)
   const activeThemeId = backgroundColors[contentType as keyof typeof backgroundColors] || 'current';
   const currentTheme = getTheme(activeThemeId);
 

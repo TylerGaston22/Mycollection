@@ -1,3 +1,7 @@
+/**
+ * Badge – inline status label primitive (shadcn/ui).
+ * Provides variant props via class-variance-authority for default, secondary, destructive, and outline styles.
+ */
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot@1.1.2";
 import { cva, type VariantProps } from "class-variance-authority@0.7.1";

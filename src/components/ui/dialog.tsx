@@ -1,3 +1,7 @@
+/**
+ * Dialog – accessible modal dialog primitive (shadcn/ui).
+ * Wraps Radix UI Dialog with overlay, close button, and animated transitions.
+ */
 "use client";
 
 import * as React from "react";

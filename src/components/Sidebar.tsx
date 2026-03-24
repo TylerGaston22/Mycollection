@@ -112,7 +112,7 @@ export function Sidebar({
       className="w-72 backdrop-blur-sm border-r p-6 overflow-y-auto fixed h-screen"
       style={{
         background: currentTheme.sidebarGradient,
-        borderRightColor: `${currentTheme.accentColor}30`,
+        borderRightColor: `${currentTheme.accentColor}30`, // '30' is a hex opacity suffix (~19% opacity)
       }}
     >
       {/* User Profile Section */}

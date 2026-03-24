@@ -1,3 +1,8 @@
+/**
+ * SignInPage – username/password sign-in form with demo account shortcut.
+ * Validates input fields, simulates a brief loading state, and offers
+ * a one-click "Try Demo Account" button that bypasses manual entry.
+ */
 import { useState } from "react";
 import { DEMO_CREDENTIALS } from "../mock";
 import { Button } from "../components/ui/button";

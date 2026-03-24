@@ -104,6 +104,7 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
           </button>
         );
       },
+      // Sort favourites to the top: favourited items get -1, others get 1
       sortingFn: (a, b) => {
         if (a.original.favorite === b.original.favorite) return 0;
         if (a.original.favorite) return -1;
@@ -119,6 +120,7 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
       cell: ({ row }) => (
         <button
           onClick={() => onMovieClick?.(row.original)}
+          // Right-click also opens the detail dialog
           onContextMenu={(e) => { e.preventDefault(); onMovieClick?.(row.original); }}
           className={`hover:opacity-70 transition-opacity cursor-pointer text-left ${textColor}`}
         >
@@ -211,9 +213,11 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
       ),
       cell: ({ row }) => {
         const movie = row.original;
+        // Only display star rating for items with 'watched' status
         if (movie.status !== 'watched') return null;
         return <StarRating movie={movie} onRate={setRating} />;
       },
+      // Descending sort: higher ratings first, unrated (nullish) treated as 0
       sortingFn: (a, b) => (b.original.rating ?? 0) - (a.original.rating ?? 0),
     }),
     columnHelper.accessor('notes', {

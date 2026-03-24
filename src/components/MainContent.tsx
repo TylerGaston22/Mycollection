@@ -54,6 +54,7 @@ export function MainContent({
   const currentCategoryHeadingTitle = getCategoryDisplayName(contentType, customTabs);
   const singularTypeName = getContentTypeName(contentType, false, customTabs);
   const pluralTypeName = getContentTypeName(contentType, true, customTabs);
+  // Capitalise the first letter for the "Add Movie" / "Add Restaurant" button label
   const addButtonLabel = singularTypeName.charAt(0).toUpperCase() + singularTypeName.slice(1);
 
   let emptyStateMessageText: string;
@@ -63,6 +64,7 @@ export function MainContent({
     emptyStateMessageText = `No ${pluralTypeName} in this section yet.`;
   }
 
+  // Apply theme accent colour to the active toggle button; leave inactive buttons unstyled
   let listViewButtonBackgroundColor: string | undefined = undefined;
   let listViewButtonTextColor: string | undefined = undefined;
   if (viewMode === 'list') {
@@ -135,6 +137,7 @@ export function MainContent({
                 variant="ghost"
                 size="sm"
                 style={{ color: colorToRgba(currentTheme.accentColor, 0.7) }}
+                // Inline hover: brighten the share icon and add a subtle background on mouse enter
                 onMouseEnter={(event) => {
                   event.currentTarget.style.color = currentTheme.accentColor;
                   event.currentTarget.style.backgroundColor = 'rgba(51, 65, 85, 0.5)';

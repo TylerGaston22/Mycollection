@@ -50,6 +50,7 @@ export function QuickEditDialog({ movie, field, onSave, onClose }: QuickEditDial
   const config = FIELD_CONFIG[field];
 
   const handleSave = () => {
+    // Pass undefined instead of empty string so the field is cleared in the data model
     onSave(movie.id, field, currentEditFieldValue || undefined);
     onClose();
   };
@@ -72,7 +73,7 @@ export function QuickEditDialog({ movie, field, onSave, onClose }: QuickEditDial
         id="qe-field"
         value={currentEditFieldValue}
         onChange={(e) => setCurrentEditFieldValue(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSave(); } }}
+        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSave(); } }} // Enter-to-save for single-line inputs
         placeholder={config.placeholder}
         autoFocus
       />

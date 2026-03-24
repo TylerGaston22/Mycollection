@@ -24,6 +24,7 @@ export function useCustomTabs(currentUserId: string) {
   }, [customTabs, currentUserId]);
 
   const addCustomTab = (tab: Omit<CustomTab, 'id'>): CustomTab => {
+    // Generate a unique ID using timestamp — sufficient for single-user, single-tab usage
     const newTab: CustomTab = { ...tab, id: `custom-${Date.now()}` };
     setCustomTabs((previousTabsList) => [...previousTabsList, newTab]);
     return newTab;
@@ -58,6 +59,7 @@ export function useCustomSections(currentUserId: string) {
     return newSection;
   };
 
+  // When a custom tab is deleted, remove all sections that belonged to it
   const removeByContentType = (contentTypeToRemove: string) => {
     setCustomSections((previousSectionsList) => previousSectionsList.filter((section) => section.contentType !== contentTypeToRemove));
   };

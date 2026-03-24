@@ -1,3 +1,7 @@
+/**
+ * ContextMenu – right-click context menu primitive (shadcn/ui).
+ * Wraps Radix UI ContextMenu with items, checkbox items, radio items, sub-menus, and keyboard shortcut display.
+ */
 "use client";
 
 import * as React from "react";

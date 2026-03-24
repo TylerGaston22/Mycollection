@@ -52,6 +52,7 @@ interface FormatGuideDialogProps {
 }
 
 export function FormatGuideDialog({ open, onOpenChange }: FormatGuideDialogProps) {
+  // Separate copy states: one boolean for the format example, one typed value for CSV vs TXT prompt
   const [hasRecentlyCopiedFormat, setHasRecentlyCopiedFormat] = useState(false);
   const [recentlyCopiedPromptType, setRecentlyCopiedPromptType] = useState<'csv' | 'txt' | null>(null);
 
@@ -59,7 +60,7 @@ export function FormatGuideDialog({ open, onOpenChange }: FormatGuideDialogProps
     if (copyToClipboard(FORMAT_EXAMPLE)) {
       setHasRecentlyCopiedFormat(true);
       toast.success('Format copied to clipboard!');
-      setTimeout(() => setHasRecentlyCopiedFormat(false), 2000);
+      setTimeout(() => setHasRecentlyCopiedFormat(false), 2000); // Reset the "Copied!" indicator after a 2-second delay
     } else {
       toast.error('Failed to copy to clipboard');
     }

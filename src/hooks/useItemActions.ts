@@ -21,6 +21,7 @@ export function useItemActions(onUpdate: (id: string, updates: Partial<Movie>) =
     onUpdate(movie.id, { status: newStatus });
   };
 
+  // Clicking the current rating clears it (toggle behaviour)
   const setRating = (movie: Movie, star: number) => {
     let newRating: number | undefined;
     if (movie.rating === star) {

@@ -1,3 +1,8 @@
+/**
+ * Mock places – seed data for the demo account's travel destinations.
+ * Contains 20 global destinations with location, category, visit
+ * status, and personal notes for the demo experience.
+ */
 import { Movie } from "../types";
 
 export const mockPlaces: Movie[] = [

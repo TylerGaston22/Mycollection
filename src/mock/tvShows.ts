@@ -1,3 +1,8 @@
+/**
+ * Mock TV shows – seed data for the demo account's TV show collection.
+ * Contains 40 popular series across streaming platforms and genres,
+ * pre-populated with watch statuses, ratings, and favourites.
+ */
 import { Movie } from "../types";
 
 export const mockTvShows: Movie[] = [

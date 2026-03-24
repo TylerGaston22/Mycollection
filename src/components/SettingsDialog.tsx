@@ -56,6 +56,7 @@ export function SettingsDialog({ open, onOpenChange, movies, customTabs, customS
 
   const handleBulkImport = () => {
     if (!onImport) return;
+    // Bulk CSV import merges new rows with existing data, preserving current tabs and sections
     bulkImportCsv(
       movies || [],
       onImport,

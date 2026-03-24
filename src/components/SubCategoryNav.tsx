@@ -45,7 +45,7 @@ export function SubCategoryNav({
       <SectionButton
         label="All"
         count={allItems.length}
-        isActive={activeSection === 'all' && contentType === categoryType}
+        isActive={activeSection === 'all' && contentType === categoryType} // Check both section ID and content type to prevent cross-category highlighting
         currentTheme={currentTheme}
         onClick={() => onActiveSectionChange('all')}
       />
