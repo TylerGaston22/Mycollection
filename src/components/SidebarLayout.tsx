@@ -1,3 +1,9 @@
+/**
+ * SidebarLayout – top-level layout wrapper.
+ * Composes the fixed Sidebar (navigation) and the scrollable MainContent
+ * area side by side. Acts as a thin pass-through for props from App.
+ */
+
 import { Movie, CustomTab, CustomSection } from "../types";
 import { ThemeConfig } from "../utils/themeConfig";
 import { Sidebar } from "./Sidebar";

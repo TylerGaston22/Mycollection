@@ -1,3 +1,8 @@
+/**
+ * Core type definitions for the collection management app.
+ * These interfaces are shared across all components, hooks, and utilities.
+ */
+
 export interface Movie {
   id: string;
   title: string;

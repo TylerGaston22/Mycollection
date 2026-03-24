@@ -1,3 +1,10 @@
+/**
+ * MovieFormDialog – add/edit dialog for collection items.
+ * Serves double duty: when `movie` is provided it operates in edit mode,
+ * otherwise it creates a new item. Field labels and placeholders adapt
+ * automatically to the content type via getContentTypeFieldConfig().
+ */
+
 import { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -56,6 +63,7 @@ export function MovieFormDialog({
 
   const sectionsForCurrentContentType = customSections.filter((section) => section.contentType === itemContentType);
 
+  // Populate form fields when the dialog opens (edit mode copies from movie, add mode resets)
   useEffect(() => {
     if (!open) return;
     if (movie) {

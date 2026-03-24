@@ -1,3 +1,10 @@
+/**
+ * useAuth – authentication state and actions.
+ * Manages sign-in/out flow, profile switching, and session persistence
+ * via localStorage. Always resets to the demo user on page load so the
+ * landing page remains the entry point.
+ */
+
 import { useState, useEffect } from 'react';
 import { mockUsers, DEMO_USER_ID } from '../mock';
 import { User } from '../types';

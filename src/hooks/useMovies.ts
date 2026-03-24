@@ -1,3 +1,9 @@
+/**
+ * useMovies – CRUD operations for the collection items list.
+ * Persists items to localStorage per user. For the demo account,
+ * items are seeded from mock data on first load.
+ */
+
 import { useState, useEffect } from 'react';
 import { toast } from "sonner@2.0.3";
 import { Movie } from '../types';

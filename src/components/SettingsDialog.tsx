@@ -1,3 +1,10 @@
+/**
+ * SettingsDialog – app settings with two tabs: Appearance and Account.
+ * Appearance tab: per-category colour theme pickers via ColorPicker.
+ * Account tab: JSON export/import, CSV/TXT bulk import, and a link
+ * to the FormatGuideDialog for import formatting help.
+ */
+
 import { useState } from 'react';
 import { Lock, Palette, Download, Upload, FileText, Info, ImageIcon, Film, Tv, UtensilsCrossed, MapPin } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";

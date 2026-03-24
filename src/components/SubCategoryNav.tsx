@@ -1,3 +1,10 @@
+/**
+ * SubCategoryNav – expandable sub-section list under a category.
+ * Shows built-in sections (All, Watched/Visited, Want to See/Visit,
+ * Favorites), user-created custom sections with item counts, and an
+ * "Add Subcategory" button at the bottom.
+ */
+
 import { Plus } from 'lucide-react';
 import { Movie, CustomSection } from "../types";
 import { ThemeConfig, colorToRgba } from "../utils/themeConfig";

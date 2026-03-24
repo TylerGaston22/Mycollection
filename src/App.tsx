@@ -1,3 +1,11 @@
+/**
+ * App – root component and application shell.
+ * Owns all top-level state (auth, collection data, UI dialogs) and
+ * delegates rendering to SidebarLayout (when signed in) or the
+ * landing/sign-in pages (when signed out). All modal dialogs are
+ * mounted here so they share a single source of truth for data.
+ */
+
 import { useState, useEffect } from 'react';
 import { SidebarLayout } from "./components/SidebarLayout";
 import { LandingPage } from "./components/LandingPage";

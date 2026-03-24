@@ -1,3 +1,8 @@
+/**
+ * Clipboard utility.
+ * Uses a hidden textarea + execCommand fallback for broad browser support.
+ */
+
 export function copyToClipboard(textToCopy: string): boolean {
   const hiddenTextarea = document.createElement('textarea');
   hiddenTextarea.value = textToCopy;

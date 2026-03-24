@@ -1,3 +1,10 @@
+/**
+ * ColorPicker – theme colour selector for a content type.
+ * Displays a grid of available colour themes as split-preview swatches
+ * (sidebar gradient on the left, background gradient on the right).
+ * The selected theme gets a ring highlight and a radio-dot indicator.
+ */
+
 import { Label } from "./ui/label";
 import { colorThemes, ThemeConfig } from "../utils/themeConfig";
 

@@ -1,3 +1,10 @@
+/**
+ * ProfileDialog – user profile view and collection statistics.
+ * Shows the avatar, bio, contact info, and a breakdown of collection
+ * counts by category. Also includes JSON export/import via the shared
+ * useDataExportImport hook.
+ */
+
 import {
   Dialog,
   DialogContent,

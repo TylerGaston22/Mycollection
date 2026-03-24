@@ -1,3 +1,9 @@
+/**
+ * useItemActions – shared item interaction handlers.
+ * Provides toggleFavorite, toggleStatus, and setRating actions
+ * used by both MovieCard (grid view) and ListView (table view).
+ */
+
 import { Movie } from '../types';
 
 export function useItemActions(onUpdate: (id: string, updates: Partial<Movie>) => void) {

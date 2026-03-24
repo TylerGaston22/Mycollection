@@ -1,3 +1,9 @@
+/**
+ * FormatGuideDialog – reference dialog for CSV/TXT bulk import format.
+ * Shows the required column layout, an example CSV, and copy-to-clipboard
+ * buttons for both the raw format and AI-ready prompts (CSV and TXT).
+ */
+
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";

@@ -1,3 +1,9 @@
+/**
+ * usePreferences – per-user theme/background colour preferences.
+ * Stores a colour theme ID for each built-in content type and
+ * syncs the selection to localStorage.
+ */
+
 import { useState, useEffect } from 'react';
 
 const DEFAULT_BACKGROUND_COLORS = {

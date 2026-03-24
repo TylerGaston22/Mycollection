@@ -1,3 +1,11 @@
+/**
+ * Content-type helper utilities.
+ *
+ * Centralises all logic that varies by content type (movie, tv-show,
+ * restaurant, place, or custom tab) so that UI components don't need
+ * to duplicate if/else branches for labels, field names, and filtering.
+ */
+
 import { Movie, CustomTab, CustomSection } from '../types';
 
 // --- Status label helpers ---

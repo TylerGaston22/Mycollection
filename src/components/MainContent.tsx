@@ -1,3 +1,10 @@
+/**
+ * MainContent – scrollable content area to the right of the sidebar.
+ * Displays the category heading, section subtitle, view-mode toggle
+ * (grid/list), and the collection items. Renders either a responsive
+ * MovieCard grid, a sortable ListView table, or an empty-state prompt.
+ */
+
 import { Button } from "./ui/button";
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
 import { Plus, LayoutGrid, List, Share2 } from 'lucide-react';

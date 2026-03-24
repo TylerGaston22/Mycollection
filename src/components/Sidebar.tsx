@@ -1,3 +1,11 @@
+/**
+ * Sidebar – fixed left navigation panel.
+ * Renders the user profile section, built-in category buttons
+ * (Movies, TV Shows, Restaurants, Places), user-created custom tabs,
+ * and bottom actions (Switch Profile, Log Out). Each category can be
+ * expanded to show its SubCategoryNav.
+ */
+
 import { Button } from "./ui/button";
 import { Plus, Film, Tv, UtensilsCrossed, MapPin, User, Settings, LogOut, Users, Star } from 'lucide-react';
 import { Movie, CustomTab, CustomSection } from "../types";
@@ -60,11 +68,13 @@ export function Sidebar({
   onLogout,
   onTabDelete,
 }: SidebarProps) {
+  // Filter items for the currently selected category to get sub-section counts
   const allItemsInCurrentCategory = movies.filter((item) => item.type === contentType);
   const watchedItems = allItemsInCurrentCategory.filter((item) => item.status === 'watched');
   const wantToSeeItems = allItemsInCurrentCategory.filter((item) => item.status === 'want-to-see');
   const favoriteItems = allItemsInCurrentCategory.filter((item) => item.favorite);
 
+  // Clicking a category selects it and toggles its sub-nav expansion
   const handleCategoryClick = (categoryId: string) => {
     onContentTypeChange(categoryId);
     let newExpandedCategory: string;

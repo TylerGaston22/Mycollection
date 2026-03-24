@@ -1,3 +1,9 @@
+/**
+ * useCustomTabs & useCustomSections – manage user-created categories and sub-sections.
+ * Both hooks persist their data to localStorage per user and expose
+ * add/remove helpers that return the newly created entity.
+ */
+
 import { useState, useEffect } from 'react';
 import { CustomTab, CustomSection } from '../types';
 

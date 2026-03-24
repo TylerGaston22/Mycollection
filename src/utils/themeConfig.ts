@@ -1,3 +1,9 @@
+/**
+ * Theme configuration and colour palette definitions.
+ * Each theme provides sidebar/background gradients and an accent colour
+ * that are applied per content-type via user preferences.
+ */
+
 export interface ThemeConfig {
   id: string;
   name: string;

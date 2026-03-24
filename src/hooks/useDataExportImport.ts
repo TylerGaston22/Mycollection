@@ -1,3 +1,10 @@
+/**
+ * useDataExportImport – shared data export/import logic.
+ * Handles JSON backup export, JSON backup import, and CSV/TXT bulk import.
+ * Used by both SettingsDialog and ProfileDialog to avoid duplicating
+ * file I/O and parsing code.
+ */
+
 import { toast } from "sonner@2.0.3";
 import { Movie, CustomTab, CustomSection } from '../types';
 
@@ -16,6 +23,7 @@ interface ImportResult {
 }
 
 export function useDataExportImport() {
+  // Creates a JSON blob, triggers a download via a temporary <a> element, then cleans up
   const exportData = ({ movies, customTabs, customSections, filenamePrefix = 'my-collection-backup', profileInfo }: ExportOptions) => {
     const collectionDataForExport: Record<string, unknown> = {
       movies,
@@ -40,6 +48,7 @@ export function useDataExportImport() {
     toast.success('Collection exported successfully!', { description: 'Your data has been downloaded as a JSON file.' });
   };
 
+  // Opens a file picker for .json files, parses the contents, and calls onImport with the result
   const importData = (onImport: (data: ImportResult) => void, onComplete?: () => void) => {
     const hiddenFileInputElement = document.createElement('input');
     hiddenFileInputElement.type = 'file';
@@ -72,6 +81,7 @@ export function useDataExportImport() {
     hiddenFileInputElement.click();
   };
 
+  // Opens a file picker for .csv/.txt, parses rows into Movie objects, and merges with existing data
   const bulkImportCsv = (existingMovies: Movie[], onImport: (data: ImportResult) => void, existingTabs: CustomTab[], existingSections: CustomSection[], onComplete?: () => void) => {
     const hiddenFileInputElement = document.createElement('input');
     hiddenFileInputElement.type = 'file';

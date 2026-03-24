@@ -1,3 +1,9 @@
+/**
+ * QuickEditDialog – lightweight inline edit dialog for a single field.
+ * Opens when the user clicks a platform, genre, or notes cell in the
+ * ListView. Uses a text input for platform/genre and a textarea for notes.
+ */
+
 import { useState, useEffect } from "react";
 import {
   Dialog,

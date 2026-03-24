@@ -1,3 +1,9 @@
+/**
+ * CategoryButton – sidebar navigation button for a content category.
+ * Highlights with the theme accent colour when active, otherwise shows
+ * a muted slate background. Used for both built-in and custom tab categories.
+ */
+
 import { LucideIcon } from 'lucide-react';
 import { ThemeConfig } from "../utils/themeConfig";
 

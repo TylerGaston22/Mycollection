@@ -1,3 +1,11 @@
+/**
+ * ListView – sortable table view for collection items.
+ * Built on TanStack React Table with sortable columns for favourite,
+ * title, platform, genre, status, and rating. Clicking a cell opens
+ * either a QuickEditDialog (platform/genre/notes) or the full
+ * MovieFormDialog (via the actions menu).
+ */
+
 import { useState } from "react";
 import {
   useReactTable,
@@ -75,6 +83,7 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
     );
   };
 
+  // -- Column definitions for TanStack React Table --
   const columns = [
     columnHelper.accessor('favorite', {
       header: ({ column }) => (
@@ -259,15 +268,15 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setMovieBeingEdited(movie); }}>
+              <DropdownMenuItem onClick={(e: React.MouseEvent) => { e.stopPropagation(); setMovieBeingEdited(movie); }}>
                 <Edit className="mr-2 h-4 w-4" />Edit
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); toggleStatus(movie); }}>
+              <DropdownMenuItem onClick={(e: React.MouseEvent) => { e.stopPropagation(); toggleStatus(movie); }}>
                 {statusMenuItemContent}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={(e) => { e.stopPropagation(); onDelete(movie.id); }}
+                onClick={(e: React.MouseEvent) => { e.stopPropagation(); onDelete(movie.id); }}
                 className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="h-4 w-4 mr-2" />Delete

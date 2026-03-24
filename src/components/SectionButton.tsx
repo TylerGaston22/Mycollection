@@ -1,3 +1,9 @@
+/**
+ * SectionButton – a single sub-section link inside SubCategoryNav.
+ * Applies an accent-tinted background when active, or a transparent
+ * hover state when inactive. Displays the section label and item count.
+ */
+
 import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
 
 interface SectionButtonProps {
