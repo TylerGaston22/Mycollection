@@ -16,6 +16,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { CustomTab } from "../types";
+import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
 import {
   BookOpen,
   Coffee,
@@ -58,9 +59,10 @@ interface AddTabDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAdd: (tab: Omit<CustomTab, 'id'>) => void;
+  currentTheme?: ThemeConfig;
 }
 
-export function AddTabDialog({ open, onOpenChange, onAdd }: AddTabDialogProps) {
+export function AddTabDialog({ open, onOpenChange, onAdd, currentTheme }: AddTabDialogProps) {
   const [categoryTabName, setCategoryTabName] = useState('');
   const [selectedCategoryIconName, setSelectedCategoryIconName] = useState('Star');
 
@@ -104,8 +106,16 @@ export function AddTabDialog({ open, onOpenChange, onAdd }: AddTabDialogProps) {
               <Label>Choose an Icon</Label>
               <div className="grid grid-cols-8 gap-2">
                 {availableIcons.map(({ name: iconName, icon: IconComponent }) => {
-                  let iconButtonBorderClass;
-                  if (selectedCategoryIconName === iconName) {
+                  const isSelectedIcon = selectedCategoryIconName === iconName;
+                  let iconButtonStyle: React.CSSProperties = {};
+                  let iconButtonBorderClass: string;
+                  if (isSelectedIcon && currentTheme) {
+                    iconButtonStyle = {
+                      borderColor: currentTheme.accentColor,
+                      backgroundColor: colorToRgba(currentTheme.accentColor, 0.1),
+                    };
+                    iconButtonBorderClass = '';
+                  } else if (isSelectedIcon) {
                     iconButtonBorderClass = 'border-primary bg-primary/10';
                   } else {
                     iconButtonBorderClass = 'border-border';
@@ -116,6 +126,7 @@ export function AddTabDialog({ open, onOpenChange, onAdd }: AddTabDialogProps) {
                       type="button"
                       onClick={() => setSelectedCategoryIconName(iconName)}
                       className={`p-3 rounded-md border-2 transition-all hover:border-primary/50 ${iconButtonBorderClass}`}
+                      style={iconButtonStyle}
                     >
                       <IconComponent className="h-5 w-5 mx-auto" />
                     </button>
@@ -133,7 +144,12 @@ export function AddTabDialog({ open, onOpenChange, onAdd }: AddTabDialogProps) {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={!categoryTabName.trim()}>
+            <Button
+              type="submit"
+              disabled={!categoryTabName.trim()}
+              style={currentTheme ? { backgroundColor: currentTheme.accentColor } : undefined}
+              className={currentTheme ? "text-white hover:opacity-90" : ""}
+            >
               Create Tab
             </Button>
           </DialogFooter>

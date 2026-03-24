@@ -159,12 +159,14 @@ export default function App() {
           contentType={contentType}
           customSections={customSections}
           activeSection={activeSection}
+          currentTheme={currentTheme}
         />
 
         <AddTabDialog
           open={isAddTabDialogOpen}
           onOpenChange={setIsAddTabDialogOpen}
           onAdd={handleAddCustomTab}
+          currentTheme={currentTheme}
         />
 
         <AddSectionDialog
@@ -172,6 +174,7 @@ export default function App() {
           onOpenChange={setIsAddSectionDialogOpen}
           onAdd={handleAddCustomSection}
           contentType={contentType}
+          currentTheme={currentTheme}
         />
 
         <ProfileDialog
@@ -185,6 +188,7 @@ export default function App() {
           movies={movies}
           customTabs={customTabs}
           customSections={customSections}
+          currentTheme={currentTheme}
           onImport={handleImportData}
         />
 
@@ -194,6 +198,7 @@ export default function App() {
           users={auth.users}
           currentUserId={auth.currentUserId}
           onSwitchProfile={auth.handleSwitchProfile}
+          currentTheme={currentTheme}
         />
 
         <SettingsDialog
@@ -217,6 +222,7 @@ export default function App() {
           }}
           onUpdate={updateMovie}
           customSections={customSections}
+          currentTheme={currentTheme}
         />
 
         <ShareDialog
@@ -225,6 +231,7 @@ export default function App() {
           movies={getItemsForSection(activeSection)}
           categoryName={getCategoryDisplayName(contentType, customTabs)}
           sectionName={getSectionDisplayName(activeSection, contentType, customSections, customTabs)}
+          currentTheme={currentTheme}
         />
 
         <AlertDialog

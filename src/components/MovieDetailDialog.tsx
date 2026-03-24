@@ -16,6 +16,7 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Tv, Film, ExternalLink, Edit } from 'lucide-react';
 import { Movie, CustomSection } from "../types";
+import { ThemeConfig } from "../utils/themeConfig";
 import { Separator } from "./ui/separator";
 import { MovieFormDialog } from "./MovieFormDialog";
 
@@ -25,6 +26,7 @@ interface MovieDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   onUpdate: (id: string, updates: Partial<Movie>) => void;
   customSections?: CustomSection[];
+  currentTheme?: ThemeConfig;
 }
 
 export function MovieDetailDialog({
@@ -32,7 +34,8 @@ export function MovieDetailDialog({
   open,
   onOpenChange,
   onUpdate,
-  customSections = []
+  customSections = [],
+  currentTheme
 }: MovieDetailDialogProps) {
   const [isMovieEditDialogOpen, setIsMovieEditDialogOpen] = useState(false);
 
@@ -170,6 +173,11 @@ export function MovieDetailDialog({
                 variant="outline"
                 size="sm"
                 onClick={() => setIsMovieEditDialogOpen(true)}
+                style={currentTheme ? {
+                  backgroundColor: currentTheme.accentColor,
+                  borderColor: currentTheme.accentColor,
+                } : undefined}
+                className={currentTheme ? "text-white hover:opacity-90" : ""}
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit

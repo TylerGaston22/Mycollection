@@ -40,6 +40,7 @@ import { StarRating } from "./StarRating";
 import { StatusBadge } from "./StatusBadge";
 import { StatusToggleMenuContent } from "./StatusToggleMenuContent";
 import { useItemActions } from "../hooks/useItemActions";
+import { ThemeConfig } from "../utils/themeConfig";
 
 interface ListViewProps {
   movies: Movie[];
@@ -47,11 +48,12 @@ interface ListViewProps {
   onDelete: (id: string) => void;
   onMovieClick?: (movie: Movie) => void;
   isDarkMode?: boolean;
+  currentTheme?: ThemeConfig;
 }
 
 const columnHelper = createColumnHelper<Movie>();
 
-export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode }: ListViewProps) {
+export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode, currentTheme }: ListViewProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [movieBeingEdited, setMovieBeingEdited] = useState<Movie | null>(null);
   const [movieBeingQuickEdited, setMovieBeingQuickEdited] = useState<Movie | null>(null);
@@ -65,7 +67,11 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
   }
 
   let headerHover = 'hover:text-foreground';
-  if (isDarkMode) {
+  let headerHoverStyle: React.CSSProperties = {};
+  if (isDarkMode && currentTheme) {
+    headerHover = '';
+    headerHoverStyle = { color: currentTheme.accentColor };
+  } else if (isDarkMode) {
     headerHover = 'hover:text-orange-300';
   }
 
@@ -79,7 +85,19 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
       sortIcon = <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
     }
     return (
-      <span className={`flex items-center transition-colors ${headerHover}`}>
+      <span
+        className={`flex items-center transition-colors ${headerHover}`}
+        onMouseEnter={(e) => {
+          if (headerHoverStyle.color) {
+            e.currentTarget.style.color = headerHoverStyle.color as string;
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (headerHoverStyle.color) {
+            e.currentTarget.style.color = '';
+          }
+        }}
+      >
         {label}{sortIcon}
       </span>
     );

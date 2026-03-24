@@ -17,6 +17,7 @@ import { Textarea } from "./ui/textarea";
 import { Separator } from "./ui/separator";
 import { Copy, Download, Check, Share2 } from 'lucide-react';
 import { Movie } from "../types";
+import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
 import { toast } from "sonner@2.0.3";
 
 interface ShareDialogProps {
@@ -25,6 +26,7 @@ interface ShareDialogProps {
   movies: Movie[];
   categoryName: string;
   sectionName: string;
+  currentTheme?: ThemeConfig;
 }
 
 export function ShareDialog({
@@ -32,7 +34,8 @@ export function ShareDialog({
   onOpenChange,
   movies,
   categoryName,
-  sectionName
+  sectionName,
+  currentTheme
 }: ShareDialogProps) {
   const [hasRecentlyCopied, setHasRecentlyCopied] = useState(false);
   const [formattedShareableText, setFormattedShareableText] = useState('');
@@ -171,6 +174,10 @@ export function ShareDialog({
               variant="outline"
               onClick={handleCopy}
               className="flex items-center gap-2"
+              style={currentTheme ? {
+                borderColor: colorToRgba(currentTheme.accentColor, 0.5),
+                color: currentTheme.accentColor,
+              } : undefined}
             >
               {copyButtonContent}
             </Button>
@@ -179,6 +186,10 @@ export function ShareDialog({
               variant="outline"
               onClick={handleDownload}
               className="flex items-center gap-2"
+              style={currentTheme ? {
+                borderColor: colorToRgba(currentTheme.accentColor, 0.5),
+                color: currentTheme.accentColor,
+              } : undefined}
             >
               <Download className="h-4 w-4" />
               Download as .txt

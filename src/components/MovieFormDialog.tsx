@@ -21,6 +21,7 @@ import { Textarea } from "./ui/textarea";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Checkbox } from "./ui/checkbox";
 import { Movie, CustomSection } from "../types";
+import { ThemeConfig } from "../utils/themeConfig";
 import { getContentTypeFieldConfig, getWatchedLabel, getWantToSeeLabel, isMediaContentType } from "../utils/contentHelpers";
 
 interface MovieFormDialogProps {
@@ -29,6 +30,7 @@ interface MovieFormDialogProps {
   customSections?: CustomSection[];
   contentType?: string;
   activeSection?: string;
+  currentTheme?: ThemeConfig;
   onAdd?: (movie: Omit<Movie, 'id'>) => void;
   movie?: Movie | null;
   onUpdate?: (id: string, updates: Partial<Movie>) => void;
@@ -40,6 +42,7 @@ export function MovieFormDialog({
   customSections = [],
   contentType,
   activeSection,
+  currentTheme,
   onAdd,
   movie,
   onUpdate,
@@ -305,7 +308,12 @@ export function MovieFormDialog({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" disabled={!title.trim()}>
+            <Button
+              type="submit"
+              disabled={!title.trim()}
+              style={currentTheme ? { backgroundColor: currentTheme.accentColor } : undefined}
+              className={currentTheme ? "text-white hover:opacity-90" : ""}
+            >
               {submitButtonLabel}
             </Button>
           </DialogFooter>

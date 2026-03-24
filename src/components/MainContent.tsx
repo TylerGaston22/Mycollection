@@ -117,6 +117,7 @@ export function MainContent({
         onDelete={onMovieDelete}
         onMovieClick={onMovieClick}
         isDarkMode={true}
+        currentTheme={currentTheme}
       />
     );
   }

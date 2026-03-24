@@ -20,6 +20,7 @@ import { DataManagementButtons } from "./DataManagementButtons";
 import { CategoryCountRow } from "./CategoryCountRow";
 
 import { User as UserType, Movie, CustomTab, CustomSection } from "../types";
+import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
 import { useDataExportImport } from "../hooks/useDataExportImport";
 
 interface ProfileDialogProps {
@@ -33,6 +34,7 @@ interface ProfileDialogProps {
   movies?: Movie[];
   customTabs?: CustomTab[];
   customSections?: CustomSection[];
+  currentTheme?: ThemeConfig;
   onImport?: (data: { movies: Movie[], customTabs: CustomTab[], customSections: CustomSection[] }) => void;
 }
 
@@ -47,6 +49,7 @@ export function ProfileDialog({
   movies,
   customTabs,
   customSections,
+  currentTheme,
   onImport
 }: ProfileDialogProps) {
   const { exportData, importData } = useDataExportImport();
@@ -79,7 +82,12 @@ export function ProfileDialog({
     avatarContent = <AvatarImage src={currentUser.profileImage} alt="Profile" />;
   } else {
     avatarContent = (
-      <AvatarFallback className="bg-primary text-primary-foreground text-3xl">
+      <AvatarFallback
+        className="text-primary-foreground text-3xl"
+        style={currentTheme ? {
+          background: `linear-gradient(to bottom right, ${currentTheme.accentColor}, ${colorToRgba(currentTheme.accentColor, 0.8)})`,
+        } : undefined}
+      >
         <User className="h-16 w-16" />
       </AvatarFallback>
     );
@@ -143,16 +151,25 @@ export function ProfileDialog({
             <h4>Collection Overview</h4>
 
             <div className="grid grid-cols-3 gap-3">
-              <div className="text-center p-3 border rounded-lg bg-muted/30">
-                <div className="text-2xl mb-1">{totalCollectionItemCount}</div>
+              <div
+                className="text-center p-3 border rounded-lg bg-muted/30"
+                style={currentTheme ? { borderColor: colorToRgba(currentTheme.accentColor, 0.3) } : undefined}
+              >
+                <div className="text-2xl mb-1" style={currentTheme ? { color: currentTheme.accentColor } : undefined}>{totalCollectionItemCount}</div>
                 <div className="text-xs text-muted-foreground">Total Items</div>
               </div>
-              <div className="text-center p-3 border rounded-lg bg-muted/30">
-                <div className="text-2xl mb-1">{numberOfItemsWatched}</div>
+              <div
+                className="text-center p-3 border rounded-lg bg-muted/30"
+                style={currentTheme ? { borderColor: colorToRgba(currentTheme.accentColor, 0.3) } : undefined}
+              >
+                <div className="text-2xl mb-1" style={currentTheme ? { color: currentTheme.accentColor } : undefined}>{numberOfItemsWatched}</div>
                 <div className="text-xs text-muted-foreground">Watched</div>
               </div>
-              <div className="text-center p-3 border rounded-lg bg-muted/30">
-                <div className="text-2xl mb-1">{numberOfItemsFavorited}</div>
+              <div
+                className="text-center p-3 border rounded-lg bg-muted/30"
+                style={currentTheme ? { borderColor: colorToRgba(currentTheme.accentColor, 0.3) } : undefined}
+              >
+                <div className="text-2xl mb-1" style={currentTheme ? { color: currentTheme.accentColor } : undefined}>{numberOfItemsFavorited}</div>
                 <div className="text-xs text-muted-foreground">Favorites</div>
               </div>
             </div>

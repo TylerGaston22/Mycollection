@@ -16,15 +16,17 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { CustomSection } from "../types";
+import { ThemeConfig } from "../utils/themeConfig";
 
 interface AddSectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAdd: (section: Omit<CustomSection, 'id'>) => void;
   contentType: string;
+  currentTheme?: ThemeConfig;
 }
 
-export function AddSectionDialog({ open, onOpenChange, onAdd, contentType }: AddSectionDialogProps) {
+export function AddSectionDialog({ open, onOpenChange, onAdd, contentType, currentTheme }: AddSectionDialogProps) {
   const [subcategoryName, setSubcategoryName] = useState('');
 
   let contentTypePluralName;
@@ -89,7 +91,12 @@ export function AddSectionDialog({ open, onOpenChange, onAdd, contentType }: Add
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={!subcategoryName.trim()}>
+            <Button
+              type="submit"
+              disabled={!subcategoryName.trim()}
+              style={currentTheme ? { backgroundColor: currentTheme.accentColor } : undefined}
+              className={currentTheme ? "text-white hover:opacity-90" : ""}
+            >
               Create Subcategory
             </Button>
           </DialogFooter>
