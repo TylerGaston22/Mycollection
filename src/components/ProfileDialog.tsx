@@ -10,9 +10,9 @@ import { Button } from "./ui/button";
 import { User, Download, Upload, Mail, Calendar, MapPin as MapPinIcon } from 'lucide-react';
 import { Separator } from "./ui/separator";
 import { Badge } from "./ui/badge";
-import { toast } from "sonner@2.0.3";
 
 import { User as UserType, Movie, CustomTab, CustomSection } from "../types";
+import { useDataExportImport } from "../hooks/useDataExportImport";
 
 interface ProfileDialogProps {
   open: boolean;
@@ -41,79 +41,29 @@ export function ProfileDialog({
   customSections,
   onImport
 }: ProfileDialogProps) {
+  const { exportData, importData } = useDataExportImport();
+
   const totalCollectionItemCount = movieCount + tvShowCount + restaurantCount + placeCount;
-  const numberOfItemsWatched = movies?.filter((collectionItem) => collectionItem.status === 'watched').length ?? 0;
-  const numberOfItemsFavorited = movies?.filter((collectionItem) => collectionItem.favorite).length ?? 0;
+  const numberOfItemsWatched = movies?.filter((item) => item.status === 'watched').length ?? 0;
+  const numberOfItemsFavorited = movies?.filter((item) => item.favorite).length ?? 0;
 
   const handleExportData = () => {
-    const collectionDataForExport = {
+    exportData({
       movies: movies || [],
       customTabs: customTabs || [],
       customSections: customSections || [],
-      exportDate: new Date().toISOString(),
-      version: '1.0',
-      profile: {
+      filenamePrefix: `${currentUser.username}-collection`,
+      profileInfo: {
         name: currentUser.name,
         username: currentUser.username,
         email: currentUser.email,
-      }
-    };
-
-    const collectionDataJsonString = JSON.stringify(collectionDataForExport, null, 2);
-    const jsonFileBlob = new Blob([collectionDataJsonString], { type: 'application/json' });
-    const downloadableFileUrl = URL.createObjectURL(jsonFileBlob);
-    const downloadLinkElement = document.createElement('a');
-    downloadLinkElement.href = downloadableFileUrl;
-    downloadLinkElement.download = `${currentUser.username}-collection-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(downloadLinkElement);
-    downloadLinkElement.click();
-    document.body.removeChild(downloadLinkElement);
-    URL.revokeObjectURL(downloadableFileUrl);
-
-    toast.success('Collection exported successfully!', {
-      description: 'Your data has been downloaded as a JSON file.'
+      },
     });
   };
 
   const handleImportData = () => {
-    const hiddenFileInputElement = document.createElement('input');
-    hiddenFileInputElement.type = 'file';
-    hiddenFileInputElement.accept = '.json';
-    hiddenFileInputElement.onchange = (event) => {
-      const file = (event.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-
-      const fileContentReader = new FileReader();
-      fileContentReader.onload = (readerEvent) => {
-        try {
-          const parsedData = JSON.parse(readerEvent.target?.result as string);
-
-          if (!parsedData.movies || !Array.isArray(parsedData.movies)) {
-            throw new Error('Invalid data format: movies array not found');
-          }
-
-          if (onImport) {
-            onImport({
-              movies: parsedData.movies || [],
-              customTabs: parsedData.customTabs || [],
-              customSections: parsedData.customSections || []
-            });
-          }
-
-          toast.success('Collection imported successfully!', {
-            description: `Imported ${parsedData.movies.length} items, ${parsedData.customTabs?.length || 0} custom categories, and ${parsedData.customSections?.length || 0} custom sections.`
-          });
-
-          onOpenChange(false);
-        } catch (error) {
-          toast.error('Import failed', {
-            description: 'The file format is invalid. Please make sure you\'re importing a valid collection backup file.'
-          });
-        }
-      };
-      fileContentReader.readAsText(file);
-    };
-    hiddenFileInputElement.click();
+    if (!onImport) return;
+    importData(onImport, () => onOpenChange(false));
   };
 
   let avatarContent;

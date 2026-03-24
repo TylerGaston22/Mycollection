@@ -11,6 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { useItemActions } from "../hooks/useItemActions";
+import { getStatusLabel, getOppositeStatusLabel } from "../utils/contentHelpers";
 
 const ERROR_IMG =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODgiIGhlaWdodD0iODgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBvcGFjaXR5PSIuMyIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIzLjciPjxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiByeD0iNiIvPjxwYXRoIGQ9Im0xNiA1OCAxNi0xOCAzMiAzMiIvPjxjaXJjbGUgY3g9IjUzIiBjeT0iMzUiIHI9IjciLz48L3N2Zz4KCg==';
@@ -34,33 +36,9 @@ interface MovieCardProps {
 }
 
 export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
-  const toggleFavorite = () => {
-    onUpdate(movie.id, { favorite: !movie.favorite });
-  };
+  const { toggleFavorite, toggleStatus, setRating } = useItemActions(onUpdate);
 
-  const toggleStatus = () => {
-    let updatedItemStatus: 'watched' | 'want-to-see';
-    if (movie.status === 'watched') {
-      updatedItemStatus = 'want-to-see';
-    } else {
-      updatedItemStatus = 'watched';
-    }
-    onUpdate(movie.id, { status: updatedItemStatus });
-  };
-
-  const setRating = (starRatingNumber: number) => {
-    let newRatingValue: number | undefined;
-    if (movie.rating === starRatingNumber) {
-      newRatingValue = undefined;
-    } else {
-      newRatingValue = starRatingNumber;
-    }
-    onUpdate(movie.id, { rating: newRatingValue });
-  };
-
-  const isMediaContentType = movie.type === 'movie' || movie.type === 'tv-show';
-
-  let heartIconColorClass;
+  let heartIconColorClass: string;
   if (movie.favorite) {
     heartIconColorClass = 'fill-red-500 text-red-500';
   } else {
@@ -74,67 +52,41 @@ export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
     statusBadgeVariant = 'secondary';
   }
 
-  let watchedStatusBadgeLabel;
-  if (isMediaContentType) {
-    watchedStatusBadgeLabel = 'Watched';
-  } else {
-    watchedStatusBadgeLabel = 'Visited';
-  }
-
-  let wantToSeeBadgeLabel;
-  if (isMediaContentType) {
-    wantToSeeBadgeLabel = 'Want to See';
-  } else {
-    wantToSeeBadgeLabel = 'Want to Visit';
-  }
-
   let statusBadgeContent;
   if (movie.status === 'watched') {
     statusBadgeContent = (
       <>
         <Eye className="h-3 w-3 mr-1" />
-        {watchedStatusBadgeLabel}
+        {getStatusLabel(movie.type, 'watched')}
       </>
     );
   } else {
     statusBadgeContent = (
       <>
         <Clock className="h-3 w-3 mr-1" />
-        {wantToSeeBadgeLabel}
+        {getStatusLabel(movie.type, 'want-to-see')}
       </>
     );
   }
 
   let toggleStatusMenuItemContent;
   if (movie.status === 'watched') {
-    let markAsLabel;
-    if (isMediaContentType) {
-      markAsLabel = 'Want to See';
-    } else {
-      markAsLabel = 'Want to Visit';
-    }
     toggleStatusMenuItemContent = (
       <>
         <Clock className="h-4 w-4 mr-2" />
-        Mark as {markAsLabel}
+        Mark as {getOppositeStatusLabel(movie.type, movie.status)}
       </>
     );
   } else {
-    let markAsLabel;
-    if (isMediaContentType) {
-      markAsLabel = 'Watched';
-    } else {
-      markAsLabel = 'Visited';
-    }
     toggleStatusMenuItemContent = (
       <>
         <Eye className="h-4 w-4 mr-2" />
-        Mark as {markAsLabel}
+        Mark as {getOppositeStatusLabel(movie.type, movie.status)}
       </>
     );
   }
 
-  let favoriteMenuItemText;
+  let favoriteMenuItemText: string;
   if (movie.favorite) {
     favoriteMenuItemText = 'Remove from Favorites';
   } else {
@@ -168,7 +120,7 @@ export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
 
         {/* Favorite button */}
         <button
-          onClick={toggleFavorite}
+          onClick={() => toggleFavorite(movie)}
           className="absolute top-2 right-2 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
         >
           <Heart className={`h-5 w-5 ${heartIconColorClass}`} />
@@ -199,10 +151,10 @@ export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={toggleStatus}>
+              <DropdownMenuItem onClick={() => toggleStatus(movie)}>
                 {toggleStatusMenuItemContent}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={toggleFavorite}>
+              <DropdownMenuItem onClick={() => toggleFavorite(movie)}>
                 <Heart className="h-4 w-4 mr-2" />
                 {favoriteMenuItemText}
               </DropdownMenuItem>
@@ -222,7 +174,7 @@ export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
         {movie.status === 'watched' && (
           <div className="flex gap-1 mb-2">
             {[1, 2, 3, 4, 5].map((starRatingNumber) => {
-              let starIconColorClass;
+              let starIconColorClass: string;
               if (movie.rating && starRatingNumber <= movie.rating) {
                 starIconColorClass = 'fill-yellow-500 text-yellow-500';
               } else {
@@ -231,7 +183,7 @@ export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
               return (
                 <button
                   key={starRatingNumber}
-                  onClick={() => setRating(starRatingNumber)}
+                  onClick={() => setRating(movie, starRatingNumber)}
                   className="hover:scale-110 transition-transform"
                 >
                   <Star className={`h-4 w-4 ${starIconColorClass}`} />

@@ -1,5 +1,69 @@
 import { Movie, CustomTab, CustomSection } from '../types';
 
+// --- Status label helpers ---
+
+export function isMediaContentType(contentType: string): boolean {
+  return contentType === 'movie' || contentType === 'tv-show';
+}
+
+export function getWatchedLabel(contentType: string): string {
+  return isMediaContentType(contentType) ? 'Watched' : 'Visited';
+}
+
+export function getWantToSeeLabel(contentType: string): string {
+  return isMediaContentType(contentType) ? 'Want to See' : 'Want to Visit';
+}
+
+export function getStatusLabel(contentType: string, status: 'watched' | 'want-to-see'): string {
+  if (status === 'watched') {
+    return getWatchedLabel(contentType);
+  }
+  return getWantToSeeLabel(contentType);
+}
+
+export function getOppositeStatusLabel(contentType: string, currentStatus: 'watched' | 'want-to-see'): string {
+  if (currentStatus === 'watched') {
+    return getWantToSeeLabel(contentType);
+  }
+  return getWatchedLabel(contentType);
+}
+
+// --- Content type field config (for forms) ---
+
+export interface ContentTypeFieldConfig {
+  displayLabel: string;
+  titleFieldLabel: string;
+  titleFieldWord: string;
+  yearFieldLabel: string;
+  yearFieldPlaceholder: string;
+  imageUrlLabel: string;
+  platformFieldLabel: string;
+  platformFieldPlaceholder: string;
+}
+
+export function getContentTypeFieldConfig(contentType: string): ContentTypeFieldConfig {
+  const isMedia = isMediaContentType(contentType);
+  const isPlace = contentType === 'restaurant' || contentType === 'place';
+
+  let displayLabel: string;
+  if (contentType === 'movie') displayLabel = 'Movie';
+  else if (contentType === 'tv-show') displayLabel = 'TV Show';
+  else if (contentType === 'restaurant') displayLabel = 'Restaurant';
+  else if (contentType === 'place') displayLabel = 'Place';
+  else displayLabel = 'Item';
+
+  return {
+    displayLabel,
+    titleFieldLabel: contentType === 'restaurant' ? 'Name' : contentType === 'place' ? 'Place Name' : 'Title',
+    titleFieldWord: isPlace ? 'name' : 'title',
+    yearFieldLabel: isPlace ? 'Location' : 'Year',
+    yearFieldPlaceholder: isPlace ? 'City, Country' : '2024',
+    imageUrlLabel: isMedia ? 'Poster URL' : 'Photo URL',
+    platformFieldLabel: isMedia ? 'Where to Watch' : 'Additional Info',
+    platformFieldPlaceholder: isMedia ? 'Netflix, Disney+, Hulu, etc.' : 'Additional details...',
+  };
+}
+
 export function getContentTypeName(
   type: string,
   plural: boolean = true,

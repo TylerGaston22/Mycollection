@@ -24,7 +24,7 @@ import { Toaster } from "./components/ui/sonner";
 import ghibliBackground from 'figma:asset/dd104f7b8489f1285cea3966c272ab6ab1c18fb9.png';
 import { Movie, CustomTab, CustomSection } from "./types";
 import { getTheme } from "./utils/themeConfig";
-import { getContentTypeName, getSectionDisplayName, getCategoryDisplayName, getSectionContent } from "./utils/contentHelpers";
+import { getSectionDisplayName, getCategoryDisplayName, getSectionContent } from "./utils/contentHelpers";
 import { useAuth } from "./hooks/useAuth";
 import { useMovies } from "./hooks/useMovies";
 import { useCustomTabs, useCustomSections } from "./hooks/useCollections";
@@ -93,7 +93,6 @@ export default function App() {
   const currentTheme = getTheme(activeThemeId);
 
   // Bound helpers
-  const getContentTypeDisplayName = (type: string, plural?: boolean) => getContentTypeName(type, plural, customTabs);
   const getItemsForSection = (sectionId: string) => getSectionContent(sectionId, movies, contentType);
 
   // Decide what page to show based on auth state
@@ -141,7 +140,6 @@ export default function App() {
           onMovieDelete={deleteMovie}
           onMovieClick={setSelectedMovie}
           onShareDialogOpen={() => setIsShareDialogOpen(true)}
-          getContentTypeName={getContentTypeDisplayName}
           getSectionContent={getItemsForSection}
         />
 

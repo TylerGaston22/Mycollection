@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -16,18 +16,9 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "./ui/dialog";
 import { Heart, Star, MoreVertical, Trash2, Eye, Clock, Edit, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
+import { Badge } from "./ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,8 +26,10 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "./ui/dropdown-menu";
-import { Badge } from "./ui/badge";
 import { MovieFormDialog } from "./MovieFormDialog";
+import { QuickEditDialog } from "./QuickEditDialog";
+import { useItemActions } from "../hooks/useItemActions";
+import { getStatusLabel, getOppositeStatusLabel } from "../utils/contentHelpers";
 
 interface ListViewProps {
   movies: Movie[];
@@ -53,59 +46,8 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
   const [movieBeingEdited, setMovieBeingEdited] = useState<Movie | null>(null);
   const [movieBeingQuickEdited, setMovieBeingQuickEdited] = useState<Movie | null>(null);
   const [fieldBeingQuickEdited, setFieldBeingQuickEdited] = useState<'platform' | 'genre' | 'notes' | null>(null);
-  const [currentEditFieldValue, setCurrentEditFieldValue] = useState('');
 
-  useEffect(() => {
-    if (!movieBeingQuickEdited || !fieldBeingQuickEdited) return;
-    if (fieldBeingQuickEdited === 'notes') {
-      setCurrentEditFieldValue(movieBeingQuickEdited.notes || '');
-    } else if (fieldBeingQuickEdited === 'platform') {
-      setCurrentEditFieldValue(movieBeingQuickEdited.platform || '');
-    } else {
-      setCurrentEditFieldValue(movieBeingQuickEdited.genre || '');
-    }
-  }, [movieBeingQuickEdited, fieldBeingQuickEdited]);
-
-  const toggleFavorite = (movie: Movie) => {
-    onUpdate(movie.id, { favorite: !movie.favorite });
-  };
-
-  const toggleStatus = (movie: Movie) => {
-    let newStatus: 'watched' | 'want-to-see';
-    if (movie.status === 'watched') {
-      newStatus = 'want-to-see';
-    } else {
-      newStatus = 'watched';
-    }
-    onUpdate(movie.id, { status: newStatus });
-  };
-
-  const setRating = (movie: Movie, star: number) => {
-    let newRating: number | undefined;
-    if (movie.rating === star) {
-      newRating = undefined;
-    } else {
-      newRating = star;
-    }
-    onUpdate(movie.id, { rating: newRating });
-  };
-
-  const openQuickEdit = (movie: Movie, field: 'platform' | 'genre' | 'notes') => {
-    setMovieBeingQuickEdited(movie);
-    setFieldBeingQuickEdited(field);
-  };
-
-  const closeQuickEdit = () => {
-    setMovieBeingQuickEdited(null);
-    setFieldBeingQuickEdited(null);
-  };
-
-  const handleQuickEditSave = () => {
-    if (movieBeingQuickEdited && fieldBeingQuickEdited) {
-      onUpdate(movieBeingQuickEdited.id, { [fieldBeingQuickEdited]: currentEditFieldValue || undefined });
-    }
-    closeQuickEdit();
-  };
+  const { toggleFavorite, toggleStatus, setRating } = useItemActions(onUpdate);
 
   let textColor = '';
   if (isDarkMode) {
@@ -196,7 +138,7 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
           platformContent = <span className={emptyClass}>-</span>;
         }
         return (
-          <button onClick={() => openQuickEdit(movie, 'platform')} className="hover:opacity-70 transition-opacity">
+          <button onClick={() => { setMovieBeingQuickEdited(movie); setFieldBeingQuickEdited('platform'); }} className="hover:opacity-70 transition-opacity">
             {platformContent}
           </button>
         );
@@ -225,7 +167,7 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
           genreContent = <span className={emptyClass}>-</span>;
         }
         return (
-          <button onClick={() => openQuickEdit(movie, 'genre')} className="hover:opacity-70 transition-opacity">
+          <button onClick={() => { setMovieBeingQuickEdited(movie); setFieldBeingQuickEdited('genre'); }} className="hover:opacity-70 transition-opacity">
             {genreContent}
           </button>
         );
@@ -239,34 +181,20 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
       ),
       cell: ({ row }) => {
         const movie = row.original;
-        const isMedia = movie.type === 'movie' || movie.type === 'tv-show';
-
-        let watchedLabel = 'Visited';
-        if (isMedia) {
-          watchedLabel = 'Watched';
-        }
-        let wantLabel = 'Want to Visit';
-        if (isMedia) {
-          wantLabel = 'Want to See';
-        }
-
         let badgeVariant: 'default' | 'secondary' = 'secondary';
         if (movie.status === 'watched') {
           badgeVariant = 'default';
         }
-
         let badgeClass = 'cursor-pointer';
         if (isDarkMode) {
           badgeClass += ' text-white border-white/30 bg-transparent';
         }
-
         let statusContent;
         if (movie.status === 'watched') {
-          statusContent = <><Eye className="h-3 w-3 mr-1" />{watchedLabel}</>;
+          statusContent = <><Eye className="h-3 w-3 mr-1" />{getStatusLabel(movie.type, 'watched')}</>;
         } else {
-          statusContent = <><Clock className="h-3 w-3 mr-1" />{wantLabel}</>;
+          statusContent = <><Clock className="h-3 w-3 mr-1" />{getStatusLabel(movie.type, 'want-to-see')}</>;
         }
-
         return (
           <button onClick={() => toggleStatus(movie)} className="hover:opacity-80 transition-opacity">
             <Badge variant={badgeVariant} className={badgeClass}>
@@ -307,7 +235,7 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
       header: 'Notes',
       enableSorting: false,
       cell: ({ row }) => (
-        <button onClick={() => openQuickEdit(row.original, 'notes')} className="hover:opacity-70 transition-opacity w-full text-left max-w-[300px] block">
+        <button onClick={() => { setMovieBeingQuickEdited(row.original); setFieldBeingQuickEdited('notes'); }} className="hover:opacity-70 transition-opacity w-full text-left max-w-[300px] block">
           <p className="truncate text-muted-foreground cursor-pointer">{row.original.notes || '-'}</p>
         </button>
       ),
@@ -317,24 +245,12 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
       enableSorting: false,
       cell: ({ row }) => {
         const movie = row.original;
-        const isMedia = movie.type === 'movie' || movie.type === 'tv-show';
-
-        let watchedLabel = 'Visited';
-        if (isMedia) {
-          watchedLabel = 'Watched';
-        }
-        let wantLabel = 'Want to Visit';
-        if (isMedia) {
-          wantLabel = 'Want to See';
-        }
-
         let statusMenuItemContent;
         if (movie.status === 'watched') {
-          statusMenuItemContent = <><Clock className="h-4 w-4 mr-2" />Mark as {wantLabel}</>;
+          statusMenuItemContent = <><Clock className="h-4 w-4 mr-2" />Mark as {getOppositeStatusLabel(movie.type, movie.status)}</>;
         } else {
-          statusMenuItemContent = <><Eye className="h-4 w-4 mr-2" />Mark as {watchedLabel}</>;
+          statusMenuItemContent = <><Eye className="h-4 w-4 mr-2" />Mark as {getOppositeStatusLabel(movie.type, movie.status)}</>;
         }
-
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -372,47 +288,6 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
     getSortedRowModel: getSortedRowModel(),
   });
 
-  let quickEditDialogTitle = '';
-  let quickEditFieldLabel = '';
-  let quickEditInputPlaceholder = '';
-  if (fieldBeingQuickEdited === 'platform') {
-    quickEditDialogTitle = 'Edit Where to Watch';
-    quickEditFieldLabel = 'Platform';
-    quickEditInputPlaceholder = 'e.g., Netflix, Hulu, Disney+';
-  } else if (fieldBeingQuickEdited === 'genre') {
-    quickEditDialogTitle = 'Edit Genre';
-    quickEditFieldLabel = 'Genre';
-    quickEditInputPlaceholder = 'e.g., Action, Comedy, Drama';
-  } else if (fieldBeingQuickEdited === 'notes') {
-    quickEditDialogTitle = 'Edit Notes';
-    quickEditFieldLabel = 'Notes';
-  }
-
-  let quickEditInput;
-  if (fieldBeingQuickEdited === 'notes') {
-    quickEditInput = (
-      <Textarea
-        id="qe-field"
-        value={currentEditFieldValue}
-        onChange={(e) => setCurrentEditFieldValue(e.target.value)}
-        placeholder="Add your notes here..."
-        rows={4}
-        autoFocus
-      />
-    );
-  } else {
-    quickEditInput = (
-      <Input
-        id="qe-field"
-        value={currentEditFieldValue}
-        onChange={(e) => setCurrentEditFieldValue(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleQuickEditSave(); } }}
-        placeholder={quickEditInputPlaceholder}
-        autoFocus
-      />
-    );
-  }
-
   return (
     <div className="rounded-md border">
       <Table>
@@ -447,23 +322,12 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode 
         onUpdate={onUpdate}
       />
 
-      {movieBeingQuickEdited && fieldBeingQuickEdited && (
-        <Dialog open={true} onOpenChange={(isOpen: boolean) => { if (!isOpen) closeQuickEdit(); }}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>{quickEditDialogTitle}</DialogTitle>
-            </DialogHeader>
-            <div className="py-4 space-y-2">
-              <Label htmlFor="qe-field">{quickEditFieldLabel}</Label>
-              {quickEditInput}
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={closeQuickEdit}>Cancel</Button>
-              <Button onClick={handleQuickEditSave}>Save</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+      <QuickEditDialog
+        movie={movieBeingQuickEdited}
+        field={fieldBeingQuickEdited}
+        onSave={(movieId, field, value) => onUpdate(movieId, { [field]: value })}
+        onClose={() => { setMovieBeingQuickEdited(null); setFieldBeingQuickEdited(null); }}
+      />
     </div>
   );
 }
