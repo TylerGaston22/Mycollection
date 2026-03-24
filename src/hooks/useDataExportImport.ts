@@ -160,5 +160,34 @@ export function useDataExportImport() {
     hiddenFileInputElement.click();
   };
 
-  return { exportData, importData, bulkImportCsv };
+  // Exports movies as a CSV file with standard column headers
+  const exportCsv = (movies: Movie[]) => {
+    const csvHeaders = ['title', 'type', 'status', 'platform', 'genre', 'rating', 'notes'];
+    const csvRows = movies.map((movie) => {
+      return csvHeaders.map((header) => {
+        const value = movie[header as keyof Movie];
+        if (value === undefined || value === null) return '';
+        const stringValue = String(value);
+        // Wrap in quotes if the value contains commas, quotes, or newlines
+        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+          return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
+      }).join(',');
+    });
+
+    const csvContent = [csvHeaders.join(','), ...csvRows].join('\n');
+    const csvBlob = new Blob([csvContent], { type: 'text/csv' });
+    const downloadUrl = URL.createObjectURL(csvBlob);
+    const downloadLink = document.createElement('a');
+    downloadLink.href = downloadUrl;
+    downloadLink.download = `my-collection-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    URL.revokeObjectURL(downloadUrl);
+    toast.success('Collection exported!', { description: `Downloaded ${movies.length} items as CSV.` });
+  };
+
+  return { exportData, importData, bulkImportCsv, exportCsv };
 }

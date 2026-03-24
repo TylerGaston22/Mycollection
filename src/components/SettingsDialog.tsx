@@ -1,15 +1,14 @@
 /**
  * SettingsDialog – app settings with two tabs: Appearance and Account.
  * Appearance tab: per-category colour theme pickers via ColorPicker.
- * Account tab: JSON export/import, CSV/TXT bulk import, and a link
- * to the FormatGuideDialog for import formatting help.
+ * Account tab: CSV/TXT export and import, with a link to the
+ * FormatGuideDialog for import formatting help.
  */
 
 import { useState } from 'react';
-import { Lock, Palette, Upload, FileText, Info, ImageIcon, Film, Tv, UtensilsCrossed, MapPin } from 'lucide-react';
+import { Lock, Palette, Info, ImageIcon, Film, Tv, UtensilsCrossed, MapPin } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
-import { Separator } from "./ui/separator";
 import { DataManagementButtons } from "./DataManagementButtons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Movie, CustomTab, CustomSection } from "../types";
@@ -35,28 +34,18 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ open, onOpenChange, movies, customTabs, customSections, onImport, backgroundColors, onBackgroundColorsChange }: SettingsDialogProps) {
   const [isFormatGuideDialogOpen, setIsFormatGuideDialogOpen] = useState(false);
-  const { exportData, importData, bulkImportCsv } = useDataExportImport();
+  const { bulkImportCsv, exportCsv } = useDataExportImport();
 
   const updateColor = (type: 'movie' | 'tv-show' | 'restaurant' | 'place', colorId: string) => {
     onBackgroundColorsChange({ ...backgroundColors, [type]: colorId });
   };
 
-  const handleExportData = () => {
-    exportData({
-      movies: movies || [],
-      customTabs: customTabs || [],
-      customSections: customSections || [],
-    });
+  const handleExportCsv = () => {
+    exportCsv(movies || []);
   };
 
-  const handleImportData = () => {
+  const handleImportCsv = () => {
     if (!onImport) return;
-    importData(onImport, () => onOpenChange(false));
-  };
-
-  const handleBulkImport = () => {
-    if (!onImport) return;
-    // Bulk CSV import merges new rows with existing data, preserving current tabs and sections
     bulkImportCsv(
       movies || [],
       onImport,
@@ -67,8 +56,6 @@ export function SettingsDialog({ open, onOpenChange, movies, customTabs, customS
   };
 
   const totalMoviesCount = movies?.length ?? 0;
-  const totalCustomTabsCount = customTabs?.length ?? 0;
-  const totalCustomSectionsCount = customSections?.length ?? 0;
 
   return (
     <>
@@ -112,33 +99,17 @@ export function SettingsDialog({ open, onOpenChange, movies, customTabs, customS
                 <div className="space-y-3">
                   <h4>Data Management</h4>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Export your collection to backup your data or import a previously saved collection.
+                    Export your collection as CSV or import from a CSV/TXT file.
                   </p>
-                  <DataManagementButtons onExport={handleExportData} onImport={handleImportData} />
+                  <DataManagementButtons onExport={handleExportCsv} onImport={handleImportCsv} />
                   <p className="text-xs text-muted-foreground">
-                    Exported data includes: Movies ({totalMoviesCount}), TV Shows, Restaurants, Places, Custom Categories ({totalCustomTabsCount}), and Custom Sections ({totalCustomSectionsCount}).
+                    {totalMoviesCount} items in your collection.
                   </p>
-
-                  <Separator className="my-4" />
-
-                  <div className="space-y-3">
-                    <h4 className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      Bulk Import from CSV/TXT
-                    </h4>
-                    <p className="text-sm text-muted-foreground">Import multiple items at once using a CSV or TXT file.</p>
-                    <div className="flex gap-2">
-                      <Button variant="outline" className="flex-1" onClick={handleBulkImport}>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload CSV/TXT
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setIsFormatGuideDialogOpen(true)} title="View format guide">
-                        <Info className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg text-xs text-muted-foreground">
-                      💡 <strong>Tip:</strong> Click the info button to see the required format and copy it for AI tools like ChatGPT to help format your list!
-                    </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Button variant="ghost" size="sm" onClick={() => setIsFormatGuideDialogOpen(true)}>
+                      <Info className="h-4 w-4 mr-1" />
+                      Import Format Guide
+                    </Button>
                   </div>
                 </div>
               </div>

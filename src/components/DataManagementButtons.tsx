@@ -19,14 +19,14 @@ export function DataManagementButtons({ onExport, onImport }: DataManagementButt
         <Download className="h-5 w-5" />
         <div className="text-center">
           <div className="font-medium">Export</div>
-          <div className="text-xs text-muted-foreground">Download backup</div>
+          <div className="text-xs text-muted-foreground">Download as CSV</div>
         </div>
       </Button>
       <Button variant="outline" className="flex flex-col items-center gap-2 h-auto py-4" onClick={onImport}>
         <Upload className="h-5 w-5" />
         <div className="text-center">
           <div className="font-medium">Import</div>
-          <div className="text-xs text-muted-foreground">Restore backup</div>
+          <div className="text-xs text-muted-foreground">Upload CSV/TXT</div>
         </div>
       </Button>
     </div>
