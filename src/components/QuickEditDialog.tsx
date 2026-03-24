@@ -81,7 +81,7 @@ export function QuickEditDialog({ movie, field, onSave, onClose }: QuickEditDial
   }
 
   return (
-    <Dialog open={true} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+    <Dialog open={true} onOpenChange={(isOpen: boolean) => { if (!isOpen) onClose(); }}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{config.title}</DialogTitle>

@@ -138,11 +138,11 @@ export function MainContent({
                 size="sm"
                 style={{ color: colorToRgba(currentTheme.accentColor, 0.7) }}
                 // Inline hover: brighten the share icon and add a subtle background on mouse enter
-                onMouseEnter={(event) => {
+                onMouseEnter={(event: React.MouseEvent<HTMLButtonElement>) => {
                   event.currentTarget.style.color = currentTheme.accentColor;
                   event.currentTarget.style.backgroundColor = 'rgba(51, 65, 85, 0.5)';
                 }}
-                onMouseLeave={(event) => {
+                onMouseLeave={(event: React.MouseEvent<HTMLButtonElement>) => {
                   event.currentTarget.style.color = colorToRgba(currentTheme.accentColor, 0.7);
                   event.currentTarget.style.backgroundColor = 'transparent';
                 }}
@@ -152,7 +152,7 @@ export function MainContent({
             )}
           </div>
           <div className="flex items-center gap-3">
-            <ToggleGroup type="single" value={viewMode} onValueChange={(newValue) => {
+            <ToggleGroup type="single" value={viewMode} onValueChange={(newValue: string) => {
               if (newValue) {
                 onViewModeChange(newValue as 'grid' | 'list');
               }
@@ -191,10 +191,10 @@ export function MainContent({
                 borderColor: colorToRgba(currentTheme.accentColor, 0.5),
                 color: currentTheme.accentColor,
               }}
-              onMouseEnter={(event) => {
+              onMouseEnter={(event: React.MouseEvent<HTMLButtonElement>) => {
                 event.currentTarget.style.backgroundColor = colorToRgba(currentTheme.accentColor, 0.2);
               }}
-              onMouseLeave={(event) => {
+              onMouseLeave={(event: React.MouseEvent<HTMLButtonElement>) => {
                 event.currentTarget.style.backgroundColor = 'transparent';
               }}
             >

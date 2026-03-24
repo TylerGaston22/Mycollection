@@ -30,7 +30,7 @@ interface SettingsDialogProps {
     restaurant: string;
     place: string;
   };
-  onBackgroundColorsChange: (colors: Record<string, string>) => void;
+  onBackgroundColorsChange: (colors: { movie: string; 'tv-show': string; restaurant: string; place: string }) => void;
 }
 
 export function SettingsDialog({ open, onOpenChange, movies, customTabs, customSections, onImport, backgroundColors, onBackgroundColorsChange }: SettingsDialogProps) {

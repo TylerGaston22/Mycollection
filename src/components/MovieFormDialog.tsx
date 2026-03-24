@@ -203,7 +203,7 @@ export function MovieFormDialog({
 
             <div className="grid gap-2">
               <Label>Status</Label>
-              <RadioGroup value={status} onValueChange={(newValue) => setStatus(newValue as 'watched' | 'want-to-see')}>
+              <RadioGroup value={status} onValueChange={(newValue: string) => setStatus(newValue as 'watched' | 'want-to-see')}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="watched" id="mf-watched" />
                   <Label htmlFor="mf-watched" className="cursor-pointer">
@@ -285,7 +285,7 @@ export function MovieFormDialog({
                       <Checkbox
                         id={`mf-section-${section.id}`}
                         checked={selectedSections.includes(section.id)}
-                        onCheckedChange={(isNowChecked) => {
+                        onCheckedChange={(isNowChecked: boolean | 'indeterminate') => {
                           if (isNowChecked) {
                             setSelectedSections([...selectedSections, section.id]);
                           } else {
