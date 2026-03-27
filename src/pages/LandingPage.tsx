@@ -152,22 +152,6 @@ export function LandingPage({ onSignIn }: LandingPageProps) {
           </div>
         </div>
 
-        {/* CTA Section */}
-        <div className="text-center bg-gradient-to-r from-orange-500/10 via-purple-500/10 to-blue-500/10 border border-orange-500/20 rounded-2xl p-8">
-          <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to organize your collection?
-          </h2>
-          <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-            Start tracking your favorite movies, shows, restaurants, and travel destinations all in one beautiful, easy-to-use interface.
-          </p>
-          <Button 
-            onClick={onSignIn} 
-            size="lg" 
-            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
-          >
-            Sign In to Get Started
-          </Button>
-        </div>
       </div>
     </div>
   );

@@ -1,18 +1,18 @@
 /**
  * MainContent – scrollable content area to the right of the sidebar.
- * Displays the category heading, section subtitle, view-mode toggle
- * (grid/list), and the collection items. Renders either a responsive
- * MovieCard grid, a sortable ListView table, or an empty-state prompt.
+ * On desktop: offset by the sidebar width (ml-72), shows ListView.
+ * On mobile: full-width with card grid, receives mobileSectionNav from parent.
  */
 
+import { ReactNode } from 'react';
 import { Button } from "./ui/button";
-import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
-import { Plus, LayoutGrid, List, Share2 } from 'lucide-react';
+import { Plus, Share2 } from 'lucide-react';
 import { Movie, CustomTab, CustomSection } from "../types";
 import { MovieCard } from "./MovieCard";
 import { ListView } from "./ListView";
+import { MobileListItem } from "./mobile/MobileListItem";
 import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
-import { getSectionDisplayName, getContentTypeName, getCategoryDisplayName } from "../utils/contentHelpers";
+import { getSectionDisplayName, getContentTypeName, getCategoryDisplayName, getWatchedLabel, getWantToSeeLabel } from "../utils/contentHelpers";
 
 interface MainContentProps {
   movies: Movie[];
@@ -20,9 +20,7 @@ interface MainContentProps {
   customSections: CustomSection[];
   contentType: string;
   activeSection: string;
-  viewMode: 'grid' | 'list';
   currentTheme: ThemeConfig;
-  onViewModeChange: (mode: 'grid' | 'list') => void;
   onAddDialogOpen: () => void;
   onAddSectionDialogOpen: () => void;
   onShareDialogOpen: () => void;
@@ -30,6 +28,8 @@ interface MainContentProps {
   onMovieDelete: (id: string) => void;
   onMovieClick: (movie: Movie) => void;
   getSectionContent: (sectionId: string) => Movie[];
+  isMobile?: boolean;
+  mobileSectionNav?: ReactNode;
 }
 
 export function MainContent({
@@ -37,9 +37,7 @@ export function MainContent({
   customSections,
   contentType,
   activeSection,
-  viewMode,
   currentTheme,
-  onViewModeChange,
   onAddDialogOpen,
   onAddSectionDialogOpen,
   onShareDialogOpen,
@@ -47,6 +45,8 @@ export function MainContent({
   onMovieDelete,
   onMovieClick,
   getSectionContent,
+  isMobile = false,
+  mobileSectionNav,
 }: MainContentProps) {
   const itemsInActiveSection = getSectionContent(activeSection);
 
@@ -62,21 +62,6 @@ export function MainContent({
     emptyStateMessageText = `No ${pluralTypeName} yet. Add your first ${singularTypeName} to get started!`;
   } else {
     emptyStateMessageText = `No ${pluralTypeName} in this section yet.`;
-  }
-
-  // Apply theme accent colour to the active toggle button; leave inactive buttons unstyled
-  let listViewButtonBackgroundColor: string | undefined = undefined;
-  let listViewButtonTextColor: string | undefined = undefined;
-  if (viewMode === 'list') {
-    listViewButtonBackgroundColor = currentTheme.accentColor;
-    listViewButtonTextColor = 'white';
-  }
-
-  let gridViewButtonBackgroundColor: string | undefined = undefined;
-  let gridViewButtonTextColor: string | undefined = undefined;
-  if (viewMode === 'grid') {
-    gridViewButtonBackgroundColor = currentTheme.accentColor;
-    gridViewButtonTextColor = 'white';
   }
 
   let mainContentAreaDisplay;
@@ -96,19 +81,68 @@ export function MainContent({
         )}
       </div>
     );
-  } else if (viewMode === 'grid') {
-    mainContentAreaDisplay = (
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {itemsInActiveSection.map((movie) => (
-          <MovieCard
-            key={movie.id}
-            movie={movie}
-            onUpdate={onMovieUpdate}
-            onDelete={onMovieDelete}
-          />
-        ))}
-      </div>
-    );
+  } else if (isMobile) {
+    // When showing "all", group items by status section like Goodreads shelves
+    if (activeSection === 'all') {
+      const watchedItems = itemsInActiveSection.filter((m) => m.status === 'watched');
+      const wantToSeeItems = itemsInActiveSection.filter((m) => m.status === 'want-to-see');
+      const favoriteItems = itemsInActiveSection.filter((m) => m.favorite);
+
+      const sections: { label: string; items: Movie[]; id: string }[] = [];
+      if (watchedItems.length > 0) {
+        sections.push({ label: getWatchedLabel(contentType), items: watchedItems, id: 'watched' });
+      }
+      if (wantToSeeItems.length > 0) {
+        sections.push({ label: getWantToSeeLabel(contentType), items: wantToSeeItems, id: 'want-to-see' });
+      }
+      if (favoriteItems.length > 0) {
+        sections.push({ label: 'Favorites', items: favoriteItems, id: 'favorites' });
+      }
+
+      mainContentAreaDisplay = (
+        <div>
+          {sections.map((section) => (
+            <div key={section.id}>
+              {/* Section header with top/bottom border like Goodreads */}
+              <div
+                className="flex items-center justify-between px-4 py-2 border-y"
+                style={{ borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'rgba(255,255,255,0.03)' }}
+              >
+                <h2 className="text-white/70 text-xs font-semibold uppercase tracking-wider">
+                  {section.label}
+                </h2>
+                <span className="text-white/40 text-xs">{section.items.length} {section.items.length === 1 ? singularTypeName : pluralTypeName}</span>
+              </div>
+              <div>
+                {section.items.map((movie) => (
+                  <div key={movie.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+                    <MobileListItem
+                      movie={movie}
+                      onUpdate={onMovieUpdate}
+                      onClick={onMovieClick}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    } else {
+      mainContentAreaDisplay = (
+        <div>
+          {itemsInActiveSection.map((movie) => (
+            <div key={movie.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+              <MobileListItem
+                movie={movie}
+                onUpdate={onMovieUpdate}
+                onClick={onMovieClick}
+              />
+            </div>
+          ))}
+        </div>
+      );
+    }
   } else {
     mainContentAreaDisplay = (
       <ListView
@@ -122,89 +156,80 @@ export function MainContent({
     );
   }
 
+  // Container class: full-width on mobile, offset by sidebar on desktop
+  let containerClass = 'flex-1 ml-72 p-8 overflow-y-auto';
+  if (isMobile) {
+    containerClass = 'flex-1 overflow-y-auto';
+  }
+
   return (
-    <div className="flex-1 ml-72 p-8 overflow-y-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div>
-              <h1 className="text-white mb-2">{currentCategoryHeadingTitle}</h1>
-              <p className="text-gray-400">{activeSectionDescriptionText}</p>
+    <div className={containerClass}>
+      {/* Mobile: horizontal section chips */}
+      {isMobile && mobileSectionNav && (
+        <div className="mb-2 px-4 pt-2">
+          {mobileSectionNav}
+        </div>
+      )}
+
+      {/* Header – desktop only (mobile uses MobileHeader) */}
+      {!isMobile && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div>
+                <h1 className="text-white mb-2">{currentCategoryHeadingTitle}</h1>
+                <p className="text-gray-400">{activeSectionDescriptionText}</p>
+              </div>
+              {itemsInActiveSection.length > 0 && (
+                <Button
+                  onClick={onShareDialogOpen}
+                  variant="ghost"
+                  size="sm"
+                  style={{ color: colorToRgba(currentTheme.accentColor, 0.7) }}
+                  onMouseEnter={(event: React.MouseEvent<HTMLButtonElement>) => {
+                    event.currentTarget.style.color = currentTheme.accentColor;
+                    event.currentTarget.style.backgroundColor = 'rgba(51, 65, 85, 0.5)';
+                  }}
+                  onMouseLeave={(event: React.MouseEvent<HTMLButtonElement>) => {
+                    event.currentTarget.style.color = colorToRgba(currentTheme.accentColor, 0.7);
+                    event.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
-            {itemsInActiveSection.length > 0 && (
+            <div className="flex items-center gap-2">
               <Button
-                onClick={onShareDialogOpen}
-                variant="ghost"
-                size="sm"
-                style={{ color: colorToRgba(currentTheme.accentColor, 0.7) }}
-                // Inline hover: brighten the share icon and add a subtle background on mouse enter
+                onClick={onAddDialogOpen}
+                style={{ backgroundColor: currentTheme.accentColor }}
+                className="text-white hover:opacity-90"
+              >
+                <Plus className="mr-1 h-4 w-4" />
+                Add {addButtonLabel}
+              </Button>
+
+              <Button
+                onClick={onAddSectionDialogOpen}
+                variant="outline"
+                style={{
+                  borderColor: colorToRgba(currentTheme.accentColor, 0.5),
+                  color: currentTheme.accentColor,
+                }}
                 onMouseEnter={(event: React.MouseEvent<HTMLButtonElement>) => {
-                  event.currentTarget.style.color = currentTheme.accentColor;
-                  event.currentTarget.style.backgroundColor = 'rgba(51, 65, 85, 0.5)';
+                  event.currentTarget.style.backgroundColor = colorToRgba(currentTheme.accentColor, 0.2);
                 }}
                 onMouseLeave={(event: React.MouseEvent<HTMLButtonElement>) => {
-                  event.currentTarget.style.color = colorToRgba(currentTheme.accentColor, 0.7);
                   event.currentTarget.style.backgroundColor = 'transparent';
                 }}
               >
-                <Share2 className="h-4 w-4" />
+                <Plus className="mr-2 h-4 w-4" />
+                Add Subcategory
               </Button>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            <ToggleGroup type="single" value={viewMode} onValueChange={(newValue: string) => {
-              if (newValue) {
-                onViewModeChange(newValue as 'grid' | 'list');
-              }
-            }}>
-              <ToggleGroupItem
-                value="list"
-                aria-label="List view"
-                className="bg-slate-700/50 text-gray-300 hover:bg-slate-700"
-                style={{ backgroundColor: listViewButtonBackgroundColor, color: listViewButtonTextColor }}
-              >
-                <List className="h-4 w-4" />
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                value="grid"
-                aria-label="Grid view"
-                className="bg-slate-700/50 text-gray-300 hover:bg-slate-700"
-                style={{ backgroundColor: gridViewButtonBackgroundColor, color: gridViewButtonTextColor }}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </ToggleGroupItem>
-            </ToggleGroup>
-
-            <Button
-              onClick={onAddDialogOpen}
-              style={{ backgroundColor: currentTheme.accentColor }}
-              className="text-white hover:opacity-90"
-            >
-              <Plus className="mr-2 h-5 w-5" />
-              Add {addButtonLabel}
-            </Button>
-
-            <Button
-              onClick={onAddSectionDialogOpen}
-              variant="outline"
-              style={{
-                borderColor: colorToRgba(currentTheme.accentColor, 0.5),
-                color: currentTheme.accentColor,
-              }}
-              onMouseEnter={(event: React.MouseEvent<HTMLButtonElement>) => {
-                event.currentTarget.style.backgroundColor = colorToRgba(currentTheme.accentColor, 0.2);
-              }}
-              onMouseLeave={(event: React.MouseEvent<HTMLButtonElement>) => {
-                event.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Add Subcategory
-            </Button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {mainContentAreaDisplay}
     </div>

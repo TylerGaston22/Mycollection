@@ -54,7 +54,7 @@ export default function App() {
   const [isProfileSwitcherOpen, setIsProfileSwitcherOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+
   const [contentType, setContentType] = useState<string>('movie');
   const [activeSection, setActiveSection] = useState<string>('all');
   const [tabToDelete, setTabToDelete] = useState<CustomTab | null>(null);
@@ -127,7 +127,7 @@ export default function App() {
           contentType={contentType}
           activeSection={activeSection}
           expandedCategory={expandedCategory}
-          viewMode={viewMode}
+
           movieCount={movieCount}
           tvShowCount={tvShowCount}
           restaurantCount={restaurantCount}
@@ -136,7 +136,7 @@ export default function App() {
           onContentTypeChange={setContentType}
           onActiveSectionChange={setActiveSection}
           onExpandedCategoryChange={setExpandedCategory}
-          onViewModeChange={setViewMode}
+
           onAddDialogOpen={() => setIsAddDialogOpen(true)}
           onAddSectionDialogOpen={() => setIsAddSectionDialogOpen(true)}
           onAddTabDialogOpen={() => setIsAddTabDialogOpen(true)}
@@ -269,7 +269,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background">
       {/* Background image */}
       <div
         className="fixed inset-0 z-0"
