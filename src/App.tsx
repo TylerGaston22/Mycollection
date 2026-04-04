@@ -40,10 +40,10 @@ import { usePreferences } from "./hooks/usePreferences";
 
 export default function App() {
   const auth = useAuth();
-  const { backgroundColors, setBackgroundColors } = usePreferences(auth.currentUserId);
-  const { movies, setMovies, addMovie, updateMovie, deleteMovie, removeByType, importMovies } = useMovies(auth.currentUserId);
-  const { customTabs, setCustomTabs, addCustomTab: addTab, removeTab } = useCustomTabs(auth.currentUserId);
-  const { customSections, setCustomSections, addCustomSection: addSection, removeByContentType } = useCustomSections(auth.currentUserId);
+  const { backgroundColors, setBackgroundColors } = usePreferences(auth.currentUserId, auth.isDemoUser);
+  const { movies, setMovies, addMovie, updateMovie, deleteMovie, removeByType, importMovies } = useMovies(auth.currentUserId, auth.isDemoUser);
+  const { customTabs, setCustomTabs, addCustomTab: addTab, removeTab } = useCustomTabs(auth.currentUserId, auth.isDemoUser);
+  const { customSections, setCustomSections, addCustomSection: addSection, removeByContentType } = useCustomSections(auth.currentUserId, auth.isDemoUser);
 
   // UI state
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -66,13 +66,13 @@ export default function App() {
   }, [contentType]);
 
   // Cross-cutting handlers
-  const handleAddCustomTab = (tab: Omit<CustomTab, 'id'>) => {
-    const newTab = addTab(tab);
+  const handleAddCustomTab = async (tab: Omit<CustomTab, 'id'>) => {
+    const newTab = await addTab(tab);
     setContentType(newTab.id);
   };
 
-  const handleAddCustomSection = (section: Omit<CustomSection, 'id'>) => {
-    const newSection = addSection(section);
+  const handleAddCustomSection = async (section: Omit<CustomSection, 'id'>) => {
+    const newSection = await addSection(section);
     setActiveSection(newSection.id);
   };
 
@@ -109,7 +109,7 @@ export default function App() {
   if (!auth.isSignedIn) {
     if (auth.showSignInPage) {
       mainPageContent = (
-        <SignInPage onSignIn={auth.handleSignIn} onBack={auth.handleBackToLanding} />
+        <SignInPage onSignIn={auth.handleSignIn} onSignUp={auth.handleSignUp} onBack={auth.handleBackToLanding} />
       );
     } else {
       mainPageContent = (

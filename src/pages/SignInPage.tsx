@@ -1,7 +1,7 @@
 /**
- * SignInPage – username/password sign-in form with demo account shortcut.
- * Validates input fields, simulates a brief loading state, and offers
- * a one-click "Try Demo Account" button that bypasses manual entry.
+ * SignInPage – sign-in / sign-up form with demo account shortcut.
+ * Supports real Supabase auth (email + password) and a one-click
+ * demo login that bypasses authentication entirely.
  */
 import { useState } from "react";
 import { DEMO_CREDENTIALS } from "../mock";
@@ -11,23 +11,25 @@ import { Label } from "../components/ui/label";
 import { Sparkles, Film, Tv, UtensilsCrossed, MapPin, ArrowLeft } from "lucide-react";
 
 interface SignInPageProps {
-  onSignIn: (username: string, password: string) => void;
+  onSignIn: (email: string, password: string) => void;
+  onSignUp?: (email: string, password: string, name: string) => void;
   onBack: () => void;
 }
 
-export function SignInPage({ onSignIn, onBack }: SignInPageProps) {
-  const [enteredUsername, setEnteredUsername] = useState("");
+export function SignInPage({ onSignIn, onSignUp, onBack }: SignInPageProps) {
+  const [isSignUpMode, setIsSignUpMode] = useState(false);
+  const [enteredEmail, setEnteredEmail] = useState("");
   const [enteredPassword, setEnteredPassword] = useState("");
+  const [enteredName, setEnteredName] = useState("");
   const [formValidationError, setFormValidationError] = useState("");
   const [isSignInRequestLoading, setIsSignInRequestLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setFormValidationError("");
 
-    // Validation
-    if (!enteredUsername.trim()) {
-      setFormValidationError("Please enter your username or email");
+    if (!enteredEmail.trim()) {
+      setFormValidationError("Please enter your email");
       return;
     }
 
@@ -41,12 +43,20 @@ export function SignInPage({ onSignIn, onBack }: SignInPageProps) {
       return;
     }
 
-    // Simulate loading
+    if (isSignUpMode && !enteredName.trim()) {
+      setFormValidationError("Please enter your name");
+      return;
+    }
+
     setIsSignInRequestLoading(true);
-    setTimeout(() => {
-      onSignIn(enteredUsername, enteredPassword);
-      setIsSignInRequestLoading(false);
-    }, 800);
+
+    if (isSignUpMode && onSignUp) {
+      await onSignUp(enteredEmail, enteredPassword, enteredName);
+    } else {
+      await onSignIn(enteredEmail, enteredPassword);
+    }
+
+    setIsSignInRequestLoading(false);
   };
 
   const handleDemoLogin = () => {
@@ -58,11 +68,11 @@ export function SignInPage({ onSignIn, onBack }: SignInPageProps) {
     signInButtonContent = (
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-        <span>Signing in...</span>
+        <span>{isSignUpMode ? "Creating account..." : "Signing in..."}</span>
       </div>
     );
   } else {
-    signInButtonContent = "Sign In";
+    signInButtonContent = isSignUpMode ? "Create Account" : "Sign In";
   }
 
   return (
@@ -84,12 +94,12 @@ export function SignInPage({ onSignIn, onBack }: SignInPageProps) {
             <div className="inline-flex items-center gap-2 mb-4">
               <Sparkles className="h-6 w-6 text-orange-500" />
               <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
-                Welcome Back
+                {isSignUpMode ? "Create Account" : "Welcome Back"}
               </h1>
               <Sparkles className="h-6 w-6 text-orange-500" />
             </div>
             <p className="text-gray-300">
-              Sign in to access your collection
+              {isSignUpMode ? "Sign up to start building your collection" : "Sign in to access your collection"}
             </p>
           </div>
 
@@ -109,18 +119,35 @@ export function SignInPage({ onSignIn, onBack }: SignInPageProps) {
             </div>
           </div>
 
-          {/* Sign In Form */}
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
+            {isSignUpMode && (
+              <div>
+                <Label htmlFor="name" className="text-gray-200">
+                  Name
+                </Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Enter your name"
+                  value={enteredName}
+                  onChange={(event) => setEnteredName(event.target.value)}
+                  className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-orange-500/50 focus:ring-orange-500/20"
+                  disabled={isSignInRequestLoading}
+                />
+              </div>
+            )}
+
             <div>
-              <Label htmlFor="username" className="text-gray-200">
-                Username or Email
+              <Label htmlFor="email" className="text-gray-200">
+                Email
               </Label>
               <Input
-                id="username"
-                type="text"
-                placeholder="Enter your username or email"
-                value={enteredUsername}
-                onChange={(event) => setEnteredUsername(event.target.value)}
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={enteredEmail}
+                onChange={(event) => setEnteredEmail(event.target.value)}
                 className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-orange-500/50 focus:ring-orange-500/20"
                 disabled={isSignInRequestLoading}
               />
@@ -148,7 +175,7 @@ export function SignInPage({ onSignIn, onBack }: SignInPageProps) {
               </div>
             )}
 
-            {/* Sign In Button */}
+            {/* Submit Button */}
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
@@ -157,6 +184,20 @@ export function SignInPage({ onSignIn, onBack }: SignInPageProps) {
               {signInButtonContent}
             </Button>
           </form>
+
+          {/* Toggle Sign In / Sign Up */}
+          <div className="text-center mt-4">
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUpMode(!isSignUpMode);
+                setFormValidationError("");
+              }}
+              className="text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              {isSignUpMode ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
+            </button>
+          </div>
 
           {/* Divider */}
           <div className="relative my-6">

@@ -1,65 +1,171 @@
 /**
  * useAuth – authentication state and actions.
- * Manages sign-in/out flow, profile switching, and session persistence
- * via localStorage. Always resets to the demo user on page load so the
- * landing page remains the entry point.
+ * Supports two modes:
+ *   1. Demo user – mock data via localStorage (no Supabase needed)
+ *   2. Real user – Supabase Auth with email/password
  */
 
 import { useState, useEffect } from 'react';
+import { toast } from "sonner@2.0.3";
+import { supabase } from '../lib/supabase';
 import { mockUsers, DEMO_USER_ID } from '../mock';
 import { User } from '../types';
+
+const DEMO_MODE = 'demo';
 
 export function useAuth() {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [showSignInPage, setShowSignInPage] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(DEMO_USER_ID);
+  const [currentUser, setCurrentUser] = useState<User>(mockUsers[0]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [authMode, setAuthMode] = useState<'demo' | 'supabase'>(DEMO_MODE);
 
-  const users: User[] = mockUsers;
-
-  let currentUser = users.find((user) => user.id === currentUserId);
-  if (!currentUser) {
-    currentUser = users[0];
-  }
-
-  // Always clear auth on page load — landing page is the entry point
+  // Check for existing Supabase session on mount
   useEffect(() => {
-    localStorage.removeItem('isSignedIn');
-    localStorage.removeItem('currentUserId');
-    setIsSignedIn(false);
-    setCurrentUserId(DEMO_USER_ID);
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const profile = await loadProfile(session.user.id, session.user.email || '');
+        setCurrentUserId(session.user.id);
+        setCurrentUser(profile);
+        setIsSignedIn(true);
+        setAuthMode('supabase');
+      }
+      setIsLoading(false);
+    };
+    checkSession();
+
+    // Listen for auth state changes (e.g. token refresh, sign out from another tab)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        const profile = await loadProfile(session.user.id, session.user.email || '');
+        setCurrentUserId(session.user.id);
+        setCurrentUser(profile);
+        setIsSignedIn(true);
+        setAuthMode('supabase');
+      } else if (event === 'SIGNED_OUT') {
+        setIsSignedIn(false);
+        setCurrentUserId(DEMO_USER_ID);
+        setCurrentUser(mockUsers[0]);
+        setAuthMode(DEMO_MODE);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  // Credentials are accepted but not validated (demo-only auth)
-  const handleSignIn = (_username: string, _password: string) => {
-    setIsSignedIn(true);
-    setShowSignInPage(false);
-    localStorage.setItem('isSignedIn', 'true');
-    localStorage.setItem('currentUserId', currentUserId);
+  // Load or create a profile row for a Supabase user
+  const loadProfile = async (userId: string, email: string): Promise<User> => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (data) {
+      return {
+        id: data.id,
+        name: data.name || email.split('@')[0],
+        username: data.username || `@${email.split('@')[0]}`,
+        bio: data.bio || '',
+        location: data.location || '',
+        profileImage: data.profile_image || undefined,
+        email,
+        joinDate: new Date(data.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      };
+    }
+
+    // Fallback if profile doesn't exist yet (trigger may not have fired)
+    return {
+      id: userId,
+      name: email.split('@')[0],
+      username: `@${email.split('@')[0]}`,
+      bio: '',
+      location: '',
+      email,
+      joinDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+    };
   };
 
-  const handleLogout = () => {
+  const handleSignIn = async (emailOrUsername: string, password: string) => {
+    // Demo account shortcut
+    if (emailOrUsername === 'demo' && password === 'demo') {
+      setIsSignedIn(true);
+      setShowSignInPage(false);
+      setCurrentUserId(DEMO_USER_ID);
+      setCurrentUser(mockUsers[0]);
+      setAuthMode(DEMO_MODE);
+      return;
+    }
+
+    // Real Supabase sign-in
+    const { error } = await supabase.auth.signInWithPassword({
+      email: emailOrUsername,
+      password,
+    });
+
+    if (error) {
+      toast.error('Sign in failed', { description: error.message });
+      return;
+    }
+
+    setShowSignInPage(false);
+    toast.success('Signed in successfully!');
+  };
+
+  const handleSignUp = async (email: string, password: string, name: string) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name, username: `@${email.split('@')[0]}` },
+      },
+    });
+
+    if (error) {
+      toast.error('Sign up failed', { description: error.message });
+      return;
+    }
+
+    toast.success('Account created!', { description: 'Check your email to confirm your account.' });
+  };
+
+  const handleLogout = async () => {
+    if (authMode === 'supabase') {
+      await supabase.auth.signOut();
+    }
     setIsSignedIn(false);
     setShowSignInPage(false);
     setCurrentUserId(DEMO_USER_ID);
-    localStorage.setItem('isSignedIn', 'false');
-    localStorage.setItem('currentUserId', DEMO_USER_ID);
+    setCurrentUser(mockUsers[0]);
+    setAuthMode(DEMO_MODE);
   };
 
   const handleGoToSignIn = () => setShowSignInPage(true);
   const handleBackToLanding = () => setShowSignInPage(false);
 
+  // Profile switching is only for demo mode (Supabase users have one profile)
   const handleSwitchProfile = (userIdToSwitchTo: string) => {
-    setCurrentUserId(userIdToSwitchTo);
-    localStorage.setItem('currentUserId', userIdToSwitchTo);
+    if (authMode === DEMO_MODE) {
+      setCurrentUserId(userIdToSwitchTo);
+      const user = mockUsers.find((u) => u.id === userIdToSwitchTo);
+      if (user) setCurrentUser(user);
+    }
   };
+
+  const isDemoUser = authMode === DEMO_MODE;
 
   return {
     isSignedIn,
     showSignInPage,
     currentUserId,
     currentUser,
-    users,
+    users: mockUsers,
+    isLoading,
+    isDemoUser,
     handleSignIn,
+    handleSignUp,
     handleLogout,
     handleGoToSignIn,
     handleBackToLanding,
