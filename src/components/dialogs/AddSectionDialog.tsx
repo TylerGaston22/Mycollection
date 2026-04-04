@@ -11,12 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "./ui/dialog";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { CustomSection } from "../types";
-import { ThemeConfig } from "../utils/themeConfig";
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { CustomSection } from "../../types";
+import { ThemeConfig } from "../../utils/themeConfig";
 
 interface AddSectionDialogProps {
   open: boolean;

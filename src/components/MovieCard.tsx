@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { useItemActions } from "../hooks/useItemActions";
+import { sanitizeImageUrl } from "../utils/sanitize";
 import { StarRating } from "./StarRating";
 import { StatusBadge } from "./StatusBadge";
 import { StatusToggleMenuContent } from "./StatusToggleMenuContent";
@@ -61,11 +62,13 @@ export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
     favoriteMenuItemText = 'Add to Favorites';
   }
 
+  const safePosterUrl = sanitizeImageUrl(movie.posterUrl);
+
   let posterDisplayContent;
-  if (movie.posterUrl) {
+  if (safePosterUrl) {
     posterDisplayContent = (
       <PosterImage
-        src={movie.posterUrl}
+        src={safePosterUrl}
         alt={movie.title}
         className="w-full h-full object-cover"
       />

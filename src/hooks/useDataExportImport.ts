@@ -7,6 +7,7 @@
 
 import { toast } from "sonner@2.0.3";
 import { Movie, CustomTab, CustomSection } from '../types';
+import { validateMovie, validateCustomTab, validateCustomSection, parseCsvLine, stripHtml, sanitizeImageUrl } from '../utils/sanitize';
 
 interface ExportOptions {
   movies: Movie[];
@@ -48,7 +49,7 @@ export function useDataExportImport() {
     toast.success('Collection exported successfully!', { description: 'Your data has been downloaded as a JSON file.' });
   };
 
-  // Opens a file picker for .json files, parses the contents, and calls onImport with the result
+  // Opens a file picker for .json files, validates and sanitizes, then calls onImport
   const importData = (onImport: (data: ImportResult) => void, onComplete?: () => void) => {
     const hiddenFileInputElement = document.createElement('input');
     hiddenFileInputElement.type = 'file';
@@ -63,14 +64,37 @@ export function useDataExportImport() {
           if (!parsedData.movies || !Array.isArray(parsedData.movies)) {
             throw new Error('Invalid data format: movies array not found');
           }
+
+          // Validate and sanitize each item individually
+          const validMovies = (parsedData.movies as unknown[])
+            .map(validateMovie)
+            .filter((item): item is Movie => item !== null);
+
+          const validTabs = Array.isArray(parsedData.customTabs)
+            ? (parsedData.customTabs as unknown[])
+                .map(validateCustomTab)
+                .filter((item): item is CustomTab => item !== null)
+            : [];
+
+          const validSections = Array.isArray(parsedData.customSections)
+            ? (parsedData.customSections as unknown[])
+                .map(validateCustomSection)
+                .filter((item): item is CustomSection => item !== null)
+            : [];
+
+          const skippedCount = parsedData.movies.length - validMovies.length;
+
           onImport({
-            movies: parsedData.movies || [],
-            customTabs: parsedData.customTabs || [],
-            customSections: parsedData.customSections || [],
+            movies: validMovies,
+            customTabs: validTabs,
+            customSections: validSections,
           });
-          toast.success('Collection imported successfully!', {
-            description: `Imported ${parsedData.movies.length} items, ${parsedData.customTabs?.length || 0} custom categories, and ${parsedData.customSections?.length || 0} custom sections.`,
-          });
+
+          let description = `Imported ${validMovies.length} items, ${validTabs.length} custom categories, and ${validSections.length} custom sections.`;
+          if (skippedCount > 0) {
+            description += ` Skipped ${skippedCount} invalid items.`;
+          }
+          toast.success('Collection imported successfully!', { description });
           onComplete?.();
         } catch {
           toast.error('Import failed', { description: 'The file format is invalid. Please make sure you\'re importing a valid collection backup file.' });
@@ -98,7 +122,8 @@ export function useDataExportImport() {
             throw new Error('File must contain a header row and at least one data row');
           }
 
-          const csvColumnHeaders = allFileLines[0].split(',').map((headerText) => headerText.trim().toLowerCase());
+          // Use the proper CSV parser for the header row too
+          const csvColumnHeaders = parseCsvLine(allFileLines[0]).map((headerText) => headerText.toLowerCase());
           if (!csvColumnHeaders.includes('title') || !csvColumnHeaders.includes('type')) {
             throw new Error('CSV must include "Title" and "Type" columns');
           }
@@ -107,8 +132,9 @@ export function useDataExportImport() {
           for (let lineIndex = 1; lineIndex < allFileLines.length; lineIndex++) {
             const currentLine = allFileLines[lineIndex].trim();
             if (!currentLine) continue;
-            // Simple split — does not handle commas within quoted fields
-            const columnValues = currentLine.split(',').map((value) => value.trim().replace(/^"|"$/g, ''));
+
+            // Use proper CSV parser that handles quoted fields with commas
+            const columnValues = parseCsvLine(currentLine);
             const parsedCsvRow: Record<string, string> = {};
             csvColumnHeaders.forEach((columnName, columnIndex) => {
               parsedCsvRow[columnName] = columnValues[columnIndex] || '';
@@ -120,19 +146,29 @@ export function useDataExportImport() {
             // Combine timestamp + line index to guarantee unique IDs within a single bulk import
             let parsedRatingValue: number | undefined = undefined;
             if (parsedCsvRow.rating) {
-              parsedRatingValue = parseInt(parsedCsvRow.rating);
+              const parsed = parseInt(parsedCsvRow.rating);
+              if (parsed >= 1 && parsed <= 5) {
+                parsedRatingValue = parsed;
+              }
+            }
+
+            const validStatuses = ['watched', 'want-to-see'];
+            let status: 'watched' | 'want-to-see' = 'want-to-see';
+            if (validStatuses.includes(parsedCsvRow.status)) {
+              status = parsedCsvRow.status as 'watched' | 'want-to-see';
             }
 
             newMovies.push({
               id: `bulk-${Date.now()}-${lineIndex}`,
-              title: parsedCsvRow.title,
+              title: stripHtml(parsedCsvRow.title),
               type: parsedCsvRow.type,
-              status: (parsedCsvRow.status as 'watched' | 'want-to-see') || 'want-to-see',
+              status,
               favorite: false,
-              platform: parsedCsvRow.platform || undefined,
-              genre: parsedCsvRow.genre || undefined,
+              platform: parsedCsvRow.platform ? stripHtml(parsedCsvRow.platform) : undefined,
+              genre: parsedCsvRow.genre ? stripHtml(parsedCsvRow.genre) : undefined,
               rating: parsedRatingValue,
-              notes: parsedCsvRow.notes || undefined,
+              notes: parsedCsvRow.notes ? stripHtml(parsedCsvRow.notes) : undefined,
+              posterUrl: sanitizeImageUrl(parsedCsvRow.posterurl || parsedCsvRow.posterUrl),
             });
           }
 

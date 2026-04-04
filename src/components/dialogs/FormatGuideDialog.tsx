@@ -6,10 +6,10 @@
 
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
-import { Button } from "./ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Button } from "../ui/button";
 import { toast } from "sonner@2.0.3";
-import { copyToClipboard } from "../utils/clipboard";
+import { copyToClipboard } from "../../utils/clipboard";
 
 const FORMAT_EXAMPLE = `Title,Type,Platform,Genre,Status,Rating,Notes
 My Favorite Movie,movie,Netflix,Drama,watched,5,An all-time favorite

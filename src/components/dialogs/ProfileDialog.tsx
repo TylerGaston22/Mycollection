@@ -11,17 +11,17 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "./ui/dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Button } from "./ui/button";
+} from "../ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Button } from "../ui/button";
 import { User, Mail, Calendar, MapPin as MapPinIcon } from 'lucide-react';
-import { Separator } from "./ui/separator";
-import { DataManagementButtons } from "./DataManagementButtons";
-import { CategoryCountRow } from "./CategoryCountRow";
+import { Separator } from "../ui/separator";
+import { DataManagementButtons } from "../DataManagementButtons";
+import { CategoryCountRow } from "../CategoryCountRow";
 
-import { User as UserType, Movie, CustomTab, CustomSection } from "../types";
-import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
-import { useDataExportImport } from "../hooks/useDataExportImport";
+import { User as UserType, Movie, CustomTab, CustomSection } from "../../types";
+import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
+import { useDataExportImport } from "../../hooks/useDataExportImport";
 
 interface ProfileDialogProps {
   open: boolean;

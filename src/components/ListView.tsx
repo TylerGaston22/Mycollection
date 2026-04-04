@@ -34,8 +34,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "./ui/dropdown-menu";
-import { MovieFormDialog } from "./MovieFormDialog";
-import { QuickEditDialog } from "./QuickEditDialog";
+import { MovieFormDialog } from "./dialogs/MovieFormDialog";
+import { QuickEditDialog } from "./dialogs/QuickEditDialog";
 import { StarRating } from "./StarRating";
 import { StatusBadge } from "./StatusBadge";
 import { StatusToggleMenuContent } from "./StatusToggleMenuContent";

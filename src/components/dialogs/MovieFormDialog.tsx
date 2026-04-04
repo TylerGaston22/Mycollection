@@ -13,16 +13,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "./ui/dialog";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
-import { Checkbox } from "./ui/checkbox";
-import { Movie, CustomSection } from "../types";
-import { ThemeConfig } from "../utils/themeConfig";
-import { getContentTypeFieldConfig, getWatchedLabel, getWantToSeeLabel, isMediaContentType } from "../utils/contentHelpers";
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Checkbox } from "../ui/checkbox";
+import { Movie, CustomSection } from "../../types";
+import { ThemeConfig } from "../../utils/themeConfig";
+import { getContentTypeFieldConfig, getWatchedLabel, getWantToSeeLabel, isMediaContentType } from "../../utils/contentHelpers";
+import { sanitizeImageUrl } from "../../utils/sanitize";
 
 interface MovieFormDialogProps {
   open: boolean;
@@ -123,7 +124,7 @@ export function MovieFormDialog({
     const formDataToSave = {
       title: title.trim(),
       year: year.trim() || undefined,
-      posterUrl: posterUrl.trim() || undefined,
+      posterUrl: sanitizeImageUrl(posterUrl.trim()),
       status,
       notes: notes.trim() || undefined,
       platform: platform.trim() || undefined,

@@ -9,12 +9,12 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "./ui/dialog";
-import { Avatar, AvatarFallback } from "./ui/avatar";
-import { Button } from "./ui/button";
+} from "../ui/dialog";
+import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Button } from "../ui/button";
 import { User, Check } from 'lucide-react';
-import { User as UserType } from "../types";
-import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
+import { User as UserType } from "../../types";
+import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
 
 interface ProfileSwitcherDialogProps {
   open: boolean;

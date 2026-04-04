@@ -10,14 +10,14 @@ import { useState, useEffect } from 'react';
 import { SidebarLayout } from "./components/SidebarLayout";
 import { LandingPage } from "./pages/LandingPage";
 import { SignInPage } from "./pages/SignInPage";
-import { MovieFormDialog } from "./components/MovieFormDialog";
-import { ProfileDialog } from "./components/ProfileDialog";
-import { SettingsDialog } from "./components/SettingsDialog";
-import { MovieDetailDialog } from "./components/MovieDetailDialog";
-import { AddTabDialog } from "./components/AddTabDialog";
-import { AddSectionDialog } from "./components/AddSectionDialog";
-import { ShareDialog } from "./components/ShareDialog";
-import { ProfileSwitcherDialog } from "./components/ProfileSwitcherDialog";
+import { MovieFormDialog } from "./components/dialogs/MovieFormDialog";
+import { ProfileDialog } from "./components/dialogs/ProfileDialog";
+import { SettingsDialog } from "./components/dialogs/SettingsDialog";
+import { MovieDetailDialog } from "./components/dialogs/MovieDetailDialog";
+import { AddTabDialog } from "./components/dialogs/AddTabDialog";
+import { AddSectionDialog } from "./components/dialogs/AddSectionDialog";
+import { ShareDialog } from "./components/dialogs/ShareDialog";
+import { ProfileSwitcherDialog } from "./components/dialogs/ProfileSwitcherDialog";
 import {
   AlertDialog,
   AlertDialogAction,

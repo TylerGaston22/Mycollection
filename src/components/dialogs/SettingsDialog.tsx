@@ -7,14 +7,14 @@
 
 import { useState } from 'react';
 import { Lock, Palette, Info, ImageIcon, Film, Tv, UtensilsCrossed, MapPin } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
-import { Button } from "./ui/button";
-import { DataManagementButtons } from "./DataManagementButtons";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Movie, CustomTab, CustomSection } from "../types";
-import { ColorPicker } from "./ColorPicker";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Button } from "../ui/button";
+import { DataManagementButtons } from "../DataManagementButtons";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { Movie, CustomTab, CustomSection } from "../../types";
+import { ColorPicker } from "../ColorPicker";
 import { FormatGuideDialog } from "./FormatGuideDialog";
-import { useDataExportImport } from "../hooks/useDataExportImport";
+import { useDataExportImport } from "../../hooks/useDataExportImport";
 
 interface SettingsDialogProps {
   open: boolean;

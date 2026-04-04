@@ -10,14 +10,14 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "./ui/dialog";
-import { Button } from "./ui/button";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
-import { Separator } from "./ui/separator";
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
+import { Separator } from "../ui/separator";
 import { Copy, Download, Check, Share2 } from 'lucide-react';
-import { Movie } from "../types";
-import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
+import { Movie } from "../../types";
+import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
 import { toast } from "sonner@2.0.3";
 
 interface ShareDialogProps {

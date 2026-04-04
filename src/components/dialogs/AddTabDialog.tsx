@@ -11,12 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "./ui/dialog";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { CustomTab } from "../types";
-import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { CustomTab } from "../../types";
+import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
 import {
   BookOpen,
   Coffee,

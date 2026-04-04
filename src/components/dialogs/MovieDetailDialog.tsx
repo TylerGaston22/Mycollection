@@ -11,13 +11,13 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "./ui/dialog";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
+} from "../ui/dialog";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
 import { Tv, Film, ExternalLink, Edit } from 'lucide-react';
-import { Movie, CustomSection } from "../types";
-import { ThemeConfig } from "../utils/themeConfig";
-import { Separator } from "./ui/separator";
+import { Movie, CustomSection } from "../../types";
+import { ThemeConfig } from "../../utils/themeConfig";
+import { Separator } from "../ui/separator";
 import { MovieFormDialog } from "./MovieFormDialog";
 
 interface MovieDetailDialogProps {
