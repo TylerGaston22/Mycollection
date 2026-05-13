@@ -1,18 +1,18 @@
 /**
  * Content-type helper utilities.
  *
- * Centralises all logic that varies by content type (movie, tv-show,
+ * Centralises all logic that varies by content type (item, tv-show,
  * restaurant, place, or custom tab) so that UI components don't need
  * to duplicate if/else branches for labels, field names, and filtering.
  */
 
-import { Movie, CustomTab, CustomSection } from '../types';
+import { Item, CustomTab, CustomSection } from '../types';
 import type { ItemStatus } from '../constants';
 
 // --- Status label helpers ---
 
 export function isMediaContentType(contentType: string): boolean {
-  return contentType === 'movie' || contentType === 'tv-show';
+  return contentType === 'item' || contentType === 'tv-show';
 }
 
 export function getWatchedLabel(contentType: string): string {
@@ -62,7 +62,7 @@ export function getContentTypeFieldConfig(contentType: string): ContentTypeField
   const isRestaurantOrPlaceType = contentType === 'restaurant' || contentType === 'place';
 
   let displayLabel: string;
-  if (contentType === 'movie') displayLabel = 'Movie';
+  if (contentType === 'item') displayLabel = 'Item';
   else if (contentType === 'tv-show') displayLabel = 'TV Show';
   else if (contentType === 'restaurant') displayLabel = 'Restaurant';
   else if (contentType === 'place') displayLabel = 'Place';
@@ -136,11 +136,11 @@ export function getContentTypeName(
   plural: boolean = true,
   customTabs: CustomTab[] = []
 ): string {
-  if (type === 'movie') {
+  if (type === 'item') {
     if (plural) {
-      return 'movies';
+      return 'items';
     }
-    return 'movie';
+    return 'item';
   }
   if (type === 'tv-show') {
     if (plural) {
@@ -180,7 +180,7 @@ export function getSectionDisplayName(
     return `All ${getContentTypeName(contentType, true, customTabs)}`;
   }
   // Local re-check (not calling the exported function) to keep this function self-contained
-  const isMediaContentType = contentType === 'movie' || contentType === 'tv-show';
+  const isMediaContentType = contentType === 'item' || contentType === 'tv-show';
   if (sectionId === 'watched') {
     if (isMediaContentType) {
       return 'Watched';
@@ -204,7 +204,7 @@ export function getSectionDisplayName(
 }
 
 export function getCategoryDisplayName(contentType: string, customTabs: CustomTab[]): string {
-  if (contentType === 'movie') {
+  if (contentType === 'item') {
     return 'Movies';
   }
   if (contentType === 'tv-show') {
@@ -225,10 +225,10 @@ export function getCategoryDisplayName(contentType: string, customTabs: CustomTa
 
 export function getSectionContent(
   sectionId: string,
-  movies: Movie[],
+  items: Item[],
   contentType: string
-): Movie[] {
-  const allItemsMatchingContentType = movies.filter((collectionItem) => collectionItem.type === contentType);
+): Item[] {
+  const allItemsMatchingContentType = items.filter((collectionItem) => collectionItem.type === contentType);
   if (sectionId === 'all') {
     return allItemsMatchingContentType;
   }

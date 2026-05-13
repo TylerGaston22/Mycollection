@@ -1,6 +1,6 @@
 /**
- * MovieFormDialog – add/edit dialog for collection items.
- * Serves double duty: when `movie` is provided it operates in edit mode,
+ * ItemFormDialog – add/edit dialog for collection items.
+ * Serves double duty: when `item` is provided it operates in edit mode,
  * otherwise it creates a new item. Field labels and placeholders adapt
  * automatically to the content type via getContentTypeFieldConfig().
  */
@@ -20,7 +20,7 @@ import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Checkbox } from "../ui/checkbox";
-import { Movie, CustomSection } from "../../types";
+import { Item, CustomSection } from "../../types";
 import { ThemeConfig } from "../../utils/themeConfig";
 import { getContentTypeFieldConfig, getWatchedLabel, getWantToSeeLabel, isMediaContentType } from "../../utils/contentHelpers";
 import { sanitizeImageUrl } from "../../utils/sanitize";
@@ -33,12 +33,12 @@ interface MovieFormDialogProps {
   contentType?: string;
   activeSection?: string;
   currentTheme?: ThemeConfig;
-  onAdd?: (movie: Omit<Movie, 'id'>) => void;
-  movie?: Movie | null;
-  onUpdate?: (id: string, updates: Partial<Movie>) => void;
+  onAdd?: (item: Omit<Item, 'id'>) => void;
+  item?: Item | null;
+  onUpdate?: (id: string, updates: Partial<Item>) => void;
 }
 
-export function MovieFormDialog({
+export function ItemFormDialog({
   open,
   onOpenChange,
   customSections = [],
@@ -46,12 +46,12 @@ export function MovieFormDialog({
   activeSection,
   currentTheme,
   onAdd,
-  movie,
+  item,
   onUpdate,
 }: MovieFormDialogProps) {
-  // Determine content type: from the item being edited, the active tab, or default to 'movie'
-  const itemContentType = movie?.type ?? contentType ?? DEFAULT_CONTENT_TYPE;
-  const isEditingExistingItem = !!movie;
+  // Determine content type: from the item being edited, the active tab, or default to 'item'
+  const itemContentType = item?.type ?? contentType ?? DEFAULT_CONTENT_TYPE;
+  const isEditingExistingItem = !!item;
   const fieldConfig = getContentTypeFieldConfig(itemContentType);
   const isMovieOrTvShow = isMediaContentType(itemContentType);
 
@@ -69,21 +69,21 @@ export function MovieFormDialog({
 
   const sectionsForCurrentContentType = customSections.filter((section) => section.contentType === itemContentType);
 
-  // Populate form fields when the dialog opens (edit mode copies from movie, add mode resets)
+  // Populate form fields when the dialog opens (edit mode copies from item, add mode resets)
   useEffect(() => {
     if (!open) return;
-    if (movie) {
-      setTitle(movie.title);
-      setYear(movie.year || '');
-      setPosterUrl(movie.posterUrl || '');
-      setStatus(movie.status);
-      setNotes(movie.notes || '');
-      setPlatform(movie.platform || '');
-      setStudio(movie.studio || '');
-      setGenre(movie.genre || '');
-      setSeasons(movie.seasons?.toString() || '');
-      setEpisodes(movie.episodes?.toString() || '');
-      setSelectedSections(movie.sections || []);
+    if (item) {
+      setTitle(item.title);
+      setYear(item.year || '');
+      setPosterUrl(item.posterUrl || '');
+      setStatus(item.status);
+      setNotes(item.notes || '');
+      setPlatform(item.platform || '');
+      setStudio(item.studio || '');
+      setGenre(item.genre || '');
+      setSeasons(item.seasons?.toString() || '');
+      setEpisodes(item.episodes?.toString() || '');
+      setSelectedSections(item.sections || []);
     } else {
       setTitle(''); setYear(''); setPosterUrl(''); setStatus('watched');
       setNotes(''); setPlatform(''); setStudio(''); setGenre('');
@@ -101,7 +101,7 @@ export function MovieFormDialog({
       }
       setSelectedSections(preSelectedSectionIds);
     }
-  }, [open, movie, activeSection, customSections, contentType]);
+  }, [open, item, activeSection, customSections, contentType]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -136,8 +136,8 @@ export function MovieFormDialog({
       sections: sectionsToSave,
     };
 
-    if (isEditingExistingItem && movie) {
-      onUpdate?.(movie.id, formDataToSave);
+    if (isEditingExistingItem && item) {
+      onUpdate?.(item.id, formDataToSave);
     } else {
       onAdd?.({ ...formDataToSave, type: itemContentType, favorite: false });
     }

@@ -6,12 +6,12 @@
  */
 
 import { toast } from "sonner@2.0.3";
-import { Movie, CustomTab, CustomSection } from '../types';
-import { validateMovie, validateCustomTab, validateCustomSection, parseCsvLine, stripHtml, sanitizeImageUrl } from '../utils/sanitize';
+import { Item, CustomTab, CustomSection } from '../types';
+import { validateItem, validateCustomTab, validateCustomSection, parseCsvLine, stripHtml, sanitizeImageUrl } from '../utils/sanitize';
 import { CONTENT_TYPES, ITEM_STATUSES, DEFAULT_STATUS, RATING_MIN, RATING_MAX, type ItemStatus } from '../constants';
 
 interface ExportOptions {
-  movies: Movie[];
+  items: Item[];
   customTabs: CustomTab[];
   customSections: CustomSection[];
   filenamePrefix?: string;
@@ -19,16 +19,16 @@ interface ExportOptions {
 }
 
 interface ImportResult {
-  movies: Movie[];
+  items: Item[];
   customTabs: CustomTab[];
   customSections: CustomSection[];
 }
 
 export function useDataExportImport() {
   // Creates a JSON blob, triggers a download via a temporary <a> element, then cleans up
-  const exportData = ({ movies, customTabs, customSections, filenamePrefix = 'my-collection-backup', profileInfo }: ExportOptions) => {
+  const exportData = ({ items, customTabs, customSections, filenamePrefix = 'my-collection-backup', profileInfo }: ExportOptions) => {
     const collectionDataForExport: Record<string, unknown> = {
-      movies,
+      items,
       customTabs,
       customSections,
       exportDate: new Date().toISOString(),
@@ -62,14 +62,14 @@ export function useDataExportImport() {
       fileContentReader.onload = (readerEvent) => {
         try {
           const parsedData = JSON.parse(readerEvent.target?.result as string);
-          if (!parsedData.movies || !Array.isArray(parsedData.movies)) {
-            throw new Error('Invalid data format: movies array not found');
+          if (!parsedData.items || !Array.isArray(parsedData.items)) {
+            throw new Error('Invalid data format: items array not found');
           }
 
           // Validate and sanitize each item individually
-          const validMovies = (parsedData.movies as unknown[])
-            .map(validateMovie)
-            .filter((item): item is Movie => item !== null);
+          const validItems = (parsedData.items as unknown[])
+            .map(validateItem)
+            .filter((item): item is Item => item !== null);
 
           const validTabs = Array.isArray(parsedData.customTabs)
             ? (parsedData.customTabs as unknown[])
@@ -83,15 +83,15 @@ export function useDataExportImport() {
                 .filter((item): item is CustomSection => item !== null)
             : [];
 
-          const skippedCount = parsedData.movies.length - validMovies.length;
+          const skippedCount = parsedData.items.length - validItems.length;
 
           onImport({
-            movies: validMovies,
+            items: validItems,
             customTabs: validTabs,
             customSections: validSections,
           });
 
-          let description = `Imported ${validMovies.length} items, ${validTabs.length} custom categories, and ${validSections.length} custom sections.`;
+          let description = `Imported ${validItems.length} items, ${validTabs.length} custom categories, and ${validSections.length} custom sections.`;
           if (skippedCount > 0) {
             description += ` Skipped ${skippedCount} invalid items.`;
           }
@@ -106,8 +106,8 @@ export function useDataExportImport() {
     hiddenFileInputElement.click();
   };
 
-  // Opens a file picker for .csv/.txt, parses rows into Movie objects, and merges with existing data
-  const bulkImportCsv = (existingMovies: Movie[], onImport: (data: ImportResult) => void, existingTabs: CustomTab[], existingSections: CustomSection[], onComplete?: () => void) => {
+  // Opens a file picker for .csv/.txt, parses rows into Item objects, and merges with existing data
+  const bulkImportCsv = (existingItems: Item[], onImport: (data: ImportResult) => void, existingTabs: CustomTab[], existingSections: CustomSection[], onComplete?: () => void) => {
     const hiddenFileInputElement = document.createElement('input');
     hiddenFileInputElement.type = 'file';
     hiddenFileInputElement.accept = '.csv,.txt';
@@ -129,7 +129,7 @@ export function useDataExportImport() {
             throw new Error('CSV must include "Title" and "Type" columns');
           }
 
-          const newMovies: Movie[] = [];
+          const newItems: Item[] = [];
           for (let lineIndex = 1; lineIndex < allFileLines.length; lineIndex++) {
             const currentLine = allFileLines[lineIndex].trim();
             if (!currentLine) continue;
@@ -158,7 +158,7 @@ export function useDataExportImport() {
               status = parsedCsvRow.status as ItemStatus;
             }
 
-            newMovies.push({
+            newItems.push({
               id: `bulk-${Date.now()}-${lineIndex}`,
               title: stripHtml(parsedCsvRow.title),
               type: parsedCsvRow.type,
@@ -172,16 +172,16 @@ export function useDataExportImport() {
             });
           }
 
-          if (newMovies.length === 0) {
+          if (newItems.length === 0) {
             throw new Error('No valid items found in file');
           }
 
           onImport({
-            movies: [...existingMovies, ...newMovies],
+            items: [...existingItems, ...newItems],
             customTabs: existingTabs,
             customSections: existingSections,
           });
-          toast.success('Bulk import successful!', { description: `Added ${newMovies.length} items to your collection.` });
+          toast.success('Bulk import successful!', { description: `Added ${newItems.length} items to your collection.` });
           onComplete?.();
         } catch (error) {
           let importErrorMessage = 'The file format is invalid.';
@@ -196,12 +196,12 @@ export function useDataExportImport() {
     hiddenFileInputElement.click();
   };
 
-  // Exports movies as a CSV file with standard column headers
-  const exportCsv = (movies: Movie[]) => {
+  // Exports items as a CSV file with standard column headers
+  const exportCsv = (items: Item[]) => {
     const csvHeaders = ['title', 'type', 'status', 'platform', 'genre', 'rating', 'notes'];
-    const csvRows = movies.map((movie) => {
+    const csvRows = items.map((item) => {
       return csvHeaders.map((header) => {
-        const value = movie[header as keyof Movie];
+        const value = item[header as keyof Item];
         if (value === undefined || value === null) return '';
         const stringValue = String(value);
         // Wrap in quotes if the value contains commas, quotes, or newlines
@@ -222,7 +222,7 @@ export function useDataExportImport() {
     downloadLink.click();
     document.body.removeChild(downloadLink);
     URL.revokeObjectURL(downloadUrl);
-    toast.success('Collection exported!', { description: `Downloaded ${movies.length} items as CSV.` });
+    toast.success('Collection exported!', { description: `Downloaded ${items.length} items as CSV.` });
   };
 
   return { exportData, importData, bulkImportCsv, exportCsv };

@@ -7,15 +7,15 @@
 import { ReactNode } from 'react';
 import { Button } from "./ui/button";
 import { Plus, Share2 } from 'lucide-react';
-import { Movie, CustomTab, CustomSection } from "../types";
-import { MovieCard } from "./MovieCard";
+import { Item, CustomTab, CustomSection } from "../types";
+import { ItemCard } from "./ItemCard";
 import { ListView } from "./ListView";
 import { MobileListItem } from "./mobile/MobileListItem";
 import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
 import { getSectionDisplayName, getContentTypeName, getCategoryDisplayName, getWatchedLabel, getWantToSeeLabel } from "../utils/contentHelpers";
 
 interface MainContentProps {
-  movies: Movie[];
+  items: Item[];
   customTabs: CustomTab[];
   customSections: CustomSection[];
   contentType: string;
@@ -24,10 +24,10 @@ interface MainContentProps {
   onAddDialogOpen: () => void;
   onAddSectionDialogOpen: () => void;
   onShareDialogOpen: () => void;
-  onMovieUpdate: (id: string, updates: Partial<Movie>) => void;
-  onMovieDelete: (id: string) => void;
-  onMovieClick: (movie: Movie) => void;
-  getSectionContent: (sectionId: string) => Movie[];
+  onItemUpdate: (id: string, updates: Partial<Item>) => void;
+  onItemDelete: (id: string) => void;
+  onItemClick: (item: Item) => void;
+  getSectionContent: (sectionId: string) => Item[];
   isMobile?: boolean;
   mobileSectionNav?: ReactNode;
 }
@@ -41,9 +41,9 @@ export function MainContent({
   onAddDialogOpen,
   onAddSectionDialogOpen,
   onShareDialogOpen,
-  onMovieUpdate,
-  onMovieDelete,
-  onMovieClick,
+  onItemUpdate,
+  onItemDelete,
+  onItemClick,
   getSectionContent,
   isMobile = false,
   mobileSectionNav,
@@ -54,7 +54,7 @@ export function MainContent({
   const currentCategoryHeadingTitle = getCategoryDisplayName(contentType, customTabs);
   const singularTypeName = getContentTypeName(contentType, false, customTabs);
   const pluralTypeName = getContentTypeName(contentType, true, customTabs);
-  // Capitalise the first letter for the "Add Movie" / "Add Restaurant" button label
+  // Capitalise the first letter for the "Add Item" / "Add Restaurant" button label
   const addButtonLabel = singularTypeName.charAt(0).toUpperCase() + singularTypeName.slice(1);
 
   let emptyStateMessageText: string;
@@ -88,7 +88,7 @@ export function MainContent({
       const wantToSeeItems = itemsInActiveSection.filter((m) => m.status === 'want-to-see');
       const favoriteItems = itemsInActiveSection.filter((m) => m.favorite);
 
-      const sections: { label: string; items: Movie[]; id: string }[] = [];
+      const sections: { label: string; items: Item[]; id: string }[] = [];
       if (watchedItems.length > 0) {
         sections.push({ label: getWatchedLabel(contentType), items: watchedItems, id: 'watched' });
       }
@@ -114,12 +114,12 @@ export function MainContent({
                 <span className="text-white/40 text-xs">{section.items.length} {section.items.length === 1 ? singularTypeName : pluralTypeName}</span>
               </div>
               <div>
-                {section.items.map((movie) => (
-                  <div key={movie.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+                {section.items.map((item) => (
+                  <div key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
                     <MobileListItem
-                      movie={movie}
-                      onUpdate={onMovieUpdate}
-                      onClick={onMovieClick}
+                      item={item}
+                      onUpdate={onItemUpdate}
+                      onClick={onItemClick}
                     />
                   </div>
                 ))}
@@ -131,12 +131,12 @@ export function MainContent({
     } else {
       mainContentAreaDisplay = (
         <div>
-          {itemsInActiveSection.map((movie) => (
-            <div key={movie.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+          {itemsInActiveSection.map((item) => (
+            <div key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
               <MobileListItem
-                movie={movie}
-                onUpdate={onMovieUpdate}
-                onClick={onMovieClick}
+                item={item}
+                onUpdate={onItemUpdate}
+                onClick={onItemClick}
               />
             </div>
           ))}
@@ -146,10 +146,10 @@ export function MainContent({
   } else {
     mainContentAreaDisplay = (
       <ListView
-        movies={itemsInActiveSection}
-        onUpdate={onMovieUpdate}
-        onDelete={onMovieDelete}
-        onMovieClick={onMovieClick}
+        items={itemsInActiveSection}
+        onUpdate={onItemUpdate}
+        onDelete={onItemDelete}
+        onItemClick={onItemClick}
         isDarkMode={true}
         currentTheme={currentTheme}
       />

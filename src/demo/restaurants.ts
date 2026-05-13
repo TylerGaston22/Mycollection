@@ -3,9 +3,9 @@
  * Contains 20 world-renowned restaurants with cuisine types, booking
  * platforms, visit statuses, and personal notes.
  */
-import { Movie } from "../types";
+import { Item } from "../types";
 
-export const mockRestaurants: Movie[] = [
+export const mockRestaurants: Item[] = [
   { id: "demo-rest-1", title: "Nobu Malibu", year: "Los Angeles, CA", platform: "OpenTable", genre: "Japanese", type: "restaurant", status: "want-to-see", favorite: true, notes: "Famous for black cod miso and ocean views", posterUrl: "" },
   { id: "demo-rest-2", title: "The French Laundry", year: "Yountville, CA", platform: "Tock", genre: "French", type: "restaurant", status: "want-to-see", favorite: true, notes: "Thomas Keller's legendary 3-Michelin star restaurant", posterUrl: "" },
   { id: "demo-rest-3", title: "Alinea", year: "Chicago, IL", platform: "Tock", genre: "Modern American", type: "restaurant", status: "watched", favorite: true, rating: 5, notes: "Mind-blowing molecular gastronomy - edible balloons!", posterUrl: "" },

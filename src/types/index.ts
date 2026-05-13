@@ -5,7 +5,7 @@
 
 import type { ItemStatus } from '../constants';
 
-export interface Movie {
+export interface Item {
   id: string;
   title: string;
   type: string; // built-in content type or custom tab id — see CONTENT_TYPES

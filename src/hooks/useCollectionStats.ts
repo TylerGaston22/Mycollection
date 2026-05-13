@@ -4,19 +4,19 @@
  */
 
 import { useMemo } from 'react';
-import { Movie } from '../types';
+import { Item } from '../types';
 
-export function useCollectionStats(movies: Movie[]) {
+export function useCollectionStats(items: Item[]) {
   return useMemo(() => {
     const byType: Record<string, number> = {};
-    for (const item of movies) {
+    for (const item of items) {
       byType[item.type] = (byType[item.type] || 0) + 1;
     }
     return {
-      movieCount: byType.movie || 0,
+      movieCount: byType.item || 0,
       tvShowCount: byType['tv-show'] || 0,
       restaurantCount: byType.restaurant || 0,
       placeCount: byType.place || 0,
     };
-  }, [movies]);
+  }, [items]);
 }

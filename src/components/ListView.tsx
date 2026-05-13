@@ -3,7 +3,7 @@
  * Built on TanStack React Table with sortable columns for favourite,
  * title, platform, genre, status, and rating. Clicking a cell opens
  * either a QuickEditDialog (platform/genre/notes) or the full
- * MovieFormDialog (via the actions menu).
+ * ItemFormDialog (via the actions menu).
  */
 
 import { useState } from "react";
@@ -15,7 +15,7 @@ import {
   createColumnHelper,
   SortingState,
 } from "@tanstack/react-table";
-import { Movie } from "../types";
+import { Item } from "../types";
 import {
   Table,
   TableBody,
@@ -34,7 +34,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "./ui/dropdown-menu";
-import { MovieFormDialog } from "./dialogs/MovieFormDialog";
+import { ItemFormDialog } from "./dialogs/ItemFormDialog";
 import { QuickEditDialog } from "./dialogs/QuickEditDialog";
 import { StarRating } from "./StarRating";
 import { StatusBadge } from "./StatusBadge";
@@ -43,20 +43,20 @@ import { useItemActions } from "../hooks/useItemActions";
 import { ThemeConfig } from "../utils/themeConfig";
 
 interface ListViewProps {
-  movies: Movie[];
-  onUpdate: (id: string, updates: Partial<Movie>) => void;
+  items: Item[];
+  onUpdate: (id: string, updates: Partial<Item>) => void;
   onDelete: (id: string) => void;
-  onMovieClick?: (movie: Movie) => void;
+  onItemClick?: (item: Item) => void;
   isDarkMode?: boolean;
   currentTheme?: ThemeConfig;
 }
 
-const columnHelper = createColumnHelper<Movie>();
+const columnHelper = createColumnHelper<Item>();
 
-export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode, currentTheme }: ListViewProps) {
+export function ListView({ items, onUpdate, onDelete, onItemClick, isDarkMode, currentTheme }: ListViewProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [movieBeingEdited, setMovieBeingEdited] = useState<Movie | null>(null);
-  const [movieBeingQuickEdited, setMovieBeingQuickEdited] = useState<Movie | null>(null);
+  const [movieBeingEdited, setMovieBeingEdited] = useState<Item | null>(null);
+  const [movieBeingQuickEdited, setMovieBeingQuickEdited] = useState<Item | null>(null);
   const [fieldBeingQuickEdited, setFieldBeingQuickEdited] = useState<'platform' | 'genre' | 'notes' | null>(null);
 
   const { toggleFavorite, toggleStatus, setRating } = useItemActions(onUpdate);
@@ -137,9 +137,9 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode,
       ),
       cell: ({ row }) => (
         <button
-          onClick={() => onMovieClick?.(row.original)}
+          onClick={() => onItemClick?.(row.original)}
           // Right-click also opens the detail dialog
-          onContextMenu={(e) => { e.preventDefault(); onMovieClick?.(row.original); }}
+          onContextMenu={(e) => { e.preventDefault(); onItemClick?.(row.original); }}
           className={`hover:opacity-70 transition-opacity cursor-pointer text-left ${textColor}`}
         >
           {row.original.title}
@@ -153,14 +153,14 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode,
         </button>
       ),
       cell: ({ row }) => {
-        const movie = row.original;
+        const item = row.original;
         let platformContent;
-        if (movie.platform) {
+        if (item.platform) {
           let badgeClass = 'cursor-pointer';
           if (isDarkMode) {
             badgeClass += ' text-white border-white/30';
           }
-          platformContent = <Badge variant="outline" className={badgeClass}>{movie.platform}</Badge>;
+          platformContent = <Badge variant="outline" className={badgeClass}>{item.platform}</Badge>;
         } else {
           let emptyClass = 'cursor-pointer text-muted-foreground';
           if (isDarkMode) {
@@ -169,7 +169,7 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode,
           platformContent = <span className={emptyClass}>-</span>;
         }
         return (
-          <button onClick={() => { setMovieBeingQuickEdited(movie); setFieldBeingQuickEdited('platform'); }} className="hover:opacity-70 transition-opacity">
+          <button onClick={() => { setMovieBeingQuickEdited(item); setFieldBeingQuickEdited('platform'); }} className="hover:opacity-70 transition-opacity">
             {platformContent}
           </button>
         );
@@ -182,14 +182,14 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode,
         </button>
       ),
       cell: ({ row }) => {
-        const movie = row.original;
+        const item = row.original;
         let genreContent;
-        if (movie.genre) {
+        if (item.genre) {
           let badgeClass = 'cursor-pointer';
           if (isDarkMode) {
             badgeClass += ' text-white bg-white/10';
           }
-          genreContent = <Badge variant="secondary" className={badgeClass}>{movie.genre}</Badge>;
+          genreContent = <Badge variant="secondary" className={badgeClass}>{item.genre}</Badge>;
         } else {
           let emptyClass = 'cursor-pointer text-muted-foreground';
           if (isDarkMode) {
@@ -198,7 +198,7 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode,
           genreContent = <span className={emptyClass}>-</span>;
         }
         return (
-          <button onClick={() => { setMovieBeingQuickEdited(movie); setFieldBeingQuickEdited('genre'); }} className="hover:opacity-70 transition-opacity">
+          <button onClick={() => { setMovieBeingQuickEdited(item); setFieldBeingQuickEdited('genre'); }} className="hover:opacity-70 transition-opacity">
             {genreContent}
           </button>
         );
@@ -211,14 +211,14 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode,
         </button>
       ),
       cell: ({ row }) => {
-        const movie = row.original;
+        const item = row.original;
         let badgeClass = 'cursor-pointer';
         if (isDarkMode) {
           badgeClass += ' text-white border-white/30 bg-transparent';
         }
         return (
-          <button onClick={() => toggleStatus(movie)} className="hover:opacity-80 transition-opacity">
-            <StatusBadge status={movie.status} contentType={movie.type} className={badgeClass} />
+          <button onClick={() => toggleStatus(item)} className="hover:opacity-80 transition-opacity">
+            <StatusBadge status={item.status} contentType={item.type} className={badgeClass} />
           </button>
         );
       },
@@ -230,10 +230,10 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode,
         </button>
       ),
       cell: ({ row }) => {
-        const movie = row.original;
+        const item = row.original;
         // Only display star rating for items with 'watched' status
-        if (movie.status !== 'watched') return null;
-        return <StarRating movie={movie} onRate={setRating} />;
+        if (item.status !== 'watched') return null;
+        return <StarRating item={item} onRate={setRating} />;
       },
       // Descending sort: higher ratings first, unrated (nullish) treated as 0
       sortingFn: (a, b) => (b.original.rating ?? 0) - (a.original.rating ?? 0),
@@ -251,7 +251,7 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode,
       id: 'actions',
       enableSorting: false,
       cell: ({ row }) => {
-        const movie = row.original;
+        const item = row.original;
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -260,15 +260,15 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode,
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={(e: React.MouseEvent) => { e.stopPropagation(); setMovieBeingEdited(movie); }}>
+              <DropdownMenuItem onClick={(e: React.MouseEvent) => { e.stopPropagation(); setMovieBeingEdited(item); }}>
                 <Edit className="mr-2 h-4 w-4" />Edit
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e: React.MouseEvent) => { e.stopPropagation(); toggleStatus(movie); }}>
-                <StatusToggleMenuContent currentStatus={movie.status} contentType={movie.type} />
+              <DropdownMenuItem onClick={(e: React.MouseEvent) => { e.stopPropagation(); toggleStatus(item); }}>
+                <StatusToggleMenuContent currentStatus={item.status} contentType={item.type} />
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={(e: React.MouseEvent) => { e.stopPropagation(); onDelete(movie.id); }}
+                onClick={(e: React.MouseEvent) => { e.stopPropagation(); onDelete(item.id); }}
                 className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="h-4 w-4 mr-2" />Delete
@@ -281,7 +281,7 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode,
   ];
 
   const table = useReactTable({
-    data: movies,
+    data: items,
     columns,
     state: { sorting },
     onSortingChange: setSorting,
@@ -316,15 +316,15 @@ export function ListView({ movies, onUpdate, onDelete, onMovieClick, isDarkMode,
         </TableBody>
       </Table>
 
-      <MovieFormDialog
-        movie={movieBeingEdited}
+      <ItemFormDialog
+        item={movieBeingEdited}
         open={!!movieBeingEdited}
         onOpenChange={(isOpen: boolean) => { if (!isOpen) setMovieBeingEdited(null); }}
         onUpdate={onUpdate}
       />
 
       <QuickEditDialog
-        movie={movieBeingQuickEdited}
+        item={movieBeingQuickEdited}
         field={fieldBeingQuickEdited}
         onSave={(movieId, field, value) => onUpdate(movieId, { [field]: value })}
         onClose={() => { setMovieBeingQuickEdited(null); setFieldBeingQuickEdited(null); }}

@@ -16,10 +16,10 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
-import { Movie } from "../../types";
+import { Item } from "../../types";
 
 interface QuickEditDialogProps {
-  movie: Movie | null;
+  item: Item | null;
   field: 'platform' | 'genre' | 'notes' | null;
   onSave: (movieId: string, field: string, value: string | undefined) => void;
   onClose: () => void;
@@ -31,27 +31,27 @@ const FIELD_CONFIG = {
   notes: { title: 'Edit Notes', label: 'Notes', placeholder: '' },
 };
 
-export function QuickEditDialog({ movie, field, onSave, onClose }: QuickEditDialogProps) {
+export function QuickEditDialog({ item, field, onSave, onClose }: QuickEditDialogProps) {
   const [currentEditFieldValue, setCurrentEditFieldValue] = useState('');
 
   useEffect(() => {
-    if (!movie || !field) return;
+    if (!item || !field) return;
     if (field === 'notes') {
-      setCurrentEditFieldValue(movie.notes || '');
+      setCurrentEditFieldValue(item.notes || '');
     } else if (field === 'platform') {
-      setCurrentEditFieldValue(movie.platform || '');
+      setCurrentEditFieldValue(item.platform || '');
     } else {
-      setCurrentEditFieldValue(movie.genre || '');
+      setCurrentEditFieldValue(item.genre || '');
     }
-  }, [movie, field]);
+  }, [item, field]);
 
-  if (!movie || !field) return null;
+  if (!item || !field) return null;
 
   const config = FIELD_CONFIG[field];
 
   const handleSave = () => {
     // Pass undefined instead of empty string so the field is cleared in the data model
-    onSave(movie.id, field, currentEditFieldValue || undefined);
+    onSave(item.id, field, currentEditFieldValue || undefined);
     onClose();
   };
 

@@ -4,7 +4,7 @@
  * validation for imported data to prevent XSS and injection.
  */
 
-import { Movie, CustomTab, CustomSection } from '../types';
+import { Item, CustomTab, CustomSection } from '../types';
 import { ITEM_STATUSES, DEFAULT_STATUS, RATING_MIN, RATING_MAX, type ItemStatus } from '../constants';
 
 /**
@@ -48,10 +48,10 @@ function sanitizeString(value: unknown): string | undefined {
 }
 
 /**
- * Validates and sanitizes a single imported Movie object.
+ * Validates and sanitizes a single imported Item object.
  * Returns null if the item is invalid (missing required fields).
  */
-export function validateMovie(item: unknown): Movie | null {
+export function validateItem(item: unknown): Item | null {
   if (typeof item !== 'object' || item === null) return null;
 
   const raw = item as Record<string, unknown>;

@@ -3,9 +3,9 @@
  * Contains 20 global destinations with location, category, visit
  * status, and personal notes for the demo experience.
  */
-import { Movie } from "../types";
+import { Item } from "../types";
 
-export const mockPlaces: Movie[] = [
+export const mockPlaces: Item[] = [
   { id: "demo-place-1", title: "Kyoto", year: "Japan", platform: "Visit Japan", genre: "City", type: "place", status: "want-to-see", favorite: true, notes: "Ancient temples, bamboo forests, geisha districts", posterUrl: "" },
   { id: "demo-place-2", title: "Santorini", year: "Greece", platform: "Visit Greece", genre: "Island", type: "place", status: "watched", favorite: true, rating: 5, notes: "White cliffside villages and epic sunsets - pure magic!", posterUrl: "" },
   { id: "demo-place-3", title: "Machu Picchu", year: "Peru", platform: "Peru Travel", genre: "Historical Site", type: "place", status: "want-to-see", favorite: true, notes: "Ancient Incan citadel in the clouds - dream destination", posterUrl: "" },

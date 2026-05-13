@@ -14,9 +14,9 @@ const availableColorThemeOptions = Object.values(colorThemes);
 interface ColorPickerProps {
   label: string;
   icon: LucideIcon;
-  type: 'movie' | 'tv-show' | 'restaurant' | 'place';
+  type: 'item' | 'tv-show' | 'restaurant' | 'place';
   selectedColor: string;
-  onColorChange: (type: 'movie' | 'tv-show' | 'restaurant' | 'place', colorId: string) => void;
+  onColorChange: (type: 'item' | 'tv-show' | 'restaurant' | 'place', colorId: string) => void;
 }
 
 export function ColorPicker({ label, icon: Icon, type, selectedColor, onColorChange }: ColorPickerProps) {

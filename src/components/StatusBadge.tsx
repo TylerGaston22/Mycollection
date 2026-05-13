@@ -1,7 +1,7 @@
 /**
  * StatusBadge – displays the watched/want-to-see status with an icon.
  * Adapts label text based on content type (e.g. "Visited" for restaurants).
- * Used by both MovieCard and ListView.
+ * Used by both ItemCard and ListView.
  */
 
 import { Eye, Clock } from 'lucide-react';

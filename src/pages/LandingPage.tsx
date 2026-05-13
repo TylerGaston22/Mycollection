@@ -25,7 +25,7 @@ export function LandingPage({ onSignIn }: LandingPageProps) {
             <Sparkles className="h-8 w-8 text-orange-500" />
           </div>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Your personal hub for tracking movies, TV shows, restaurants, and places to visit. 
+            Your personal hub for tracking items, TV shows, restaurants, and places to visit. 
             Never forget what you've watched or where you want to go next.
           </p>
           <Button 

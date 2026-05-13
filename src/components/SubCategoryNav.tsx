@@ -6,7 +6,7 @@
  */
 
 import { Plus } from 'lucide-react';
-import { Movie, CustomSection } from "../types";
+import { Item, CustomSection } from "../types";
 import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
 import { getWatchedLabel, getWantToSeeLabel } from "../utils/contentHelpers";
 import { SectionButton } from "./SectionButton";
@@ -16,10 +16,10 @@ interface SubCategoryNavProps {
   contentType: string;
   activeSection: string;
   currentTheme: ThemeConfig;
-  allItems: Movie[];
-  watchedItems: Movie[];
-  wantToSeeItems: Movie[];
-  favoriteItems: Movie[];
+  allItems: Item[];
+  watchedItems: Item[];
+  wantToSeeItems: Item[];
+  favoriteItems: Item[];
   customSections: CustomSection[];
   onActiveSectionChange: (section: string) => void;
   onAddSectionDialogOpen: () => void;

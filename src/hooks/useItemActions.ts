@@ -1,36 +1,36 @@
 /**
  * useItemActions – shared item interaction handlers.
  * Provides toggleFavorite, toggleStatus, and setRating actions
- * used by both MovieCard (grid view) and ListView (table view).
+ * used by both ItemCard (grid view) and ListView (table view).
  */
 
-import { Movie } from '../types';
+import { Item } from '../types';
 import type { ItemStatus } from '../constants';
 
-export function useItemActions(onUpdate: (id: string, updates: Partial<Movie>) => void) {
-  const toggleFavorite = (movie: Movie) => {
-    onUpdate(movie.id, { favorite: !movie.favorite });
+export function useItemActions(onUpdate: (id: string, updates: Partial<Item>) => void) {
+  const toggleFavorite = (item: Item) => {
+    onUpdate(item.id, { favorite: !item.favorite });
   };
 
-  const toggleStatus = (movie: Movie) => {
+  const toggleStatus = (item: Item) => {
     let newStatus: ItemStatus;
-    if (movie.status === 'watched') {
+    if (item.status === 'watched') {
       newStatus = 'want-to-see';
     } else {
       newStatus = 'watched';
     }
-    onUpdate(movie.id, { status: newStatus });
+    onUpdate(item.id, { status: newStatus });
   };
 
   // Clicking the current rating clears it (toggle behaviour)
-  const setRating = (movie: Movie, starRatingNumber: number) => {
+  const setRating = (item: Item, starRatingNumber: number) => {
     let newRatingValue: number | undefined;
-    if (movie.rating === starRatingNumber) {
+    if (item.rating === starRatingNumber) {
       newRatingValue = undefined;
     } else {
       newRatingValue = starRatingNumber;
     }
-    onUpdate(movie.id, { rating: newRatingValue });
+    onUpdate(item.id, { rating: newRatingValue });
   };
 
   return { toggleFavorite, toggleStatus, setRating };

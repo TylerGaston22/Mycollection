@@ -5,7 +5,7 @@
  * section chips, full-width content, and a bottom tab bar.
  */
 
-import { Movie, CustomTab, CustomSection, User } from "../types";
+import { Item, CustomTab, CustomSection, User } from "../types";
 import { ThemeConfig } from "../utils/themeConfig";
 import { getCategoryDisplayName } from "../utils/contentHelpers";
 import { useIsMobile } from "../hooks/useIsMobile";
@@ -17,7 +17,7 @@ import { MobileSectionNav } from "./mobile/MobileSectionNav";
 
 interface SidebarLayoutProps {
   currentUser: User;
-  movies: Movie[];
+  items: Item[];
   customTabs: CustomTab[];
   customSections: CustomSection[];
   contentType: string;
@@ -41,16 +41,16 @@ interface SidebarLayoutProps {
   onProfileSwitcherOpen: () => void;
   onLogout: () => void;
   onTabDelete: (tab: CustomTab) => void;
-  onMovieUpdate: (id: string, updates: Partial<Movie>) => void;
-  onMovieDelete: (id: string) => void;
-  onMovieClick: (movie: Movie) => void;
+  onItemUpdate: (id: string, updates: Partial<Item>) => void;
+  onItemDelete: (id: string) => void;
+  onItemClick: (item: Item) => void;
   onShareDialogOpen: () => void;
-  getSectionContent: (sectionId: string) => Movie[];
+  getSectionContent: (sectionId: string) => Item[];
 }
 
 export function SidebarLayout({
   currentUser,
-  movies,
+  items,
   customTabs,
   customSections,
   contentType,
@@ -74,9 +74,9 @@ export function SidebarLayout({
   onProfileSwitcherOpen,
   onLogout,
   onTabDelete,
-  onMovieUpdate,
-  onMovieDelete,
-  onMovieClick,
+  onItemUpdate,
+  onItemDelete,
+  onItemClick,
   onShareDialogOpen,
   getSectionContent,
 }: SidebarLayoutProps) {
@@ -95,7 +95,7 @@ export function SidebarLayout({
         />
 
         <MainContent
-          movies={movies}
+          items={items}
           customTabs={customTabs}
           customSections={customSections}
           contentType={contentType}
@@ -104,9 +104,9 @@ export function SidebarLayout({
           onAddDialogOpen={onAddDialogOpen}
           onAddSectionDialogOpen={onAddSectionDialogOpen}
           onShareDialogOpen={onShareDialogOpen}
-          onMovieUpdate={onMovieUpdate}
-          onMovieDelete={onMovieDelete}
-          onMovieClick={onMovieClick}
+          onItemUpdate={onItemUpdate}
+          onItemDelete={onItemDelete}
+          onItemClick={onItemClick}
           getSectionContent={getSectionContent}
           isMobile={true}
           mobileSectionNav={
@@ -114,7 +114,7 @@ export function SidebarLayout({
               contentType={contentType}
               activeSection={activeSection}
               currentTheme={currentTheme}
-              movies={movies}
+              items={items}
               customSections={customSections}
               onActiveSectionChange={onActiveSectionChange}
               onAddSectionDialogOpen={onAddSectionDialogOpen}
@@ -132,7 +132,7 @@ export function SidebarLayout({
           currentTheme={currentTheme}
           onContentTypeChange={onContentTypeChange}
           onAddTabDialogOpen={onAddTabDialogOpen}
-          movies={movies}
+          items={items}
         />
       </div>
     );
@@ -143,7 +143,7 @@ export function SidebarLayout({
     <div className="relative z-10 flex min-h-screen">
       <Sidebar
         currentUser={currentUser}
-        movies={movies}
+        items={items}
         customTabs={customTabs}
         customSections={customSections}
         contentType={contentType}
@@ -167,7 +167,7 @@ export function SidebarLayout({
       />
 
       <MainContent
-        movies={movies}
+        items={items}
         customTabs={customTabs}
         customSections={customSections}
         contentType={contentType}
@@ -176,9 +176,9 @@ export function SidebarLayout({
         onAddDialogOpen={onAddDialogOpen}
         onAddSectionDialogOpen={onAddSectionDialogOpen}
         onShareDialogOpen={onShareDialogOpen}
-        onMovieUpdate={onMovieUpdate}
-        onMovieDelete={onMovieDelete}
-        onMovieClick={onMovieClick}
+        onItemUpdate={onItemUpdate}
+        onItemDelete={onItemDelete}
+        onItemClick={onItemClick}
         getSectionContent={getSectionContent}
       />
     </div>

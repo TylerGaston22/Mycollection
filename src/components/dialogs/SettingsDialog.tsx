@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "../ui/button";
 import { DataManagementButtons } from "../DataManagementButtons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { Movie, CustomTab, CustomSection } from "../../types";
+import { Item, CustomTab, CustomSection } from "../../types";
 import { ColorPicker } from "../ColorPicker";
 import { FormatGuideDialog } from "./FormatGuideDialog";
 import { useDataExportImport } from "../../hooks/useDataExportImport";
@@ -19,35 +19,35 @@ import { useDataExportImport } from "../../hooks/useDataExportImport";
 interface SettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  movies?: Movie[];
+  items?: Item[];
   customTabs?: CustomTab[];
   customSections?: CustomSection[];
-  onImport?: (data: { movies: Movie[], customTabs: CustomTab[], customSections: CustomSection[] }) => void;
+  onImport?: (data: { items: Item[], customTabs: CustomTab[], customSections: CustomSection[] }) => void;
   backgroundColors: {
-    movie: string;
+    item: string;
     'tv-show': string;
     restaurant: string;
     place: string;
   };
-  onBackgroundColorsChange: (colors: { movie: string; 'tv-show': string; restaurant: string; place: string }) => void;
+  onBackgroundColorsChange: (colors: { item: string; 'tv-show': string; restaurant: string; place: string }) => void;
 }
 
-export function SettingsDialog({ open, onOpenChange, movies, customTabs, customSections, onImport, backgroundColors, onBackgroundColorsChange }: SettingsDialogProps) {
+export function SettingsDialog({ open, onOpenChange, items, customTabs, customSections, onImport, backgroundColors, onBackgroundColorsChange }: SettingsDialogProps) {
   const [isFormatGuideDialogOpen, setIsFormatGuideDialogOpen] = useState(false);
   const { bulkImportCsv, exportCsv } = useDataExportImport();
 
-  const updateColor = (type: 'movie' | 'tv-show' | 'restaurant' | 'place', colorId: string) => {
+  const updateColor = (type: 'item' | 'tv-show' | 'restaurant' | 'place', colorId: string) => {
     onBackgroundColorsChange({ ...backgroundColors, [type]: colorId });
   };
 
   const handleExportCsv = () => {
-    exportCsv(movies || []);
+    exportCsv(items || []);
   };
 
   const handleImportCsv = () => {
     if (!onImport) return;
     bulkImportCsv(
-      movies || [],
+      items || [],
       onImport,
       customTabs || [],
       customSections || [],
@@ -55,7 +55,7 @@ export function SettingsDialog({ open, onOpenChange, movies, customTabs, customS
     );
   };
 
-  const totalMoviesCount = movies?.length ?? 0;
+  const totalMoviesCount = items?.length ?? 0;
 
   return (
     <>
@@ -76,7 +76,7 @@ export function SettingsDialog({ open, onOpenChange, movies, customTabs, customS
                   </h4>
                   <p className="text-sm text-muted-foreground mb-4">Customize the background for each section</p>
                 </div>
-                <ColorPicker label="Movies Background" icon={Film} type="movie" selectedColor={backgroundColors.movie} onColorChange={updateColor} />
+                <ColorPicker label="Movies Background" icon={Film} type="item" selectedColor={backgroundColors.item} onColorChange={updateColor} />
                 <ColorPicker label="TV Shows Background" icon={Tv} type="tv-show" selectedColor={backgroundColors['tv-show']} onColorChange={updateColor} />
                 <ColorPicker label="Restaurants Background" icon={UtensilsCrossed} type="restaurant" selectedColor={backgroundColors.restaurant} onColorChange={updateColor} />
                 <ColorPicker label="Places Background" icon={MapPin} type="place" selectedColor={backgroundColors.place} onColorChange={updateColor} />

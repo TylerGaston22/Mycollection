@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { Movie } from "../../types";
+import { Item } from "../../types";
 import { StarRating } from "../StarRating";
 import { useItemActions } from "../../hooks/useItemActions";
 import { sanitizeImageUrl } from "../../utils/sanitize";
@@ -13,23 +13,23 @@ const ERROR_IMG =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODgiIGhlaWdodD0iODgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBvcGFjaXR5PSIuMyIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIzLjciPjxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiByeD0iNiIvPjxwYXRoIGQ9Im0xNiA1OCAxNi0xOCAzMiAzMiIvPjxjaXJjbGUgY3g9IjUzIiBjeT0iMzUiIHI9IjciLz48L3N2Zz4KCg==';
 
 interface MobileListItemProps {
-  movie: Movie;
-  onUpdate: (id: string, updates: Partial<Movie>) => void;
-  onClick: (movie: Movie) => void;
+  item: Item;
+  onUpdate: (id: string, updates: Partial<Item>) => void;
+  onClick: (item: Item) => void;
 }
 
-export function MobileListItem({ movie, onUpdate, onClick }: MobileListItemProps) {
+export function MobileListItem({ item, onUpdate, onClick }: MobileListItemProps) {
   const [hasImageLoadError, setHasImageLoadError] = useState(false);
   const { setRating } = useItemActions(onUpdate);
 
-  const safePosterUrl = sanitizeImageUrl(movie.posterUrl);
+  const safePosterUrl = sanitizeImageUrl(item.posterUrl);
 
   let thumbnail;
   if (safePosterUrl && !hasImageLoadError) {
     thumbnail = (
       <img
         src={safePosterUrl}
-        alt={movie.title}
+        alt={item.title}
         className="w-20 h-28 object-cover rounded shadow-sm"
         onError={() => setHasImageLoadError(true)}
       />
@@ -44,7 +44,7 @@ export function MobileListItem({ movie, onUpdate, onClick }: MobileListItemProps
 
   return (
     <button
-      onClick={() => onClick(movie)}
+      onClick={() => onClick(item)}
       className="flex items-start gap-4 w-full text-left px-4 py-4"
     >
       <div className="flex-shrink-0">
@@ -53,21 +53,21 @@ export function MobileListItem({ movie, onUpdate, onClick }: MobileListItemProps
 
       <div className="flex-1 min-w-0 pt-1">
         <h3 className="text-white font-semibold text-base leading-snug line-clamp-2">
-          {movie.title}
+          {item.title}
         </h3>
-        {movie.year && (
-          <p className="text-gray-400 text-sm mt-0.5">{movie.year}</p>
+        {item.year && (
+          <p className="text-gray-400 text-sm mt-0.5">{item.year}</p>
         )}
 
-        {movie.status === 'watched' && (
+        {item.status === 'watched' && (
           <div className="mt-2 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             <span className="text-gray-400 text-xs">Rate this:</span>
-            <StarRating movie={movie} onRate={setRating} />
+            <StarRating item={item} onRate={setRating} />
           </div>
         )}
 
-        {movie.notes && (
-          <p className="text-gray-500 text-xs mt-1.5 line-clamp-1">{movie.notes}</p>
+        {item.notes && (
+          <p className="text-gray-500 text-xs mt-1.5 line-clamp-1">{item.notes}</p>
         )}
       </div>
     </button>

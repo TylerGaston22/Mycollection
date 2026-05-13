@@ -5,7 +5,7 @@
  */
 
 import { Plus } from 'lucide-react';
-import { Movie, CustomSection } from "../../types";
+import { Item, CustomSection } from "../../types";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
 import { getWatchedLabel, getWantToSeeLabel } from "../../utils/contentHelpers";
 
@@ -13,7 +13,7 @@ interface MobileSectionNavProps {
   contentType: string;
   activeSection: string;
   currentTheme: ThemeConfig;
-  movies: Movie[];
+  items: Item[];
   customSections: CustomSection[];
   onActiveSectionChange: (section: string) => void;
   onAddSectionDialogOpen: () => void;
@@ -23,13 +23,13 @@ export function MobileSectionNav({
   contentType,
   activeSection,
   currentTheme,
-  movies,
+  items,
   customSections,
   onActiveSectionChange,
   onAddSectionDialogOpen,
 }: MobileSectionNavProps) {
   // Compute counts for each built-in section
-  const allItemsInCategory = movies.filter((item) => item.type === contentType);
+  const allItemsInCategory = items.filter((item) => item.type === contentType);
   const watchedItems = allItemsInCategory.filter((item) => item.status === 'watched');
   const wantToSeeItems = allItemsInCategory.filter((item) => item.status === 'want-to-see');
   const favoriteItems = allItemsInCategory.filter((item) => item.favorite);

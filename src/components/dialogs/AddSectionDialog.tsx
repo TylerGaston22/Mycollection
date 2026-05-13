@@ -30,8 +30,8 @@ export function AddSectionDialog({ open, onOpenChange, onAdd, contentType, curre
   const [subcategoryName, setSubcategoryName] = useState('');
 
   let contentTypePluralName;
-  if (contentType === 'movie') {
-    contentTypePluralName = 'movies';
+  if (contentType === 'item') {
+    contentTypePluralName = 'items';
   } else if (contentType === 'tv-show') {
     contentTypePluralName = 'TV shows';
   } else if (contentType === 'restaurant') {

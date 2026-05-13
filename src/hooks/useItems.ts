@@ -1,5 +1,5 @@
 /**
- * useMovies – CRUD operations for the collection items list.
+ * useItems – CRUD operations for the collection items list.
  * Demo user: persists to localStorage with mock data seed.
  * Supabase user: reads/writes from the collection_items table.
  */
@@ -7,12 +7,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from "sonner@2.0.3";
 import { supabase } from '../lib/supabase';
-import { Movie } from '../types';
+import { Item } from '../types';
 import { mockItems, DEMO_USER_ID, loadDemoData, useDemoSync } from '../demo';
 import { STORAGE_KEYS, type ItemStatus } from '../constants';
 
-// Convert a DB row (snake_case) to a Movie object (camelCase)
-function rowToMovie(row: Record<string, unknown>): Movie {
+// Convert a DB row (snake_case) to a Item object (camelCase)
+function rowToItem(row: Record<string, unknown>): Item {
   return {
     id: row.id as string,
     title: row.title as string,
@@ -32,29 +32,29 @@ function rowToMovie(row: Record<string, unknown>): Movie {
   };
 }
 
-// Convert a Movie object to a DB row for insert/update
-function movieToRow(movie: Partial<Movie> & { type?: string }, userId: string): Record<string, unknown> {
+// Convert a Item object to a DB row for insert/update
+function itemToRow(item: Partial<Item> & { type?: string }, userId: string): Record<string, unknown> {
   const row: Record<string, unknown> = { user_id: userId };
-  if (movie.title !== undefined) row.title = movie.title;
-  if (movie.type !== undefined) row.type = movie.type;
-  if (movie.year !== undefined) row.year = movie.year || null;
-  if (movie.posterUrl !== undefined) row.poster_url = movie.posterUrl || null;
-  if (movie.status !== undefined) row.status = movie.status;
-  if (movie.rating !== undefined) row.rating = movie.rating || null;
-  if (movie.favorite !== undefined) row.favorite = movie.favorite;
-  if (movie.notes !== undefined) row.notes = movie.notes || null;
-  if (movie.platform !== undefined) row.platform = movie.platform || null;
-  if (movie.studio !== undefined) row.studio = movie.studio || null;
-  if (movie.genre !== undefined) row.genre = movie.genre || null;
-  if (movie.seasons !== undefined) row.seasons = movie.seasons || null;
-  if (movie.episodes !== undefined) row.episodes = movie.episodes || null;
-  if (movie.sections !== undefined) row.sections = movie.sections || [];
+  if (item.title !== undefined) row.title = item.title;
+  if (item.type !== undefined) row.type = item.type;
+  if (item.year !== undefined) row.year = item.year || null;
+  if (item.posterUrl !== undefined) row.poster_url = item.posterUrl || null;
+  if (item.status !== undefined) row.status = item.status;
+  if (item.rating !== undefined) row.rating = item.rating || null;
+  if (item.favorite !== undefined) row.favorite = item.favorite;
+  if (item.notes !== undefined) row.notes = item.notes || null;
+  if (item.platform !== undefined) row.platform = item.platform || null;
+  if (item.studio !== undefined) row.studio = item.studio || null;
+  if (item.genre !== undefined) row.genre = item.genre || null;
+  if (item.seasons !== undefined) row.seasons = item.seasons || null;
+  if (item.episodes !== undefined) row.episodes = item.episodes || null;
+  if (item.sections !== undefined) row.sections = item.sections || [];
   return row;
 }
 
-export function useMovies(currentUserId: string, isDemoUser: boolean) {
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const storageKey = STORAGE_KEYS.movies(currentUserId);
+export function useItems(currentUserId: string, isDemoUser: boolean) {
+  const [items, setItems] = useState<Item[]>([]);
+  const storageKey = STORAGE_KEYS.items(currentUserId);
 
   const loadFromSupabase = useCallback(async () => {
     const { data, error } = await supabase
@@ -68,7 +68,7 @@ export function useMovies(currentUserId: string, isDemoUser: boolean) {
       return;
     }
 
-    setMovies((data || []).map(rowToMovie));
+    setItems((data || []).map(rowToItem));
   }, [currentUserId]);
 
   // Load on user change
@@ -77,32 +77,32 @@ export function useMovies(currentUserId: string, isDemoUser: boolean) {
       // Canonical demo user always sees the seed; switched-to demo profiles use localStorage
       const data = currentUserId === DEMO_USER_ID
         ? mockItems
-        : loadDemoData<Movie[]>(storageKey, []);
-      setMovies(data);
+        : loadDemoData<Item[]>(storageKey, []);
+      setItems(data);
     } else {
       loadFromSupabase();
     }
   }, [currentUserId, isDemoUser, storageKey, loadFromSupabase]);
 
   // Mirror state to localStorage in demo mode
-  useDemoSync(storageKey, movies, isDemoUser);
+  useDemoSync(storageKey, items, isDemoUser);
 
-  const addMovie = async (movie: Omit<Movie, 'id'>) => {
+  const addItem = async (item: Omit<Item, 'id'>) => {
     // Duplicate detection
-    const isDuplicate = movies.some(
-      (existing) => existing.title.toLowerCase() === movie.title.toLowerCase() && existing.type === movie.type
+    const isDuplicate = items.some(
+      (existing) => existing.title.toLowerCase() === item.title.toLowerCase() && existing.type === item.type
     );
     if (isDuplicate) {
       toast.error('Duplicate item', {
-        description: `"${movie.title}" already exists in your collection.`,
+        description: `"${item.title}" already exists in your collection.`,
       });
       return;
     }
 
     if (isDemoUser) {
-      setMovies((prev) => [{ ...movie, id: Date.now().toString() }, ...prev]);
+      setItems((prev) => [{ ...item, id: Date.now().toString() }, ...prev]);
     } else {
-      const row = movieToRow(movie, currentUserId);
+      const row = itemToRow(item, currentUserId);
       const { data, error } = await supabase
         .from('collection_items')
         .insert(row)
@@ -113,13 +113,13 @@ export function useMovies(currentUserId: string, isDemoUser: boolean) {
         toast.error('Failed to add item', { description: error.message });
         return;
       }
-      setMovies((prev) => [rowToMovie(data), ...prev]);
+      setItems((prev) => [rowToItem(data), ...prev]);
     }
   };
 
-  const updateMovie = async (id: string, updates: Partial<Movie>) => {
+  const updateItem = async (id: string, updates: Partial<Item>) => {
     // Optimistic update for both modes
-    setMovies((prev) => prev.map((item) => {
+    setItems((prev) => prev.map((item) => {
       if (item.id === id) {
         return { ...item, ...updates };
       }
@@ -127,7 +127,7 @@ export function useMovies(currentUserId: string, isDemoUser: boolean) {
     }));
 
     if (!isDemoUser) {
-      const row = movieToRow(updates, currentUserId);
+      const row = itemToRow(updates, currentUserId);
       delete row.user_id; // Don't update user_id
       const { error } = await supabase
         .from('collection_items')
@@ -142,8 +142,8 @@ export function useMovies(currentUserId: string, isDemoUser: boolean) {
     }
   };
 
-  const deleteMovie = async (id: string) => {
-    setMovies((prev) => prev.filter((item) => item.id !== id));
+  const deleteItem = async (id: string) => {
+    setItems((prev) => prev.filter((item) => item.id !== id));
 
     if (!isDemoUser) {
       const { error } = await supabase
@@ -160,7 +160,7 @@ export function useMovies(currentUserId: string, isDemoUser: boolean) {
   };
 
   const removeByType = async (typeToRemove: string) => {
-    setMovies((prev) => prev.filter((item) => item.type !== typeToRemove));
+    setItems((prev) => prev.filter((item) => item.type !== typeToRemove));
 
     if (!isDemoUser) {
       const { error } = await supabase
@@ -176,9 +176,9 @@ export function useMovies(currentUserId: string, isDemoUser: boolean) {
     }
   };
 
-  const importMovies = async (importedMovies: Movie[]) => {
+  const importItems = async (importedMovies: Item[]) => {
     if (isDemoUser) {
-      setMovies(importedMovies);
+      setItems(importedMovies);
     } else {
       // For Supabase users: delete all existing, insert new.
       // Explicit user_id filter is defence-in-depth — RLS would also scope this,
@@ -193,7 +193,7 @@ export function useMovies(currentUserId: string, isDemoUser: boolean) {
         return;
       }
 
-      const rows = importedMovies.map((movie) => movieToRow(movie, currentUserId));
+      const rows = importedMovies.map((item) => itemToRow(item, currentUserId));
 
       if (rows.length > 0) {
         const { error: insertError } = await supabase
@@ -211,12 +211,12 @@ export function useMovies(currentUserId: string, isDemoUser: boolean) {
   };
 
   return {
-    movies,
-    setMovies,
-    addMovie,
-    updateMovie,
-    deleteMovie,
+    items,
+    setItems,
+    addItem,
+    updateItem,
+    deleteItem,
     removeByType,
-    importMovies,
+    importItems,
   };
 }

@@ -8,7 +8,7 @@
 
 import { Button } from "./ui/button";
 import { Plus, Film, Tv, UtensilsCrossed, MapPin, User, Settings, LogOut, Users, Star } from 'lucide-react';
-import { Movie, CustomTab, CustomSection } from "../types";
+import { Item, CustomTab, CustomSection } from "../types";
 import type { User as UserType } from "../types";
 import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
 import { CategoryButton } from "./CategoryButton";
@@ -22,7 +22,7 @@ import {
 
 interface SidebarProps {
   currentUser: UserType;
-  movies: Movie[];
+  items: Item[];
   customTabs: CustomTab[];
   customSections: CustomSection[];
   contentType: string;
@@ -47,7 +47,7 @@ interface SidebarProps {
 
 export function Sidebar({
   currentUser,
-  movies,
+  items,
   customTabs,
   customSections,
   contentType,
@@ -70,7 +70,7 @@ export function Sidebar({
   onTabDelete,
 }: SidebarProps) {
   // Filter items for the currently selected category to get sub-section counts
-  const allItemsInCurrentCategory = movies.filter((collectionItem) => collectionItem.type === contentType);
+  const allItemsInCurrentCategory = items.filter((collectionItem) => collectionItem.type === contentType);
   const watchedItems = allItemsInCurrentCategory.filter((collectionItem) => collectionItem.status === 'watched');
   const wantToSeeItems = allItemsInCurrentCategory.filter((collectionItem) => collectionItem.status === 'want-to-see');
   const favoriteItems = allItemsInCurrentCategory.filter((collectionItem) => collectionItem.favorite);
@@ -101,7 +101,7 @@ export function Sidebar({
   };
 
   const builtInCategories = [
-    { id: 'movie', label: 'Movies', count: movieCount, icon: Film },
+    { id: 'item', label: 'Movies', count: movieCount, icon: Film },
     { id: 'tv-show', label: 'TV Shows', count: tvShowCount, icon: Tv },
     { id: 'restaurant', label: 'Restaurants', count: restaurantCount, icon: UtensilsCrossed },
     { id: 'place', label: 'Places', count: placeCount, icon: MapPin },
@@ -197,7 +197,7 @@ export function Sidebar({
 
         {/* Custom Tabs */}
         {customTabs.map((tab) => {
-          const numberOfItemsInTab = movies.filter((collectionItem) => collectionItem.type === tab.id).length;
+          const numberOfItemsInTab = items.filter((collectionItem) => collectionItem.type === tab.id).length;
           return (
             <ContextMenu key={tab.id}>
               <ContextMenuTrigger asChild>

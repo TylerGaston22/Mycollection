@@ -17,7 +17,7 @@ interface MobileBottomNavProps {
   currentTheme: ThemeConfig;
   onContentTypeChange: (type: string) => void;
   onAddTabDialogOpen: () => void;
-  movies: { type: string }[];
+  items: { type: string }[];
 }
 
 interface TabItem {
@@ -37,10 +37,10 @@ export function MobileBottomNav({
   currentTheme,
   onContentTypeChange,
   onAddTabDialogOpen,
-  movies,
+  items,
 }: MobileBottomNavProps) {
   const builtInTabs: TabItem[] = [
-    { id: 'movie', label: 'Movies', icon: Film, count: movieCount },
+    { id: 'item', label: 'Movies', icon: Film, count: movieCount },
     { id: 'tv-show', label: 'TV Shows', icon: Tv, count: tvShowCount },
     { id: 'restaurant', label: 'Food', icon: UtensilsCrossed, count: restaurantCount },
     { id: 'place', label: 'Places', icon: MapPin, count: placeCount },
@@ -50,7 +50,7 @@ export function MobileBottomNav({
     id: tab.id,
     label: tab.name,
     icon: Star,
-    count: movies.filter((item) => item.type === tab.id).length,
+    count: items.filter((item) => item.type === tab.id).length,
   }));
 
   const allTabs = [...builtInTabs, ...customTabItems];

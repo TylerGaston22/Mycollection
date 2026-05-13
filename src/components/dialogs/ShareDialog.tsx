@@ -16,14 +16,14 @@ import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { Separator } from "../ui/separator";
 import { Copy, Download, Check, Share2 } from 'lucide-react';
-import { Movie } from "../../types";
+import { Item } from "../../types";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
 import { toast } from "sonner@2.0.3";
 
 interface ShareDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  movies: Movie[];
+  items: Item[];
   categoryName: string;
   sectionName: string;
   currentTheme?: ThemeConfig;
@@ -32,7 +32,7 @@ interface ShareDialogProps {
 export function ShareDialog({
   open,
   onOpenChange,
-  movies,
+  items,
   categoryName,
   sectionName,
   currentTheme
@@ -44,7 +44,7 @@ export function ShareDialog({
     if (open) {
       generateShareText();
     }
-  }, [open, movies, categoryName, sectionName]);
+  }, [open, items, categoryName, sectionName]);
 
   const generateShareText = () => {
     const listHeaderText = `${categoryName} - ${sectionName}`;
@@ -52,24 +52,24 @@ export function ShareDialog({
 
     let shareText = `${listHeaderText}\n${headerDividerLine}\n\n`;
 
-    movies.forEach((movie, index) => {
-      shareText += `${index + 1}. ${movie.title}`;
+    items.forEach((item, index) => {
+      shareText += `${index + 1}. ${item.title}`;
 
-      if (movie.year) {
-        shareText += ` (${movie.year})`;
+      if (item.year) {
+        shareText += ` (${item.year})`;
       }
 
-      if (movie.rating) {
-        shareText += ` - ⭐ ${movie.rating}/10`;
+      if (item.rating) {
+        shareText += ` - ⭐ ${item.rating}/10`;
       }
 
-      if (movie.status === 'watched') {
+      if (item.status === 'watched') {
         shareText += ` ✓`;
-      } else if (movie.status === 'want-to-see') {
+      } else if (item.status === 'want-to-see') {
         shareText += ` ○`;
       }
 
-      if (movie.favorite) {
+      if (item.favorite) {
         shareText += ` ❤️`;
       }
 
@@ -77,7 +77,7 @@ export function ShareDialog({
       shareText += '\n';
     });
 
-    shareText += `\nTotal: ${movies.length} items\n`;
+    shareText += `\nTotal: ${items.length} items\n`;
     shareText += `Generated on ${new Date().toLocaleDateString()}`;
 
     setFormattedShareableText(shareText);
@@ -116,7 +116,7 @@ export function ShareDialog({
   };
 
   let itemCountSuffixText;
-  if (movies.length !== 1) {
+  if (items.length !== 1) {
     itemCountSuffixText = 's';
   } else {
     itemCountSuffixText = '';
@@ -162,7 +162,7 @@ export function ShareDialog({
               className="mt-2 font-mono text-sm h-64 resize-none"
             />
             <p className="text-xs text-muted-foreground mt-2">
-              {movies.length} item{itemCountSuffixText} in this list
+              {items.length} item{itemCountSuffixText} in this list
             </p>
           </div>
 

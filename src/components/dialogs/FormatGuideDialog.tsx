@@ -12,7 +12,7 @@ import { toast } from "sonner@2.0.3";
 import { copyToClipboard } from "../../utils/clipboard";
 
 const FORMAT_EXAMPLE = `Title,Type,Platform,Genre,Status,Rating,Notes
-My Favorite Movie,movie,Netflix,Drama,watched,5,An all-time favorite
+My Favorite Item,item,Netflix,Drama,watched,5,An all-time favorite
 A Show I Want to Watch,tv-show,Max,Comedy,want-to-see,,
 A Restaurant I Love,restaurant,,Italian,visited,4,Great pasta
 A City to Visit,place,,,want-to-visit,,Dream trip`;
@@ -22,7 +22,7 @@ const AI_PROMPT_CSV = `Please format my list into this exact CSV format:
 Title,Type,Platform,Genre,Status,Rating,Notes
 
 Requirements:
-- Type must be: movie, tv-show, restaurant, or place
+- Type must be: item, tv-show, restaurant, or place
 - Status options: watched, want-to-see, visited, want-to-visit
 - Rating: 1-5 (only for watched/visited items)
 - Use commas to separate fields
@@ -37,7 +37,7 @@ const AI_PROMPT_TXT = `Please format my list into this exact TXT format with one
 Title | Type | Platform | Genre | Status | Rating | Notes
 
 Requirements:
-- Type must be: movie, tv-show, restaurant, or place
+- Type must be: item, tv-show, restaurant, or place
 - Status options: watched, want-to-see, visited, want-to-visit
 - Rating: 1-5 (only for watched/visited items)
 - Use | (pipe) to separate fields
@@ -120,7 +120,7 @@ export function FormatGuideDialog({ open, onOpenChange }: FormatGuideDialogProps
               <p className="font-mono">Title,Type,Platform,Genre,Status,Rating,Notes</p>
               <div className="space-y-1 text-muted-foreground">
                 <p>• <strong>Title</strong>: Name of the item (required)</p>
-                <p>• <strong>Type</strong>: movie, tv-show, restaurant, or place (required)</p>
+                <p>• <strong>Type</strong>: item, tv-show, restaurant, or place (required)</p>
                 <p>• <strong>Platform</strong>: Where to watch/find it (optional)</p>
                 <p>• <strong>Genre</strong>: Category or type (optional)</p>
                 <p>• <strong>Status</strong>: watched, want-to-see, visited, or want-to-visit (optional)</p>
@@ -145,7 +145,7 @@ export function FormatGuideDialog({ open, onOpenChange }: FormatGuideDialogProps
           <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg space-y-2">
             <h4 className="font-semibold text-sm flex items-center gap-2">💡 Pro Tip: Use AI to Format Your List</h4>
             <p className="text-sm text-muted-foreground">
-              Copy the format above and paste it into ChatGPT or Claude along with your list of movies/shows/places.
+              Copy the format above and paste it into ChatGPT or Claude along with your list of items/shows/places.
             </p>
             <div className="bg-white dark:bg-slate-900 p-3 rounded text-sm italic border">
               "Please format my list according to this CSV format: [paste format here]. Here's my list: [paste your list]"

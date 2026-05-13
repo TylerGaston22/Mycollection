@@ -3,9 +3,9 @@
  * Contains 40 popular series across streaming platforms and genres,
  * pre-populated with watch statuses, ratings, and favourites.
  */
-import { Movie } from "../types";
+import { Item } from "../types";
 
-export const mockTvShows: Movie[] = [
+export const mockTvShows: Item[] = [
   { id: "demo-tv-1", title: "Breaking Bad", platform: "Netflix", genre: "Crime", type: "tv-show", status: "want-to-see", favorite: false, posterUrl: "" },
   { id: "demo-tv-2", title: "Game of Thrones", platform: "Max", genre: "Fantasy", type: "tv-show", status: "watched", favorite: true, rating: 5, posterUrl: "" },
   { id: "demo-tv-3", title: "The Last of Us", platform: "Max", genre: "Drama", type: "tv-show", status: "want-to-see", favorite: false, posterUrl: "" },

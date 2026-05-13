@@ -10,7 +10,7 @@ import { loadDemoData, useDemoSync } from '../demo';
 import { STORAGE_KEYS } from '../constants';
 
 const DEFAULT_BACKGROUND_COLORS = {
-  movie: 'current',
+  item: 'current',
   'tv-show': 'current',
   restaurant: 'current',
   place: 'current',

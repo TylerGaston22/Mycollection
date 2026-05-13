@@ -1,12 +1,12 @@
 /**
- * MovieCard – grid-view card for a single collection item.
+ * ItemCard – grid-view card for a single collection item.
  * Shows a poster image (with error fallback), favourite toggle, status
  * badge, star rating (for watched items), notes preview, and a
  * dropdown actions menu.
  */
 
 import { useState } from 'react';
-import { Movie } from "../types";
+import { Item } from "../types";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Heart, Trash2, MoreVertical } from 'lucide-react';
@@ -40,36 +40,36 @@ function PosterImage({ src, alt, className }: { src: string; alt: string; classN
 }
 
 interface MovieCardProps {
-  movie: Movie;
-  onUpdate: (id: string, updates: Partial<Movie>) => void;
+  item: Item;
+  onUpdate: (id: string, updates: Partial<Item>) => void;
   onDelete: (id: string) => void;
 }
 
-export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
+export function ItemCard({ item, onUpdate, onDelete }: MovieCardProps) {
   const { toggleFavorite, toggleStatus, setRating } = useItemActions(onUpdate);
 
   let heartIconColorClass: string;
-  if (movie.favorite) {
+  if (item.favorite) {
     heartIconColorClass = 'fill-red-500 text-red-500';
   } else {
     heartIconColorClass = 'text-white stroke-white stroke-2';
   }
 
   let favoriteMenuItemText: string;
-  if (movie.favorite) {
+  if (item.favorite) {
     favoriteMenuItemText = 'Remove from Favorites';
   } else {
     favoriteMenuItemText = 'Add to Favorites';
   }
 
-  const safePosterUrl = sanitizeImageUrl(movie.posterUrl);
+  const safePosterUrl = sanitizeImageUrl(item.posterUrl);
 
   let posterDisplayContent;
   if (safePosterUrl) {
     posterDisplayContent = (
       <PosterImage
         src={safePosterUrl}
-        alt={movie.title}
+        alt={item.title}
         className="w-full h-full object-cover"
       />
     );
@@ -77,7 +77,7 @@ export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
     posterDisplayContent = (
       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted-foreground/20">
         <span className="text-muted-foreground text-center px-4">
-          {movie.title}
+          {item.title}
         </span>
       </div>
     );
@@ -91,7 +91,7 @@ export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
 
         {/* Favorite button */}
         <button
-          onClick={() => toggleFavorite(movie)}
+          onClick={() => toggleFavorite(item)}
           className="absolute top-2 right-2 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
         >
           <Heart className={`h-5 w-5 ${heartIconColorClass}`} />
@@ -99,7 +99,7 @@ export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
 
         {/* Status badge */}
         <div className="absolute top-2 left-2">
-          <StatusBadge status={movie.status} contentType={movie.type} />
+          <StatusBadge status={item.status} contentType={item.type} />
         </div>
       </div>
 
@@ -107,9 +107,9 @@ export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex-1 min-w-0">
-            <h3 className="truncate">{movie.title}</h3>
-            {movie.year && (
-              <p className="text-muted-foreground">{movie.year}</p>
+            <h3 className="truncate">{item.title}</h3>
+            {item.year && (
+              <p className="text-muted-foreground">{item.year}</p>
             )}
           </div>
 
@@ -120,16 +120,16 @@ export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => toggleStatus(movie)}>
-                <StatusToggleMenuContent currentStatus={movie.status} contentType={movie.type} />
+              <DropdownMenuItem onClick={() => toggleStatus(item)}>
+                <StatusToggleMenuContent currentStatus={item.status} contentType={item.type} />
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => toggleFavorite(movie)}>
+              <DropdownMenuItem onClick={() => toggleFavorite(item)}>
                 <Heart className="h-4 w-4 mr-2" />
                 {favoriteMenuItemText}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => onDelete(movie.id)}
+                onClick={() => onDelete(item.id)}
                 className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
@@ -140,16 +140,16 @@ export function MovieCard({ movie, onUpdate, onDelete }: MovieCardProps) {
         </div>
 
         {/* Rating */}
-        {movie.status === 'watched' && (
+        {item.status === 'watched' && (
           <div className="mb-2">
-            <StarRating movie={movie} onRate={setRating} />
+            <StarRating item={item} onRate={setRating} />
           </div>
         )}
 
         {/* Notes */}
-        {movie.notes && (
+        {item.notes && (
           <p className="text-muted-foreground line-clamp-2">
-            {movie.notes}
+            {item.notes}
           </p>
         )}
       </div>

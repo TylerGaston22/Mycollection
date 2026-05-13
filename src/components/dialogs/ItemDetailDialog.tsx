@@ -1,8 +1,8 @@
 /**
- * MovieDetailDialog – read-only detail view for a collection item.
+ * ItemDetailDialog – read-only detail view for a collection item.
  * Displays platform, studio, genre, season/episode counts, and notes.
- * Field labels adapt to the content type (movie, TV show, restaurant,
- * or place). An inline "Edit" button opens the MovieFormDialog.
+ * Field labels adapt to the content type (item, TV show, restaurant,
+ * or place). An inline "Edit" button opens the ItemFormDialog.
  */
 import { useState } from 'react';
 import {
@@ -15,22 +15,22 @@ import {
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Tv, Film, ExternalLink, Edit } from 'lucide-react';
-import { Movie, CustomSection } from "../../types";
+import { Item, CustomSection } from "../../types";
 import { ThemeConfig } from "../../utils/themeConfig";
 import { Separator } from "../ui/separator";
-import { MovieFormDialog } from "./MovieFormDialog";
+import { ItemFormDialog } from "./ItemFormDialog";
 
 interface MovieDetailDialogProps {
-  movie: Movie | null;
+  item: Item | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpdate: (id: string, updates: Partial<Movie>) => void;
+  onUpdate: (id: string, updates: Partial<Item>) => void;
   customSections?: CustomSection[];
   currentTheme?: ThemeConfig;
 }
 
-export function MovieDetailDialog({
-  movie,
+export function ItemDetailDialog({
+  item,
   open,
   onOpenChange,
   onUpdate,
@@ -39,35 +39,35 @@ export function MovieDetailDialog({
 }: MovieDetailDialogProps) {
   const [isMovieEditDialogOpen, setIsMovieEditDialogOpen] = useState(false);
 
-  if (!movie) return null;
+  if (!item) return null;
 
-  const movieHasAdditionalDetails = movie.platform || movie.studio || movie.genre || (movie.type === 'tv-show' && (movie.seasons || movie.episodes)) || movie.notes;
+  const movieHasAdditionalDetails = item.platform || item.studio || item.genre || (item.type === 'tv-show' && (item.seasons || item.episodes)) || item.notes;
 
   let contentTypeHeaderIcon = null;
-  if (movie.type === 'tv-show') {
+  if (item.type === 'tv-show') {
     contentTypeHeaderIcon = <Tv className="h-5 w-5" />;
-  } else if (movie.type === 'movie') {
+  } else if (item.type === 'item') {
     contentTypeHeaderIcon = <Film className="h-5 w-5" />;
   }
 
   let platformFieldHeadingText;
-  if (movie.type === 'restaurant') {
+  if (item.type === 'restaurant') {
     platformFieldHeadingText = 'Cuisine Type';
-  } else if (movie.type === 'place') {
+  } else if (item.type === 'place') {
     platformFieldHeadingText = 'Location';
   } else {
     platformFieldHeadingText = 'Where to Watch';
   }
 
   let seasonsPluralLabel;
-  if (movie.seasons === 1) {
+  if (item.seasons === 1) {
     seasonsPluralLabel = 'season';
   } else {
     seasonsPluralLabel = 'seasons';
   }
 
   let episodesPluralLabel;
-  if (movie.episodes === 1) {
+  if (item.episodes === 1) {
     episodesPluralLabel = 'episode';
   } else {
     episodesPluralLabel = 'episodes';
@@ -78,14 +78,14 @@ export function MovieDetailDialog({
     movieDetailsContent = (
       <div className="space-y-4">
         {/* Streaming Platform */}
-        {movie.platform && (
+        {item.platform && (
           <div className="space-y-3">
             <div>
               <h4 className="mb-2">{platformFieldHeadingText}</h4>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="secondary" className="gap-2 px-3 py-1">
                   <ExternalLink className="h-4 w-4" />
-                  {movie.platform}
+                  {item.platform}
                 </Badge>
               </div>
             </div>
@@ -93,44 +93,44 @@ export function MovieDetailDialog({
         )}
 
         {/* Studio */}
-        {movie.studio && (
+        {item.studio && (
           <div className="space-y-2">
             <div className="text-muted-foreground">Studio</div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="gap-2 px-3 py-1">
-                {movie.studio}
+                {item.studio}
               </Badge>
             </div>
           </div>
         )}
 
         {/* Genre/Type */}
-        {movie.genre && (
+        {item.genre && (
           <div className="space-y-2">
             <div className="text-muted-foreground">Genre/Type</div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="gap-2 px-3 py-1">
-                {movie.genre}
+                {item.genre}
               </Badge>
             </div>
           </div>
         )}
 
         {/* Seasons/Episodes for TV Shows */}
-        {movie.type === 'tv-show' && (movie.seasons || movie.episodes) && (
+        {item.type === 'tv-show' && (item.seasons || item.episodes) && (
           <>
             <Separator />
             <div className="grid grid-cols-2 gap-4">
-              {movie.seasons && (
+              {item.seasons && (
                 <div className="space-y-2">
                   <div className="text-muted-foreground">Seasons</div>
-                  <p>{movie.seasons} {seasonsPluralLabel}</p>
+                  <p>{item.seasons} {seasonsPluralLabel}</p>
                 </div>
               )}
-              {movie.episodes && (
+              {item.episodes && (
                 <div className="space-y-2">
                   <div className="text-muted-foreground">Episodes</div>
-                  <p>{movie.episodes} {episodesPluralLabel}</p>
+                  <p>{item.episodes} {episodesPluralLabel}</p>
                 </div>
               )}
             </div>
@@ -138,13 +138,13 @@ export function MovieDetailDialog({
         )}
 
         {/* Notes */}
-        {movie.notes && (
+        {item.notes && (
           <>
             <Separator />
             <div className="space-y-2">
               <div className="text-muted-foreground">Notes</div>
               <p className="bg-muted p-3 rounded-lg">
-                {movie.notes}
+                {item.notes}
               </p>
             </div>
           </>
@@ -167,7 +167,7 @@ export function MovieDetailDialog({
             <DialogTitle className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 {contentTypeHeaderIcon}
-                {movie.title}
+                {item.title}
               </div>
               <Button
                 variant="outline"
@@ -192,8 +192,8 @@ export function MovieDetailDialog({
         </DialogContent>
       </Dialog>
 
-      <MovieFormDialog
-        movie={movie}
+      <ItemFormDialog
+        item={item}
         open={isMovieEditDialogOpen}
         onOpenChange={setIsMovieEditDialogOpen}
         onUpdate={onUpdate}

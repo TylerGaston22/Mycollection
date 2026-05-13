@@ -10,10 +10,10 @@ import { useState, useEffect } from 'react';
 import { SidebarLayout } from "./components/SidebarLayout";
 import { LandingPage } from "./pages/LandingPage";
 import { SignInPage } from "./pages/SignInPage";
-import { MovieFormDialog } from "./components/dialogs/MovieFormDialog";
+import { ItemFormDialog } from "./components/dialogs/ItemFormDialog";
 import { ProfileDialog } from "./components/dialogs/ProfileDialog";
 import { SettingsDialog } from "./components/dialogs/SettingsDialog";
-import { MovieDetailDialog } from "./components/dialogs/MovieDetailDialog";
+import { ItemDetailDialog } from "./components/dialogs/ItemDetailDialog";
 import { AddTabDialog } from "./components/dialogs/AddTabDialog";
 import { AddSectionDialog } from "./components/dialogs/AddSectionDialog";
 import { ShareDialog } from "./components/dialogs/ShareDialog";
@@ -30,11 +30,11 @@ import {
 } from "./components/ui/alert-dialog";
 import { Toaster } from "./components/ui/sonner";
 import ghibliBackground from 'figma:asset/dd104f7b8489f1285cea3966c272ab6ab1c18fb9.png';
-import { Movie, CustomTab, CustomSection } from "./types";
+import { Item, CustomTab, CustomSection } from "./types";
 import { getTheme } from "./utils/themeConfig";
 import { getSectionDisplayName, getCategoryDisplayName, getSectionContent } from "./utils/contentHelpers";
 import { useAuth } from "./hooks/useAuth";
-import { useMovies } from "./hooks/useMovies";
+import { useItems } from "./hooks/useItems";
 import { useCustomTabs, useCustomSections } from "./hooks/useCollections";
 import { usePreferences } from "./hooks/usePreferences";
 import { useDialogState } from "./hooks/useDialogState";
@@ -44,13 +44,13 @@ import { DEFAULT_CONTENT_TYPE } from "./constants";
 export default function App() {
   const auth = useAuth();
   const { backgroundColors, setBackgroundColors } = usePreferences(auth.currentUserId, auth.isDemoUser);
-  const { movies, setMovies, addMovie, updateMovie, deleteMovie, removeByType, importMovies } = useMovies(auth.currentUserId, auth.isDemoUser);
+  const { items, setItems, addItem, updateItem, deleteItem, removeByType, importItems } = useItems(auth.currentUserId, auth.isDemoUser);
   const { customTabs, setCustomTabs, addCustomTab: addTab, removeTab } = useCustomTabs(auth.currentUserId, auth.isDemoUser);
   const { customSections, setCustomSections, addCustomSection: addSection, removeByContentType } = useCustomSections(auth.currentUserId, auth.isDemoUser);
 
   // Dialog open/close state, keyed by dialog name
   const dialogs = useDialogState();
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
   const [contentType, setContentType] = useState<string>(DEFAULT_CONTENT_TYPE);
   const [activeSection, setActiveSection] = useState<string>('all');
@@ -73,7 +73,7 @@ export default function App() {
     setActiveSection(newSection.id);
   };
 
-  // Cascade-delete: remove the tab, its items, and its sections, then fall back to 'movie'
+  // Cascade-delete: remove the tab, its items, and its sections, then fall back to 'item'
   const handleDeleteCustomTab = (tabId: string) => {
     removeTab(tabId);
     removeByType(tabId);
@@ -82,20 +82,20 @@ export default function App() {
     setTabToDelete(null);
   };
 
-  const handleImportData = (data: { movies: Movie[]; customTabs: CustomTab[]; customSections: CustomSection[] }) => {
-    importMovies(data.movies);
+  const handleImportData = (data: { items: Item[]; customTabs: CustomTab[]; customSections: CustomSection[] }) => {
+    importItems(data.items);
     setCustomTabs(data.customTabs);
     setCustomSections(data.customSections);
   };
 
-  const { movieCount, tvShowCount, restaurantCount, placeCount } = useCollectionStats(movies);
+  const { movieCount, tvShowCount, restaurantCount, placeCount } = useCollectionStats(items);
 
   // Custom tabs don't have a saved theme, so fall back to 'current' (default Ghibli theme)
   const activeThemeId = backgroundColors[contentType as keyof typeof backgroundColors] || 'current';
   const currentTheme = getTheme(activeThemeId);
 
   // Bound helpers
-  const getItemsForSection = (sectionId: string) => getSectionContent(sectionId, movies, contentType);
+  const getItemsForSection = (sectionId: string) => getSectionContent(sectionId, items, contentType);
 
   // Decide what page to show based on auth state
   let mainPageContent;
@@ -114,7 +114,7 @@ export default function App() {
       <>
         <SidebarLayout
           currentUser={auth.currentUser}
-          movies={movies}
+          items={items}
           customTabs={customTabs}
           customSections={customSections}
           contentType={contentType}
@@ -138,17 +138,17 @@ export default function App() {
           onProfileSwitcherOpen={() => dialogs.open('profileSwitcher')}
           onLogout={auth.handleLogout}
           onTabDelete={(tab) => setTabToDelete(tab)}
-          onMovieUpdate={updateMovie}
-          onMovieDelete={deleteMovie}
-          onMovieClick={setSelectedMovie}
+          onItemUpdate={updateItem}
+          onItemDelete={deleteItem}
+          onItemClick={setSelectedItem}
           onShareDialogOpen={() => dialogs.open('share')}
           getSectionContent={getItemsForSection}
         />
 
-        <MovieFormDialog
+        <ItemFormDialog
           open={dialogs.isOpen('add')}
           onOpenChange={(v) => dialogs.setOpen('add', v)}
-          onAdd={addMovie}
+          onAdd={addItem}
           contentType={contentType}
           customSections={customSections}
           activeSection={activeSection}
@@ -178,7 +178,7 @@ export default function App() {
           tvShowCount={tvShowCount}
           restaurantCount={restaurantCount}
           placeCount={placeCount}
-          movies={movies}
+          items={items}
           customTabs={customTabs}
           customSections={customSections}
           currentTheme={currentTheme}
@@ -197,7 +197,7 @@ export default function App() {
         <SettingsDialog
           open={dialogs.isOpen('settings')}
           onOpenChange={(v) => dialogs.setOpen('settings', v)}
-          movies={movies}
+          items={items}
           customTabs={customTabs}
           customSections={customSections}
           onImport={handleImportData}
@@ -205,15 +205,15 @@ export default function App() {
           onBackgroundColorsChange={setBackgroundColors}
         />
 
-        <MovieDetailDialog
-          movie={selectedMovie}
-          open={!!selectedMovie}
+        <ItemDetailDialog
+          item={selectedItem}
+          open={!!selectedItem}
           onOpenChange={(isOpen: boolean) => {
             if (!isOpen) {
-              setSelectedMovie(null);
+              setSelectedItem(null);
             }
           }}
-          onUpdate={updateMovie}
+          onUpdate={updateItem}
           customSections={customSections}
           currentTheme={currentTheme}
         />
@@ -221,7 +221,7 @@ export default function App() {
         <ShareDialog
           open={dialogs.isOpen('share')}
           onOpenChange={(v) => dialogs.setOpen('share', v)}
-          movies={getItemsForSection(activeSection)}
+          items={getItemsForSection(activeSection)}
           categoryName={getCategoryDisplayName(contentType, customTabs)}
           sectionName={getSectionDisplayName(activeSection, contentType, customSections, customTabs)}
           currentTheme={currentTheme}
@@ -239,7 +239,7 @@ export default function App() {
             <AlertDialogHeader>
               <AlertDialogTitle>Delete "{tabToDelete?.name}" Tab?</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete this tab and all {movies.filter((collectionItem) => collectionItem.type === tabToDelete?.id).length} items associated with it. This action cannot be undone.
+                This will permanently delete this tab and all {items.filter((collectionItem) => collectionItem.type === tabToDelete?.id).length} items associated with it. This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

@@ -19,7 +19,7 @@ import { Separator } from "../ui/separator";
 import { DataManagementButtons } from "../DataManagementButtons";
 import { CategoryCountRow } from "../CategoryCountRow";
 
-import { User as UserType, Movie, CustomTab, CustomSection } from "../../types";
+import { User as UserType, Item, CustomTab, CustomSection } from "../../types";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
 import { useDataExportImport } from "../../hooks/useDataExportImport";
 
@@ -31,11 +31,11 @@ interface ProfileDialogProps {
   tvShowCount: number;
   restaurantCount: number;
   placeCount: number;
-  movies?: Movie[];
+  items?: Item[];
   customTabs?: CustomTab[];
   customSections?: CustomSection[];
   currentTheme?: ThemeConfig;
-  onImport?: (data: { movies: Movie[], customTabs: CustomTab[], customSections: CustomSection[] }) => void;
+  onImport?: (data: { items: Item[], customTabs: CustomTab[], customSections: CustomSection[] }) => void;
 }
 
 export function ProfileDialog({
@@ -46,7 +46,7 @@ export function ProfileDialog({
   tvShowCount,
   restaurantCount,
   placeCount,
-  movies,
+  items,
   customTabs,
   customSections,
   currentTheme,
@@ -55,12 +55,12 @@ export function ProfileDialog({
   const { exportData, importData } = useDataExportImport();
 
   const totalCollectionItemCount = movieCount + tvShowCount + restaurantCount + placeCount;
-  const numberOfItemsWatched = movies?.filter((collectionItem) => collectionItem.status === 'watched').length ?? 0;
-  const numberOfItemsFavorited = movies?.filter((collectionItem) => collectionItem.favorite).length ?? 0;
+  const numberOfItemsWatched = items?.filter((collectionItem) => collectionItem.status === 'watched').length ?? 0;
+  const numberOfItemsFavorited = items?.filter((collectionItem) => collectionItem.favorite).length ?? 0;
 
   const handleExportData = () => {
     exportData({
-      movies: movies || [],
+      items: items || [],
       customTabs: customTabs || [],
       customSections: customSections || [],
       filenamePrefix: `${currentUser.username}-collection`,
