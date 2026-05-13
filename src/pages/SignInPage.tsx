@@ -214,7 +214,7 @@ export function SignInPage({ onSignIn, onSignUp, onBack }: SignInPageProps) {
             type="button"
             onClick={handleDemoLogin}
             variant="outline"
-            className="w-full border-white/10 text-black hover:bg-white/5 hover:text-white py-6 rounded-xl transition-all"
+            className="w-full border-white/10 hover:bg-white/5 py-6 rounded-xl transition-all"
             disabled={isSignInRequestLoading}
           >
             Try Demo Account

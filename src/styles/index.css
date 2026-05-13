@@ -3135,8 +3135,67 @@
 }
 
 .dark {
-  /* Dark mode palette intentionally left empty — same colors as :root
-   * for now. Replace these variables when the dark palette is provided. */
+  /* Lovable dark theme — cohesive dark blue-grey */
+  --background: hsl(220 20% 7%);
+  --foreground: hsl(210 20% 92%);
+  --card: hsl(220 18% 10%);
+  --card-foreground: hsl(210 20% 92%);
+  --popover: hsl(220 18% 12%);
+  --popover-foreground: hsl(210 20% 92%);
+  --primary: hsl(210 100% 56%);
+  --primary-foreground: #ffffff;
+  --secondary: hsl(220 16% 16%);
+  --secondary-foreground: hsl(210 20% 85%);
+  --muted: hsl(220 14% 14%);
+  --muted-foreground: hsl(215 12% 50%);
+  --accent: hsl(220 16% 18%);
+  --accent-foreground: hsl(210 20% 92%);
+  --destructive: hsl(0 72% 51%);
+  --destructive-foreground: #ffffff;
+  --border: hsl(220 14% 16%);
+  --input: hsl(220 14% 18%);
+  --ring: hsl(210 100% 56%);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: hsl(210 100% 56%);
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #8b5cf6;
+  --chart-5: #ec4899;
+  --sidebar: hsl(220 18% 8%);
+  --sidebar-foreground: hsl(210 20% 85%);
+  --sidebar-primary: hsl(210 100% 56%);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: hsl(220 16% 14%);
+  --sidebar-accent-foreground: hsl(210 20% 92%);
+  --sidebar-border: hsl(220 14% 16%);
+  --sidebar-ring: hsl(210 100% 56%);
+
+  /* Remap Tailwind slate palette to match lovable dark blue-grey */
+  --color-slate-950: hsl(220 20% 5%);
+  --color-slate-900: hsl(220 20% 7%);
+  --color-slate-800: hsl(220 18% 10%);
+  --color-slate-700: hsl(220 14% 16%);
+  --color-slate-600: hsl(220 12% 24%);
+  --color-slate-500: hsl(215 12% 40%);
+  --color-slate-400: hsl(215 12% 50%);
+  --color-slate-300: hsl(210 16% 70%);
+  --color-slate-200: hsl(210 20% 85%);
+  --color-slate-100: hsl(210 20% 92%);
+  --color-slate-50: hsl(210 20% 96%);
+
+  /* Remap cyan to lovable blue accent */
+  --color-cyan-50: hsl(210 100% 96%);
+  --color-cyan-100: hsl(210 100% 90%);
+  --color-cyan-200: hsl(210 100% 80%);
+  --color-cyan-300: hsl(210 100% 72%);
+  --color-cyan-400: hsl(210 100% 64%);
+  --color-cyan-500: hsl(210 100% 56%);
+  --color-cyan-600: hsl(210 100% 48%);
+  --color-cyan-700: hsl(210 100% 40%);
+  --color-cyan-800: hsl(210 100% 32%);
+  --color-cyan-900: hsl(210 100% 24%);
+  --color-cyan-950: hsl(210 100% 16%);
 }
 
 html {

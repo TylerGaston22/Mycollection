@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useTheme } from "next-themes";
 import { SidebarLayout } from "./components/layout/SidebarLayout";
 import { LandingPage } from "./pages/LandingPage";
 import { SignInPage } from "./pages/SignInPage";
@@ -41,6 +42,8 @@ import { useCollectionStats } from "./hooks/useCollectionStats";
 import { DEFAULT_CONTENT_TYPE } from "./constants";
 
 export default function App() {
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const auth = useAuth();
   const { backgroundColors, setBackgroundColors } = usePreferences(auth.currentUserId, auth.isDemoUser);
   const { items, setItems, addItem, updateItem, deleteItem, removeByType, importItems } = useItems(auth.currentUserId, auth.isDemoUser);
@@ -252,24 +255,27 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Background image */}
-      <div
-        className="fixed inset-0 z-0"
-        style={{
-          backgroundImage: `url(${ghibliBackground})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          opacity: 0.05,
-          filter: 'brightness(0.6)',
-        }}
-      />
-
-      {/* Theme gradient */}
-      <div
-        className="fixed inset-0 z-0"
-        style={{ background: currentTheme.backgroundGradient, opacity: 0.95 }}
-      />
+      {/* Light-mode-only decorative background: Ghibli image + theme gradient.
+          In dark mode, we let bg-background show through for a flat, clean look. */}
+      {!isDark && (
+        <>
+          <div
+            className="fixed inset-0 z-0"
+            style={{
+              backgroundImage: `url(${ghibliBackground})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              opacity: 0.05,
+              filter: 'brightness(0.6)',
+            }}
+          />
+          <div
+            className="fixed inset-0 z-0"
+            style={{ background: currentTheme.backgroundGradient, opacity: 0.95 }}
+          />
+        </>
+      )}
 
       {mainPageContent}
 
