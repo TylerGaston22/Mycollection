@@ -52,6 +52,23 @@ Update this file as new ideas come up. Cross items off (or delete them) when the
 **Why deferred:** Desktop view was the priority.
 **When to do:** Before pitching the app to mobile users / before publishing.
 
+### Friend system (view-only list sharing)
+**What:** Users can send friend requests, accept/decline, and view friends' lists in read-only mode. Each user has a "list visibility" setting (private / friends-only / public).
+**Schema impact:** New `friendships` table — columns `(user_id_a, user_id_b, status)` with status `pending | accepted | blocked`. RLS: a user can SELECT rows where they're either party; INSERT only with self as `user_id_a`; UPDATE only as `user_id_b` (to accept/decline). Also add `list_visibility` column to `profiles`, default `private`.
+**UI:** Search-by-username flow, friend request inbox, friends-list page, "View as friend" mode on the existing item grid that hides edit/delete controls.
+**Privacy:** Read-only must be enforced at BOTH the UI layer (no edit buttons rendered) AND the RLS policy layer (a friend's SELECT policy can read items where the owner has set visibility=friends-only; UPDATE/DELETE policies must still reject non-owners). Never trust the UI alone for access control.
+**When to do:** When you have multiple real users wanting to share. Until then it's not worth the schema overhead.
+
+### Shared / collaborative lists (both can edit)
+**What:** A user can share a list (or a custom section / sublist) with friends so they can both add, edit, and delete items in it. Distinct from the read-only friend view above.
+**Schema impact:** Bigger refactor — currently `collection_items.user_id` is the sole owner. For shared lists you need either:
+- **(a) List-level sharing:** new `shared_lists` table `(list_id, owner_id)` + `list_members(list_id, user_id, role)` + change items to reference `list_id` instead of (or alongside) `user_id`. Cleaner for whole-list sharing.
+- **(b) Item-level sharing:** permissions table `item_collaborators(item_id, user_id)`. More flexible but harder to express in RLS.
+Option (a) is the usual answer for this kind of feature.
+**UI:** "Share list" button on a tab/section, invite-by-friend flow, indicator showing co-owners on shared sections. Possibly an activity feed ("Bob added 3 items to Restaurants").
+**Conflicts:** Two users editing simultaneously needs a story. Supabase Realtime can subscribe to row changes for live sync, but pick a conflict policy upfront — last-write-wins is simplest; CRDT-style merging is overkill for this app.
+**When to do:** AFTER the friend system above (depends on it). This is a multi-week feature with real edge cases — not a weekend project.
+
 ---
 
 ## UX polish
