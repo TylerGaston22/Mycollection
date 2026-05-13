@@ -6,14 +6,14 @@
  */
 
 import { Item, CustomTab, CustomSection, User } from "../types";
-import { ThemeConfig } from "../utils/themeConfig";
-import { getCategoryDisplayName } from "../utils/contentHelpers";
-import { useIsMobile } from "../hooks/useIsMobile";
-import { Sidebar } from "./Sidebar";
+import { ThemeConfig } from "../../utils/themeConfig";
+import { getCategoryDisplayName } from "../../utils/contentHelpers";
+import { useIsMobile } from "../../hooks/useIsMobile";
+import { Sidebar } from "../navigation/Sidebar";
 import { MainContent } from "./MainContent";
-import { MobileHeader } from "./mobile/MobileHeader";
-import { MobileBottomNav } from "./mobile/MobileBottomNav";
-import { MobileSectionNav } from "./mobile/MobileSectionNav";
+import { MobileHeader } from "../mobile/MobileHeader";
+import { MobileBottomNav } from "../mobile/MobileBottomNav";
+import { MobileSectionNav } from "../mobile/MobileSectionNav";
 
 interface SidebarLayoutProps {
   currentUser: User;

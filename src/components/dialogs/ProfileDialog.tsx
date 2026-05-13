@@ -16,8 +16,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { User, Mail, Calendar, MapPin as MapPinIcon } from 'lucide-react';
 import { Separator } from "../ui/separator";
-import { DataManagementButtons } from "../DataManagementButtons";
-import { CategoryCountRow } from "../CategoryCountRow";
+import { DataManagementButtons } from "../settings/DataManagementButtons";
+import { CategoryCountRow } from "../navigation/CategoryCountRow";
 
 import { User as UserType, Item, CustomTab, CustomSection } from "../../types";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";

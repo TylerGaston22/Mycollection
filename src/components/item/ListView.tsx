@@ -23,24 +23,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "./ui/table";
+} from "../ui/table";
 import { Heart, MoreVertical, Trash2, Edit, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "./ui/dropdown-menu";
-import { ItemFormDialog } from "./dialogs/ItemFormDialog";
-import { QuickEditDialog } from "./dialogs/QuickEditDialog";
+} from "../ui/dropdown-menu";
+import { ItemFormDialog } from "../dialogs/ItemFormDialog";
+import { QuickEditDialog } from "../dialogs/QuickEditDialog";
 import { StarRating } from "./StarRating";
 import { StatusBadge } from "./StatusBadge";
 import { StatusToggleMenuContent } from "./StatusToggleMenuContent";
-import { useItemActions } from "../hooks/useItemActions";
-import { ThemeConfig } from "../utils/themeConfig";
+import { useItemActions } from "../../hooks/useItemActions";
+import { ThemeConfig } from "../../utils/themeConfig";
 
 interface ListViewProps {
   items: Item[];

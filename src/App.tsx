@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { SidebarLayout } from "./components/SidebarLayout";
+import { SidebarLayout } from "./components/layout/SidebarLayout";
 import { LandingPage } from "./pages/LandingPage";
 import { SignInPage } from "./pages/SignInPage";
 import { ItemFormDialog } from "./components/dialogs/ItemFormDialog";

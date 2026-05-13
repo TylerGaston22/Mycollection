@@ -6,8 +6,8 @@
  */
 
 import { LucideIcon } from 'lucide-react';
-import { Label } from "./ui/label";
-import { colorThemes, ThemeConfig } from "../utils/themeConfig";
+import { Label } from "../ui/label";
+import { colorThemes, ThemeConfig } from "../../utils/themeConfig";
 
 const availableColorThemeOptions = Object.values(colorThemes);
 

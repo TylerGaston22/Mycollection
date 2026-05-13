@@ -7,8 +7,8 @@
 
 import { useState } from 'react';
 import { Item } from "../types";
-import { Card } from "./ui/card";
-import { Button } from "./ui/button";
+import { Card } from "../ui/card";
+import { Button } from "../ui/button";
 import { Heart, Trash2, MoreVertical } from 'lucide-react';
 import {
   DropdownMenu,
@@ -16,9 +16,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { useItemActions } from "../hooks/useItemActions";
-import { sanitizeImageUrl } from "../utils/sanitize";
+} from "../ui/dropdown-menu";
+import { useItemActions } from "../../hooks/useItemActions";
+import { sanitizeImageUrl } from "../../utils/sanitize";
 import { StarRating } from "./StarRating";
 import { StatusBadge } from "./StatusBadge";
 import { StatusToggleMenuContent } from "./StatusToggleMenuContent";

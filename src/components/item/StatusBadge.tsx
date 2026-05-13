@@ -5,8 +5,8 @@
  */
 
 import { Eye, Clock } from 'lucide-react';
-import { Badge } from "./ui/badge";
-import { getStatusLabel } from "../utils/contentHelpers";
+import { Badge } from "../ui/badge";
+import { getStatusLabel } from "../../utils/contentHelpers";
 import type { ItemStatus } from "../constants";
 
 interface StatusBadgeProps {

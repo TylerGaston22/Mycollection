@@ -4,7 +4,7 @@
  * Used by ProfileDialog to avoid repeating the same layout 4 times.
  */
 
-import { Badge } from "./ui/badge";
+import { Badge } from "../ui/badge";
 
 interface CategoryCountRowProps {
   label: string;

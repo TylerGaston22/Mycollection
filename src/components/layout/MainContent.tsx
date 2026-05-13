@@ -5,14 +5,14 @@
  */
 
 import { ReactNode } from 'react';
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { Plus, Share2 } from 'lucide-react';
 import { Item, CustomTab, CustomSection } from "../types";
-import { ItemCard } from "./ItemCard";
-import { ListView } from "./ListView";
-import { MobileListItem } from "./mobile/MobileListItem";
-import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
-import { getSectionDisplayName, getContentTypeName, getCategoryDisplayName, getWatchedLabel, getWantToSeeLabel } from "../utils/contentHelpers";
+import { ItemCard } from "../item/ItemCard";
+import { ListView } from "../item/ListView";
+import { MobileListItem } from "../mobile/MobileListItem";
+import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
+import { getSectionDisplayName, getContentTypeName, getCategoryDisplayName, getWatchedLabel, getWantToSeeLabel } from "../../utils/contentHelpers";
 
 interface MainContentProps {
   items: Item[];

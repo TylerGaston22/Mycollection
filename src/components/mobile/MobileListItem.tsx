@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { Item } from "../../types";
-import { StarRating } from "../StarRating";
+import { StarRating } from "../item/StarRating";
 import { useItemActions } from "../../hooks/useItemActions";
 import { sanitizeImageUrl } from "../../utils/sanitize";
 

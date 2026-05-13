@@ -7,8 +7,8 @@
 
 import { Plus } from 'lucide-react';
 import { Item, CustomSection } from "../types";
-import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
-import { getWatchedLabel, getWantToSeeLabel } from "../utils/contentHelpers";
+import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
+import { getWatchedLabel, getWantToSeeLabel } from "../../utils/contentHelpers";
 import { SectionButton } from "./SectionButton";
 
 interface SubCategoryNavProps {

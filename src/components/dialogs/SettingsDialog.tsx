@@ -9,10 +9,10 @@ import { useState } from 'react';
 import { Lock, Palette, Info, ImageIcon, Film, Tv, UtensilsCrossed, MapPin } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
-import { DataManagementButtons } from "../DataManagementButtons";
+import { DataManagementButtons } from "../settings/DataManagementButtons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Item, CustomTab, CustomSection } from "../../types";
-import { ColorPicker } from "../ColorPicker";
+import { ColorPicker } from "../settings/ColorPicker";
 import { FormatGuideDialog } from "./FormatGuideDialog";
 import { useDataExportImport } from "../../hooks/useDataExportImport";
 

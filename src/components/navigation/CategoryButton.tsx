@@ -5,7 +5,7 @@
  */
 
 import { LucideIcon } from 'lucide-react';
-import { ThemeConfig } from "../utils/themeConfig";
+import { ThemeConfig } from "../../utils/themeConfig";
 
 interface CategoryButtonProps {
   label: string;

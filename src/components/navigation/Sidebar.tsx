@@ -6,11 +6,11 @@
  * expanded to show its SubCategoryNav.
  */
 
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { Plus, Film, Tv, UtensilsCrossed, MapPin, User, Settings, LogOut, Users, Star } from 'lucide-react';
 import { Item, CustomTab, CustomSection } from "../types";
 import type { User as UserType } from "../types";
-import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
+import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
 import { CategoryButton } from "./CategoryButton";
 import { SubCategoryNav } from "./SubCategoryNav";
 import {
@@ -18,7 +18,7 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from "./ui/context-menu";
+} from "../ui/context-menu";
 
 interface SidebarProps {
   currentUser: UserType;

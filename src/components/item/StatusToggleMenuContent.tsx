@@ -5,7 +5,7 @@
  */
 
 import { Eye, Clock } from 'lucide-react';
-import { getOppositeStatusLabel } from "../utils/contentHelpers";
+import { getOppositeStatusLabel } from "../../utils/contentHelpers";
 import type { ItemStatus } from "../constants";
 
 interface StatusToggleMenuContentProps {

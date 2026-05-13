@@ -4,7 +4,7 @@
  * hover state when inactive. Displays the section label and item count.
  */
 
-import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
+import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
 
 interface SectionButtonProps {
   label: string;

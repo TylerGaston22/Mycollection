@@ -7,8 +7,8 @@
 
 import { toast } from "sonner@2.0.3";
 import { Item, CustomTab, CustomSection } from '../types';
-import { validateItem, validateCustomTab, validateCustomSection, parseCsvLine, stripHtml, sanitizeImageUrl } from '../utils/sanitize';
-import { CONTENT_TYPES, ITEM_STATUSES, DEFAULT_STATUS, RATING_MIN, RATING_MAX, type ItemStatus } from '../constants';
+import { validateItem, validateCustomTab, validateCustomSection } from '../utils/sanitize';
+import { parseCsvIntoItems, serializeItemsToCsv } from '../utils/csv';
 
 interface ExportOptions {
   items: Item[];
@@ -117,65 +117,7 @@ export function useDataExportImport() {
       const fileContentReader = new FileReader();
       fileContentReader.onload = (readerEvent) => {
         try {
-          const fileContentText = readerEvent.target?.result as string;
-          const allFileLines = fileContentText.trim().split('\n');
-          if (allFileLines.length < 2) {
-            throw new Error('File must contain a header row and at least one data row');
-          }
-
-          // Use the proper CSV parser for the header row too
-          const csvColumnHeaders = parseCsvLine(allFileLines[0]).map((headerText) => headerText.toLowerCase());
-          if (!csvColumnHeaders.includes('title') || !csvColumnHeaders.includes('type')) {
-            throw new Error('CSV must include "Title" and "Type" columns');
-          }
-
-          const newItems: Item[] = [];
-          for (let lineIndex = 1; lineIndex < allFileLines.length; lineIndex++) {
-            const currentLine = allFileLines[lineIndex].trim();
-            if (!currentLine) continue;
-
-            // Use proper CSV parser that handles quoted fields with commas
-            const columnValues = parseCsvLine(currentLine);
-            const parsedCsvRow: Record<string, string> = {};
-            csvColumnHeaders.forEach((columnName, columnIndex) => {
-              parsedCsvRow[columnName] = columnValues[columnIndex] || '';
-            });
-
-            // Skip rows with unrecognised type values (e.g., typos in the CSV)
-            if (!(CONTENT_TYPES as readonly string[]).includes(parsedCsvRow.type)) continue;
-
-            // Combine timestamp + line index to guarantee unique IDs within a single bulk import
-            let parsedRatingValue: number | undefined = undefined;
-            if (parsedCsvRow.rating) {
-              const parsed = parseInt(parsedCsvRow.rating);
-              if (parsed >= RATING_MIN && parsed <= RATING_MAX) {
-                parsedRatingValue = parsed;
-              }
-            }
-
-            let status: ItemStatus = DEFAULT_STATUS;
-            if ((ITEM_STATUSES as readonly string[]).includes(parsedCsvRow.status)) {
-              status = parsedCsvRow.status as ItemStatus;
-            }
-
-            newItems.push({
-              id: `bulk-${Date.now()}-${lineIndex}`,
-              title: stripHtml(parsedCsvRow.title),
-              type: parsedCsvRow.type,
-              status,
-              favorite: false,
-              platform: parsedCsvRow.platform ? stripHtml(parsedCsvRow.platform) : undefined,
-              genre: parsedCsvRow.genre ? stripHtml(parsedCsvRow.genre) : undefined,
-              rating: parsedRatingValue,
-              notes: parsedCsvRow.notes ? stripHtml(parsedCsvRow.notes) : undefined,
-              posterUrl: sanitizeImageUrl(parsedCsvRow.posterurl || parsedCsvRow.posterUrl),
-            });
-          }
-
-          if (newItems.length === 0) {
-            throw new Error('No valid items found in file');
-          }
-
+          const newItems = parseCsvIntoItems(readerEvent.target?.result as string);
           onImport({
             items: [...existingItems, ...newItems],
             customTabs: existingTabs,
@@ -184,11 +126,8 @@ export function useDataExportImport() {
           toast.success('Bulk import successful!', { description: `Added ${newItems.length} items to your collection.` });
           onComplete?.();
         } catch (error) {
-          let importErrorMessage = 'The file format is invalid.';
-          if (error instanceof Error) {
-            importErrorMessage = error.message;
-          }
-          toast.error('Import failed', { description: importErrorMessage });
+          const message = error instanceof Error ? error.message : 'The file format is invalid.';
+          toast.error('Import failed', { description: message });
         }
       };
       fileContentReader.readAsText(file);
@@ -198,22 +137,7 @@ export function useDataExportImport() {
 
   // Exports items as a CSV file with standard column headers
   const exportCsv = (items: Item[]) => {
-    const csvHeaders = ['title', 'type', 'status', 'platform', 'genre', 'rating', 'notes'];
-    const csvRows = items.map((item) => {
-      return csvHeaders.map((header) => {
-        const value = item[header as keyof Item];
-        if (value === undefined || value === null) return '';
-        const stringValue = String(value);
-        // Wrap in quotes if the value contains commas, quotes, or newlines
-        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-          return `"${stringValue.replace(/"/g, '""')}"`;
-        }
-        return stringValue;
-      }).join(',');
-    });
-
-    const csvContent = [csvHeaders.join(','), ...csvRows].join('\n');
-    const csvBlob = new Blob([csvContent], { type: 'text/csv' });
+    const csvBlob = new Blob([serializeItemsToCsv(items)], { type: 'text/csv' });
     const downloadUrl = URL.createObjectURL(csvBlob);
     const downloadLink = document.createElement('a');
     downloadLink.href = downloadUrl;
