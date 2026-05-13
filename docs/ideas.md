@@ -1,0 +1,116 @@
+# Future Ideas / Deferred Work
+
+A running list of ideas, deferred decisions, and improvements discussed during development. Each item notes **why it's not done yet** and **when it'd be worth revisiting**.
+
+Update this file as new ideas come up. Cross items off (or delete them) when they're done.
+
+---
+
+## Architecture / Tech debt
+
+### Wrap content sections in `<Card>` for true theming
+**What:** MainContent's sections, ListView rows, and MobileListItem don't currently render inside a themed surface — they sit directly on the page background. Wrapping them in `<Card>` would give them proper `bg-card` backgrounds that flip with theme.
+**Why deferred:** Works today because the page bg is dark in both light and dark mode (via the Ghibli overlay in light mode). Wrapping in Cards is a UI redesign — visually different even in light mode.
+**When to do:** When you want light mode to look genuinely light (white-ish page bg, content in cards), OR when you want the dark-mode reference-screenshot aesthetic.
+
+### Full theme-prep sweep of hardcoded text/bg colors
+**What:** ~50 instances of `text-white`, `text-gray-N`, `bg-slate-N`, `rgba(255,255,255,X)` across MainContent, ListView, Sidebar, navigation/, MobileListItem, and the auth pages. Swap to `text-foreground` / `text-muted-foreground` / `var(--border)` etc.
+**Why deferred:** Would break light mode today — the page bg is dark in light mode (Ghibli overlay), so hardcoded white is correct. Swapping to `text-foreground` would put near-black text on the dark overlay.
+**When to do:** Right after the Card wrap above, OR after the Ghibli overlay is removed and light mode becomes genuinely light.
+
+### Add a real `tsconfig.json`
+**What:** Repo has no `tsconfig.json` — vite uses defaults. Adding one would enable `strict: true`, better path mapping, explicit module resolution.
+**Why deferred:** Build works without it.
+**When to do:** First time the TS defaults bite you (silent `any`, ambiguous module resolution).
+
+### Bundle splitting
+**What:** Main chunk is ~702 KB (gzip 202 KB). Vite warns about chunks over 500 KB. Splitting via dynamic imports for dialogs / pages would help first-load time.
+**Why deferred:** App is fast enough today.
+**When to do:** If first-paint feels sluggish, or if you add more heavy features (charts, image processing).
+
+### Migrate inline `style={{}}` to className with CSS vars
+**What:** Many components do `style={{ background: currentTheme.X, color: 'white' }}`. Could be Tailwind utility classes with CSS vars (`bg-[var(--sidebar)]`). Easier to override, more consistent.
+**Why deferred:** Scattered across many files, lots of grunt work for marginal benefit.
+**When to do:** During a broader visual refresh — pair with the theme-prep sweep.
+
+---
+
+## Features
+
+### Customizable user backgrounds
+**What:** Original intent of the Ghibli background — let users pick/upload their own page background. Could store the choice in `preferences` table next to `background_colors`.
+**Why deferred:** Color schemes UI was hidden (Settings → Appearance tab). Backgrounds were never wired up.
+**When to do:** When you want to bring back user theming. Would need: upload UI, storage (Supabase Storage bucket), DB column for the chosen image URL, and the App.tsx overlay swap based on the selected background.
+
+### Light variants for LandingPage and SignInPage
+**What:** Both pages have hardcoded dark designs. The dark-mode toggle doesn't affect them.
+**Why deferred:** They look fine as-is; auth flow doesn't need to flip with user preference.
+**When to do:** When/if you re-theme the app and want full consistency.
+
+### Mobile view completion
+**What:** Earlier commit "working on mobile view" suggested incomplete mobile components.
+**Why deferred:** Desktop view was the priority.
+**When to do:** Before pitching the app to mobile users / before publishing.
+
+---
+
+## UX polish
+
+### Toast/banner for Supabase failures
+**What:** Several `supabase` calls currently just `console.error` on failure (e.g., `usePreferences.ts` upsert). User has no visible feedback when persistence breaks.
+**Why deferred:** Demo mode hides the issue; happy path works fine.
+**When to do:** Before you start relying on Supabase for real user data — at the latest, when you onboard a non-demo user.
+
+### Bring the Appearance tab back
+**What:** Settings → Appearance was hidden (per-content-type color pickers). Could re-enable when ColorPicker UI is theme-aware AND backgrounds support is built.
+**Why deferred:** User asked to hide it for now; ColorPicker code stayed intact.
+**When to do:** When the customizable-backgrounds feature lands.
+
+### Match accent color to dark theme
+**What:** Sidebar hover states still use `currentTheme.accentColor` (Ghibli green) even in dark mode. The dark palette has a bright blue accent (`hsl(210 100% 56%)`) that's more cohesive.
+**Why deferred:** User accepted the inconsistency.
+**When to do:** Quick polish pass — swap `currentTheme.accentColor` references to `isDark ? 'var(--primary)' : currentTheme.accentColor`.
+
+---
+
+## Operations / Security
+
+### Run `npm audit fix`
+**What:** Last `npm install` reported 3 vulnerabilities (1 moderate, 2 high).
+**Why deferred:** Unrelated to current work.
+**When to do:** Before any production push. Run `npm audit` first to see what's affected; `--force` only if minor versions look safe.
+
+### Smoke-test the auth/persistence flow end-to-end
+**What:** Sign up a real user via Supabase, add an item, sign out, sign back in, verify the item is there. Verify RLS by trying to read another user's row.
+**Why deferred:** Got pulled into other work; never circled back.
+**When to do:** Top of your next session. This is the original "what's next" from when we set up Supabase.
+
+### Verify `schema.sql` actually ran in Supabase
+**What:** The schema file exists at `supabase/schema.sql` and the env vars are set, but we never confirmed it was executed in the Supabase SQL Editor.
+**Why deferred:** Same as above.
+**When to do:** Same as above — before any persistence actually works.
+
+---
+
+## Code quality
+
+### Tests for pure utilities
+**What:** `src/utils/csv.ts`, `src/utils/sanitize.ts`, `src/utils/contentHelpers.ts` are pure functions — easy targets for Vitest.
+**Why deferred:** No test infrastructure exists.
+**When to do:** First time you regress one of these (e.g., a CSV import bug). Cheap to set up once a real bug forces it.
+
+### Optimize the Ghibli PNG
+**What:** `src/assets/dd104f7b8489f1285cea3966c272ab6ab1c18fb9.png` is 2.1 MB. Renders at 5% opacity — could be much smaller (compress, convert to webp, or downscale).
+**Why deferred:** Bundle size is acceptable today.
+**When to do:** If load time becomes an issue, or as a defensive trim before publishing.
+
+### Replace `figma:asset/...` vite alias with a regular import
+**What:** The Ghibli image is imported via a `figma:asset/long-hash.png` alias that maps to the real path in vite.config.ts. Unusual pattern (Figma export tooling artifact).
+**Why deferred:** Works fine.
+**When to do:** Whenever you touch this area — convert to `import bg from './assets/background.png'` and drop the alias.
+
+---
+
+## Notes for future audits
+
+When auditing for hardcoded colors, **before recommending a swap, check whether the element renders inside a themed surface** (Dialog, Card, Popover — these flip with theme) or directly on the page background (which is dark in both modes today). Hardcoded `text-white` on the page background is **correct**, not a bug. See [project-visible-bg-is-dark-in-both-modes memory] for the full reasoning.
