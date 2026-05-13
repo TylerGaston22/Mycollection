@@ -5,7 +5,7 @@
  * section chips, full-width content, and a bottom tab bar.
  */
 
-import { Item, CustomTab, CustomSection, User } from "../types";
+import { Item, CustomTab, CustomSection, User } from "../../types";
 import { ThemeConfig } from "../../utils/themeConfig";
 import { getCategoryDisplayName } from "../../utils/contentHelpers";
 import { useIsMobile } from "../../hooks/useIsMobile";
@@ -38,7 +38,6 @@ interface SidebarLayoutProps {
   onAddTabDialogOpen: () => void;
   onProfileDialogOpen: () => void;
   onSettingsDialogOpen: () => void;
-  onProfileSwitcherOpen: () => void;
   onLogout: () => void;
   onTabDelete: (tab: CustomTab) => void;
   onItemUpdate: (id: string, updates: Partial<Item>) => void;
@@ -71,7 +70,6 @@ export function SidebarLayout({
   onAddTabDialogOpen,
   onProfileDialogOpen,
   onSettingsDialogOpen,
-  onProfileSwitcherOpen,
   onLogout,
   onTabDelete,
   onItemUpdate,
@@ -161,7 +159,6 @@ export function SidebarLayout({
         onAddTabDialogOpen={onAddTabDialogOpen}
         onProfileDialogOpen={onProfileDialogOpen}
         onSettingsDialogOpen={onSettingsDialogOpen}
-        onProfileSwitcherOpen={onProfileSwitcherOpen}
         onLogout={onLogout}
         onTabDelete={onTabDelete}
       />

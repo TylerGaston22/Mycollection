@@ -7,9 +7,10 @@
  */
 
 import { Button } from "../ui/button";
-import { Plus, Film, Tv, UtensilsCrossed, MapPin, User, Settings, LogOut, Users, Star } from 'lucide-react';
-import { Item, CustomTab, CustomSection } from "../types";
-import type { User as UserType } from "../types";
+import { Plus, Film, Tv, UtensilsCrossed, MapPin, User, Settings, LogOut, Star, Moon, Sun, SlidersHorizontal } from 'lucide-react';
+import { useTheme } from "next-themes";
+import { Item, CustomTab, CustomSection } from "../../types";
+import type { User as UserType } from "../../types";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
 import { CategoryButton } from "./CategoryButton";
 import { SubCategoryNav } from "./SubCategoryNav";
@@ -19,6 +20,13 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "../ui/context-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 interface SidebarProps {
   currentUser: UserType;
@@ -40,7 +48,6 @@ interface SidebarProps {
   onAddTabDialogOpen: () => void;
   onProfileDialogOpen: () => void;
   onSettingsDialogOpen: () => void;
-  onProfileSwitcherOpen: () => void;
   onLogout: () => void;
   onTabDelete: (tab: CustomTab) => void;
 }
@@ -65,10 +72,12 @@ export function Sidebar({
   onAddTabDialogOpen,
   onProfileDialogOpen,
   onSettingsDialogOpen,
-  onProfileSwitcherOpen,
   onLogout,
   onTabDelete,
 }: SidebarProps) {
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === "dark";
+
   // Filter items for the currently selected category to get sub-section counts
   const allItemsInCurrentCategory = items.filter((collectionItem) => collectionItem.type === contentType);
   const watchedItems = allItemsInCurrentCategory.filter((collectionItem) => collectionItem.status === 'watched');
@@ -153,25 +162,43 @@ export function Sidebar({
             <User className="h-4 w-4 mr-1" />
             Profile
           </Button>
-          <Button
-            onClick={onSettingsDialogOpen}
-            variant="ghost"
-            size="sm"
-            style={{
-              background: `linear-gradient(to right, ${colorToRgba(currentTheme.accentColor, 0)} 0%, ${colorToRgba(currentTheme.accentColor, 0)} 100%)`,
-              color: 'white',
-            }}
-            onMouseEnter={(event: React.MouseEvent<HTMLButtonElement>) => {
-              event.currentTarget.style.background = `linear-gradient(to right, ${colorToRgba(currentTheme.accentColor, 0.2)}, ${colorToRgba(currentTheme.accentColor, 0.1)})`;
-              event.currentTarget.style.color = currentTheme.accentColor;
-            }}
-            onMouseLeave={(event: React.MouseEvent<HTMLButtonElement>) => {
-              event.currentTarget.style.background = 'transparent';
-              event.currentTarget.style.color = 'white';
-            }}
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                style={{
+                  background: `linear-gradient(to right, ${colorToRgba(currentTheme.accentColor, 0)} 0%, ${colorToRgba(currentTheme.accentColor, 0)} 100%)`,
+                  color: 'white',
+                }}
+                onMouseEnter={(event: React.MouseEvent<HTMLButtonElement>) => {
+                  event.currentTarget.style.background = `linear-gradient(to right, ${colorToRgba(currentTheme.accentColor, 0.2)}, ${colorToRgba(currentTheme.accentColor, 0.1)})`;
+                  event.currentTarget.style.color = currentTheme.accentColor;
+                }}
+                onMouseLeave={(event: React.MouseEvent<HTMLButtonElement>) => {
+                  event.currentTarget.style.background = 'transparent';
+                  event.currentTarget.style.color = 'white';
+                }}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setTheme(isDark ? "light" : "dark")}>
+                {isDark ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
+                {isDark ? "Light Mode" : "Dark Mode"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onSettingsDialogOpen}>
+                <SlidersHorizontal className="h-4 w-4 mr-2" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Log Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -238,25 +265,6 @@ export function Sidebar({
         </Button>
       </div>
 
-      {/* Bottom Actions */}
-      <div className="mt-8 pt-6 border-t border-slate-700">
-        <Button
-          onClick={onProfileSwitcherOpen}
-          variant="ghost"
-          className="w-full justify-start text-gray-400 hover:text-white hover:bg-slate-700/50 mb-2"
-        >
-          <Users className="h-4 w-4 mr-2" />
-          Switch Profile
-        </Button>
-        <Button
-          onClick={onLogout}
-          variant="ghost"
-          className="w-full justify-start text-gray-400 hover:text-red-400 hover:bg-red-500/10"
-        >
-          <LogOut className="h-4 w-4 mr-2" />
-          Log Out
-        </Button>
-      </div>
     </div>
   );
 }

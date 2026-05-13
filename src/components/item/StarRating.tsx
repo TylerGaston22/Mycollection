@@ -4,7 +4,7 @@
  */
 
 import { Star } from 'lucide-react';
-import { Item } from "../types";
+import { Item } from "../../types";
 
 interface StarRatingProps {
   item: Item;

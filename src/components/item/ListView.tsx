@@ -15,7 +15,7 @@ import {
   createColumnHelper,
   SortingState,
 } from "@tanstack/react-table";
-import { Item } from "../types";
+import { Item } from "../../types";
 import {
   Table,
   TableBody,

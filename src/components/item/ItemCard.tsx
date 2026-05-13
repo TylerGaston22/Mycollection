@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { Item } from "../types";
+import { Item } from "../../types";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { Heart, Trash2, MoreVertical } from 'lucide-react';

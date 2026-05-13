@@ -17,7 +17,6 @@ import { ItemDetailDialog } from "./components/dialogs/ItemDetailDialog";
 import { AddTabDialog } from "./components/dialogs/AddTabDialog";
 import { AddSectionDialog } from "./components/dialogs/AddSectionDialog";
 import { ShareDialog } from "./components/dialogs/ShareDialog";
-import { ProfileSwitcherDialog } from "./components/dialogs/ProfileSwitcherDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -135,7 +134,6 @@ export default function App() {
           onAddTabDialogOpen={() => dialogs.open('addTab')}
           onProfileDialogOpen={() => dialogs.open('profile')}
           onSettingsDialogOpen={() => dialogs.open('settings')}
-          onProfileSwitcherOpen={() => dialogs.open('profileSwitcher')}
           onLogout={auth.handleLogout}
           onTabDelete={(tab) => setTabToDelete(tab)}
           onItemUpdate={updateItem}
@@ -183,15 +181,6 @@ export default function App() {
           customSections={customSections}
           currentTheme={currentTheme}
           onImport={handleImportData}
-        />
-
-        <ProfileSwitcherDialog
-          open={dialogs.isOpen('profileSwitcher')}
-          onOpenChange={(v) => dialogs.setOpen('profileSwitcher', v)}
-          users={auth.users}
-          currentUserId={auth.currentUserId}
-          onSwitchProfile={auth.handleSwitchProfile}
-          currentTheme={currentTheme}
         />
 
         <SettingsDialog

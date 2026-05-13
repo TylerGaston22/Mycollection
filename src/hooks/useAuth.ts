@@ -145,15 +145,6 @@ export function useAuth() {
   const handleGoToSignIn = () => setShowSignInPage(true);
   const handleBackToLanding = () => setShowSignInPage(false);
 
-  // Profile switching is only for demo mode (Supabase users have one profile)
-  const handleSwitchProfile = (userIdToSwitchTo: string) => {
-    if (authMode === DEMO_MODE) {
-      setCurrentUserId(userIdToSwitchTo);
-      const user = mockUsers.find((u) => u.id === userIdToSwitchTo);
-      if (user) setCurrentUser(user);
-    }
-  };
-
   const isDemoUser = authMode === DEMO_MODE;
 
   return {
@@ -161,7 +152,6 @@ export function useAuth() {
     showSignInPage,
     currentUserId,
     currentUser,
-    users: mockUsers,
     isLoading,
     isDemoUser,
     handleSignIn,
@@ -169,6 +159,5 @@ export function useAuth() {
     handleLogout,
     handleGoToSignIn,
     handleBackToLanding,
-    handleSwitchProfile,
   };
 }

@@ -7,7 +7,7 @@
 import { ReactNode } from 'react';
 import { Button } from "../ui/button";
 import { Plus, Share2 } from 'lucide-react';
-import { Item, CustomTab, CustomSection } from "../types";
+import { Item, CustomTab, CustomSection } from "../../types";
 import { ItemCard } from "../item/ItemCard";
 import { ListView } from "../item/ListView";
 import { MobileListItem } from "../mobile/MobileListItem";
