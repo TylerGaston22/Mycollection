@@ -5,6 +5,7 @@
  */
 
 import { Movie, CustomTab, CustomSection } from '../types';
+import { ITEM_STATUSES, DEFAULT_STATUS, RATING_MIN, RATING_MAX, type ItemStatus } from '../constants';
 
 /**
  * Returns true if the given string is a safe HTTP(S) image URL.
@@ -61,14 +62,13 @@ export function validateMovie(item: unknown): Movie | null {
   const type = sanitizeString(raw.type);
   if (!type) return null;
 
-  const validStatuses = ['watched', 'want-to-see'];
-  let status: 'watched' | 'want-to-see' = 'want-to-see';
-  if (typeof raw.status === 'string' && validStatuses.includes(raw.status)) {
-    status = raw.status as 'watched' | 'want-to-see';
+  let status: ItemStatus = DEFAULT_STATUS;
+  if (typeof raw.status === 'string' && (ITEM_STATUSES as readonly string[]).includes(raw.status)) {
+    status = raw.status as ItemStatus;
   }
 
   let rating: number | undefined = undefined;
-  if (typeof raw.rating === 'number' && raw.rating >= 1 && raw.rating <= 5) {
+  if (typeof raw.rating === 'number' && raw.rating >= RATING_MIN && raw.rating <= RATING_MAX) {
     rating = Math.floor(raw.rating);
   }
 

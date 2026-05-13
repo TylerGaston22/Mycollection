@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from "sonner@2.0.3";
 import { supabase } from '../lib/supabase';
-import { mockUsers, DEMO_USER_ID } from '../mock';
+import { mockUsers, DEMO_USER_ID, DEMO_CREDENTIALS } from '../demo';
 import { User } from '../types';
 
 const DEMO_MODE = 'demo';
@@ -90,7 +90,7 @@ export function useAuth() {
 
   const handleSignIn = async (emailOrUsername: string, password: string) => {
     // Demo account shortcut
-    if (emailOrUsername === 'demo' && password === 'demo') {
+    if (emailOrUsername === DEMO_CREDENTIALS.username && password === DEMO_CREDENTIALS.password) {
       setIsSignedIn(true);
       setShowSignInPage(false);
       setCurrentUserId(DEMO_USER_ID);

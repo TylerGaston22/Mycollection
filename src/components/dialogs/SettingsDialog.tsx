@@ -66,18 +66,7 @@ export function SettingsDialog({ open, onOpenChange, movies, customTabs, customS
             <DialogDescription>Customize your app experience</DialogDescription>
           </DialogHeader>
 
-          <Tabs defaultValue="appearance" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="appearance">
-                <Palette className="h-4 w-4 mr-2" />
-                Appearance
-              </TabsTrigger>
-              <TabsTrigger value="account">
-                <Lock className="h-4 w-4 mr-2" />
-                Account
-              </TabsTrigger>
-            </TabsList>
-
+          <Tabs defaultValue="account" className="w-full">
             <TabsContent value="appearance" className="space-y-6 mt-6">
               <div className="space-y-4">
                 <div>

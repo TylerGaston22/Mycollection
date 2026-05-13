@@ -3,13 +3,15 @@
  * These interfaces are shared across all components, hooks, and utilities.
  */
 
+import type { ItemStatus } from '../constants';
+
 export interface Movie {
   id: string;
   title: string;
-  type: string; // 'movie' | 'tv-show' | 'restaurant' | 'place' or custom tab id
+  type: string; // built-in content type or custom tab id — see CONTENT_TYPES
   year?: string;
   posterUrl?: string;
-  status: 'watched' | 'want-to-see';
+  status: ItemStatus;
   rating?: number;
   favorite: boolean;
   notes?: string;

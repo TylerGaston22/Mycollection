@@ -8,7 +8,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from "sonner@2.0.3";
 import { supabase } from '../lib/supabase';
 import { Movie } from '../types';
-import { mockItems, DEMO_USER_ID } from '../mock';
+import { mockItems, DEMO_USER_ID, loadDemoData, useDemoSync } from '../demo';
+import { STORAGE_KEYS, type ItemStatus } from '../constants';
 
 // Convert a DB row (snake_case) to a Movie object (camelCase)
 function rowToMovie(row: Record<string, unknown>): Movie {
@@ -18,7 +19,7 @@ function rowToMovie(row: Record<string, unknown>): Movie {
     type: row.type as string,
     year: (row.year as string) || undefined,
     posterUrl: (row.poster_url as string) || undefined,
-    status: row.status as 'watched' | 'want-to-see',
+    status: row.status as ItemStatus,
     rating: (row.rating as number) || undefined,
     favorite: row.favorite as boolean,
     notes: (row.notes as string) || undefined,
@@ -53,38 +54,13 @@ function movieToRow(movie: Partial<Movie> & { type?: string }, userId: string): 
 
 export function useMovies(currentUserId: string, isDemoUser: boolean) {
   const [movies, setMovies] = useState<Movie[]>([]);
-
-  // Load items on user change
-  useEffect(() => {
-    if (isDemoUser) {
-      // Demo user always loads fresh mock data
-      if (currentUserId === DEMO_USER_ID) {
-        setMovies(mockItems);
-      } else {
-        const saved = localStorage.getItem(`movies-${currentUserId}`);
-        if (saved) {
-          setMovies(JSON.parse(saved) as Movie[]);
-        } else {
-          setMovies([]);
-        }
-      }
-    } else {
-      // Supabase user: fetch from database
-      loadFromSupabase();
-    }
-  }, [currentUserId, isDemoUser]);
-
-  // Persist demo/localStorage users
-  useEffect(() => {
-    if (isDemoUser) {
-      localStorage.setItem(`movies-${currentUserId}`, JSON.stringify(movies));
-    }
-  }, [movies, currentUserId, isDemoUser]);
+  const storageKey = STORAGE_KEYS.movies(currentUserId);
 
   const loadFromSupabase = useCallback(async () => {
     const { data, error } = await supabase
       .from('collection_items')
       .select('*')
+      .eq('user_id', currentUserId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -93,7 +69,23 @@ export function useMovies(currentUserId: string, isDemoUser: boolean) {
     }
 
     setMovies((data || []).map(rowToMovie));
-  }, []);
+  }, [currentUserId]);
+
+  // Load on user change
+  useEffect(() => {
+    if (isDemoUser) {
+      // Canonical demo user always sees the seed; switched-to demo profiles use localStorage
+      const data = currentUserId === DEMO_USER_ID
+        ? mockItems
+        : loadDemoData<Movie[]>(storageKey, []);
+      setMovies(data);
+    } else {
+      loadFromSupabase();
+    }
+  }, [currentUserId, isDemoUser, storageKey, loadFromSupabase]);
+
+  // Mirror state to localStorage in demo mode
+  useDemoSync(storageKey, movies, isDemoUser);
 
   const addMovie = async (movie: Omit<Movie, 'id'>) => {
     // Duplicate detection
@@ -140,7 +132,8 @@ export function useMovies(currentUserId: string, isDemoUser: boolean) {
       const { error } = await supabase
         .from('collection_items')
         .update(row)
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', currentUserId);
 
       if (error) {
         toast.error('Failed to update item', { description: error.message });
@@ -156,7 +149,8 @@ export function useMovies(currentUserId: string, isDemoUser: boolean) {
       const { error } = await supabase
         .from('collection_items')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', currentUserId);
 
       if (error) {
         toast.error('Failed to delete item', { description: error.message });
@@ -172,6 +166,7 @@ export function useMovies(currentUserId: string, isDemoUser: boolean) {
       const { error } = await supabase
         .from('collection_items')
         .delete()
+        .eq('user_id', currentUserId)
         .eq('type', typeToRemove);
 
       if (error) {
@@ -185,22 +180,20 @@ export function useMovies(currentUserId: string, isDemoUser: boolean) {
     if (isDemoUser) {
       setMovies(importedMovies);
     } else {
-      // For Supabase users: delete all existing, insert new
+      // For Supabase users: delete all existing, insert new.
+      // Explicit user_id filter is defence-in-depth — RLS would also scope this,
+      // but a misconfigured policy would otherwise wipe other users' data.
       const { error: deleteError } = await supabase
         .from('collection_items')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows for this user (RLS scoped)
+        .eq('user_id', currentUserId);
 
       if (deleteError) {
         toast.error('Import failed', { description: deleteError.message });
         return;
       }
 
-      const rows = importedMovies.map((movie) => {
-        const row = movieToRow(movie, currentUserId);
-        delete row.user_id; // Let RLS handle it... actually we need user_id
-        return movieToRow(movie, currentUserId);
-      });
+      const rows = importedMovies.map((movie) => movieToRow(movie, currentUserId));
 
       if (rows.length > 0) {
         const { error: insertError } = await supabase

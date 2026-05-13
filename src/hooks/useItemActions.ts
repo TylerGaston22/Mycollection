@@ -5,6 +5,7 @@
  */
 
 import { Movie } from '../types';
+import type { ItemStatus } from '../constants';
 
 export function useItemActions(onUpdate: (id: string, updates: Partial<Movie>) => void) {
   const toggleFavorite = (movie: Movie) => {
@@ -12,7 +13,7 @@ export function useItemActions(onUpdate: (id: string, updates: Partial<Movie>) =
   };
 
   const toggleStatus = (movie: Movie) => {
-    let newStatus: 'watched' | 'want-to-see';
+    let newStatus: ItemStatus;
     if (movie.status === 'watched') {
       newStatus = 'want-to-see';
     } else {

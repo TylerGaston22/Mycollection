@@ -7,6 +7,7 @@
  */
 
 import { Movie, CustomTab, CustomSection } from '../types';
+import type { ItemStatus } from '../constants';
 
 // --- Status label helpers ---
 
@@ -28,14 +29,14 @@ export function getWantToSeeLabel(contentType: string): string {
   return 'Want to Visit';
 }
 
-export function getStatusLabel(contentType: string, status: 'watched' | 'want-to-see'): string {
+export function getStatusLabel(contentType: string, status: ItemStatus): string {
   if (status === 'watched') {
     return getWatchedLabel(contentType);
   }
   return getWantToSeeLabel(contentType);
 }
 
-export function getOppositeStatusLabel(contentType: string, currentStatus: 'watched' | 'want-to-see'): string {
+export function getOppositeStatusLabel(contentType: string, currentStatus: ItemStatus): string {
   if (currentStatus === 'watched') {
     return getWantToSeeLabel(contentType);
   }

@@ -10,6 +10,10 @@ build/
 .env.local
 .env.*.local
 
+# ngrok config (contains authtoken — keep out of repo)
+ngrok.yml
+.ngrok/
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

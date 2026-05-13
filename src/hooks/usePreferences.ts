@@ -6,6 +6,8 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { loadDemoData, useDemoSync } from '../demo';
+import { STORAGE_KEYS } from '../constants';
 
 const DEFAULT_BACKGROUND_COLORS = {
   movie: 'current',
@@ -16,26 +18,17 @@ const DEFAULT_BACKGROUND_COLORS = {
 
 export function usePreferences(currentUserId: string, isDemoUser: boolean) {
   const [backgroundColors, setBackgroundColors] = useState(DEFAULT_BACKGROUND_COLORS);
+  const storageKey = STORAGE_KEYS.backgroundColors(currentUserId);
 
   useEffect(() => {
     if (isDemoUser) {
-      const saved = localStorage.getItem(`backgroundColors-${currentUserId}`);
-      if (saved) {
-        setBackgroundColors(JSON.parse(saved));
-      } else {
-        setBackgroundColors(DEFAULT_BACKGROUND_COLORS);
-      }
+      setBackgroundColors(loadDemoData(storageKey, DEFAULT_BACKGROUND_COLORS));
     } else {
       loadPreferences();
     }
-  }, [currentUserId, isDemoUser]);
+  }, [currentUserId, isDemoUser, storageKey]);
 
-  // Persist for demo users
-  useEffect(() => {
-    if (isDemoUser) {
-      localStorage.setItem(`backgroundColors-${currentUserId}`, JSON.stringify(backgroundColors));
-    }
-  }, [backgroundColors, currentUserId, isDemoUser]);
+  useDemoSync(storageKey, backgroundColors, isDemoUser);
 
   const loadPreferences = async () => {
     const { data } = await supabase

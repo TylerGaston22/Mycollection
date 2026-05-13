@@ -4,7 +4,7 @@
  * demo login that bypasses authentication entirely.
  */
 import { useState } from "react";
-import { DEMO_CREDENTIALS } from "../mock";
+import { DEMO_CREDENTIALS } from "../demo";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";

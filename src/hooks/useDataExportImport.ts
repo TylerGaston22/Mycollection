@@ -8,6 +8,7 @@
 import { toast } from "sonner@2.0.3";
 import { Movie, CustomTab, CustomSection } from '../types';
 import { validateMovie, validateCustomTab, validateCustomSection, parseCsvLine, stripHtml, sanitizeImageUrl } from '../utils/sanitize';
+import { CONTENT_TYPES, ITEM_STATUSES, DEFAULT_STATUS, RATING_MIN, RATING_MAX, type ItemStatus } from '../constants';
 
 interface ExportOptions {
   movies: Movie[];
@@ -141,21 +142,20 @@ export function useDataExportImport() {
             });
 
             // Skip rows with unrecognised type values (e.g., typos in the CSV)
-            if (!['movie', 'tv-show', 'restaurant', 'place'].includes(parsedCsvRow.type)) continue;
+            if (!(CONTENT_TYPES as readonly string[]).includes(parsedCsvRow.type)) continue;
 
             // Combine timestamp + line index to guarantee unique IDs within a single bulk import
             let parsedRatingValue: number | undefined = undefined;
             if (parsedCsvRow.rating) {
               const parsed = parseInt(parsedCsvRow.rating);
-              if (parsed >= 1 && parsed <= 5) {
+              if (parsed >= RATING_MIN && parsed <= RATING_MAX) {
                 parsedRatingValue = parsed;
               }
             }
 
-            const validStatuses = ['watched', 'want-to-see'];
-            let status: 'watched' | 'want-to-see' = 'want-to-see';
-            if (validStatuses.includes(parsedCsvRow.status)) {
-              status = parsedCsvRow.status as 'watched' | 'want-to-see';
+            let status: ItemStatus = DEFAULT_STATUS;
+            if ((ITEM_STATUSES as readonly string[]).includes(parsedCsvRow.status)) {
+              status = parsedCsvRow.status as ItemStatus;
             }
 
             newMovies.push({

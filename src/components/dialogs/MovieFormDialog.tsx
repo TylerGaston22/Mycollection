@@ -24,6 +24,7 @@ import { Movie, CustomSection } from "../../types";
 import { ThemeConfig } from "../../utils/themeConfig";
 import { getContentTypeFieldConfig, getWatchedLabel, getWantToSeeLabel, isMediaContentType } from "../../utils/contentHelpers";
 import { sanitizeImageUrl } from "../../utils/sanitize";
+import { DEFAULT_CONTENT_TYPE, type ItemStatus } from "../../constants";
 
 interface MovieFormDialogProps {
   open: boolean;
@@ -49,7 +50,7 @@ export function MovieFormDialog({
   onUpdate,
 }: MovieFormDialogProps) {
   // Determine content type: from the item being edited, the active tab, or default to 'movie'
-  const itemContentType = movie?.type ?? contentType ?? 'movie';
+  const itemContentType = movie?.type ?? contentType ?? DEFAULT_CONTENT_TYPE;
   const isEditingExistingItem = !!movie;
   const fieldConfig = getContentTypeFieldConfig(itemContentType);
   const isMovieOrTvShow = isMediaContentType(itemContentType);
@@ -57,7 +58,7 @@ export function MovieFormDialog({
   const [title, setTitle] = useState('');
   const [year, setYear] = useState('');
   const [posterUrl, setPosterUrl] = useState('');
-  const [status, setStatus] = useState<'watched' | 'want-to-see'>('watched');
+  const [status, setStatus] = useState<ItemStatus>('watched');
   const [notes, setNotes] = useState('');
   const [platform, setPlatform] = useState('');
   const [studio, setStudio] = useState('');
@@ -207,7 +208,7 @@ export function MovieFormDialog({
 
             <div className="grid gap-2">
               <Label>Status</Label>
-              <RadioGroup value={status} onValueChange={(newValue: string) => setStatus(newValue as 'watched' | 'want-to-see')}>
+              <RadioGroup value={status} onValueChange={(newValue: string) => setStatus(newValue as ItemStatus)}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="watched" id="mf-watched" />
                   <Label htmlFor="mf-watched" className="cursor-pointer">

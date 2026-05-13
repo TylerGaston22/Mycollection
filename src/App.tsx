@@ -37,6 +37,9 @@ import { useAuth } from "./hooks/useAuth";
 import { useMovies } from "./hooks/useMovies";
 import { useCustomTabs, useCustomSections } from "./hooks/useCollections";
 import { usePreferences } from "./hooks/usePreferences";
+import { useDialogState } from "./hooks/useDialogState";
+import { useCollectionStats } from "./hooks/useCollectionStats";
+import { DEFAULT_CONTENT_TYPE } from "./constants";
 
 export default function App() {
   const auth = useAuth();
@@ -45,20 +48,14 @@ export default function App() {
   const { customTabs, setCustomTabs, addCustomTab: addTab, removeTab } = useCustomTabs(auth.currentUserId, auth.isDemoUser);
   const { customSections, setCustomSections, addCustomSection: addSection, removeByContentType } = useCustomSections(auth.currentUserId, auth.isDemoUser);
 
-  // UI state
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isAddTabDialogOpen, setIsAddTabDialogOpen] = useState(false);
-  const [isAddSectionDialogOpen, setIsAddSectionDialogOpen] = useState(false);
-  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
-  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
-  const [isProfileSwitcherOpen, setIsProfileSwitcherOpen] = useState(false);
-  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  // Dialog open/close state, keyed by dialog name
+  const dialogs = useDialogState();
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  const [contentType, setContentType] = useState<string>('movie');
+  const [contentType, setContentType] = useState<string>(DEFAULT_CONTENT_TYPE);
   const [activeSection, setActiveSection] = useState<string>('all');
   const [tabToDelete, setTabToDelete] = useState<CustomTab | null>(null);
-  const [expandedCategory, setExpandedCategory] = useState<string>('movie');
+  const [expandedCategory, setExpandedCategory] = useState<string>(DEFAULT_CONTENT_TYPE);
 
   // Reset to "all" section when content type changes
   useEffect(() => {
@@ -81,7 +78,7 @@ export default function App() {
     removeTab(tabId);
     removeByType(tabId);
     removeByContentType(tabId);
-    if (contentType === tabId) setContentType('movie');
+    if (contentType === tabId) setContentType(DEFAULT_CONTENT_TYPE);
     setTabToDelete(null);
   };
 
@@ -91,11 +88,7 @@ export default function App() {
     setCustomSections(data.customSections);
   };
 
-  // Counts are computed from the unified `movies` array, which holds all content types
-  const movieCount = movies.filter((collectionItem) => collectionItem.type === 'movie').length;
-  const tvShowCount = movies.filter((collectionItem) => collectionItem.type === 'tv-show').length;
-  const restaurantCount = movies.filter((collectionItem) => collectionItem.type === 'restaurant').length;
-  const placeCount = movies.filter((collectionItem) => collectionItem.type === 'place').length;
+  const { movieCount, tvShowCount, restaurantCount, placeCount } = useCollectionStats(movies);
 
   // Custom tabs don't have a saved theme, so fall back to 'current' (default Ghibli theme)
   const activeThemeId = backgroundColors[contentType as keyof typeof backgroundColors] || 'current';
@@ -137,24 +130,24 @@ export default function App() {
           onActiveSectionChange={setActiveSection}
           onExpandedCategoryChange={setExpandedCategory}
 
-          onAddDialogOpen={() => setIsAddDialogOpen(true)}
-          onAddSectionDialogOpen={() => setIsAddSectionDialogOpen(true)}
-          onAddTabDialogOpen={() => setIsAddTabDialogOpen(true)}
-          onProfileDialogOpen={() => setIsProfileDialogOpen(true)}
-          onSettingsDialogOpen={() => setIsSettingsDialogOpen(true)}
-          onProfileSwitcherOpen={() => setIsProfileSwitcherOpen(true)}
+          onAddDialogOpen={() => dialogs.open('add')}
+          onAddSectionDialogOpen={() => dialogs.open('addSection')}
+          onAddTabDialogOpen={() => dialogs.open('addTab')}
+          onProfileDialogOpen={() => dialogs.open('profile')}
+          onSettingsDialogOpen={() => dialogs.open('settings')}
+          onProfileSwitcherOpen={() => dialogs.open('profileSwitcher')}
           onLogout={auth.handleLogout}
           onTabDelete={(tab) => setTabToDelete(tab)}
           onMovieUpdate={updateMovie}
           onMovieDelete={deleteMovie}
           onMovieClick={setSelectedMovie}
-          onShareDialogOpen={() => setIsShareDialogOpen(true)}
+          onShareDialogOpen={() => dialogs.open('share')}
           getSectionContent={getItemsForSection}
         />
 
         <MovieFormDialog
-          open={isAddDialogOpen}
-          onOpenChange={setIsAddDialogOpen}
+          open={dialogs.isOpen('add')}
+          onOpenChange={(v) => dialogs.setOpen('add', v)}
           onAdd={addMovie}
           contentType={contentType}
           customSections={customSections}
@@ -163,23 +156,23 @@ export default function App() {
         />
 
         <AddTabDialog
-          open={isAddTabDialogOpen}
-          onOpenChange={setIsAddTabDialogOpen}
+          open={dialogs.isOpen('addTab')}
+          onOpenChange={(v) => dialogs.setOpen('addTab', v)}
           onAdd={handleAddCustomTab}
           currentTheme={currentTheme}
         />
 
         <AddSectionDialog
-          open={isAddSectionDialogOpen}
-          onOpenChange={setIsAddSectionDialogOpen}
+          open={dialogs.isOpen('addSection')}
+          onOpenChange={(v) => dialogs.setOpen('addSection', v)}
           onAdd={handleAddCustomSection}
           contentType={contentType}
           currentTheme={currentTheme}
         />
 
         <ProfileDialog
-          open={isProfileDialogOpen}
-          onOpenChange={setIsProfileDialogOpen}
+          open={dialogs.isOpen('profile')}
+          onOpenChange={(v) => dialogs.setOpen('profile', v)}
           currentUser={auth.currentUser}
           movieCount={movieCount}
           tvShowCount={tvShowCount}
@@ -193,8 +186,8 @@ export default function App() {
         />
 
         <ProfileSwitcherDialog
-          open={isProfileSwitcherOpen}
-          onOpenChange={setIsProfileSwitcherOpen}
+          open={dialogs.isOpen('profileSwitcher')}
+          onOpenChange={(v) => dialogs.setOpen('profileSwitcher', v)}
           users={auth.users}
           currentUserId={auth.currentUserId}
           onSwitchProfile={auth.handleSwitchProfile}
@@ -202,8 +195,8 @@ export default function App() {
         />
 
         <SettingsDialog
-          open={isSettingsDialogOpen}
-          onOpenChange={setIsSettingsDialogOpen}
+          open={dialogs.isOpen('settings')}
+          onOpenChange={(v) => dialogs.setOpen('settings', v)}
           movies={movies}
           customTabs={customTabs}
           customSections={customSections}
@@ -226,8 +219,8 @@ export default function App() {
         />
 
         <ShareDialog
-          open={isShareDialogOpen}
-          onOpenChange={setIsShareDialogOpen}
+          open={dialogs.isOpen('share')}
+          onOpenChange={(v) => dialogs.setOpen('share', v)}
           movies={getItemsForSection(activeSection)}
           categoryName={getCategoryDisplayName(contentType, customTabs)}
           sectionName={getSectionDisplayName(activeSection, contentType, customSections, customTabs)}

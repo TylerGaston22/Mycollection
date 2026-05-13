@@ -8,33 +8,18 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from "sonner@2.0.3";
 import { supabase } from '../lib/supabase';
 import { CustomTab, CustomSection } from '../types';
+import { loadDemoData, useDemoSync } from '../demo';
+import { STORAGE_KEYS } from '../constants';
 
 export function useCustomTabs(currentUserId: string, isDemoUser: boolean) {
   const [customTabs, setCustomTabs] = useState<CustomTab[]>([]);
-
-  useEffect(() => {
-    if (isDemoUser) {
-      const saved = localStorage.getItem(`customTabs-${currentUserId}`);
-      if (saved) {
-        setCustomTabs(JSON.parse(saved));
-      } else {
-        setCustomTabs([]);
-      }
-    } else {
-      loadTabs();
-    }
-  }, [currentUserId, isDemoUser]);
-
-  useEffect(() => {
-    if (isDemoUser) {
-      localStorage.setItem(`customTabs-${currentUserId}`, JSON.stringify(customTabs));
-    }
-  }, [customTabs, currentUserId, isDemoUser]);
+  const storageKey = STORAGE_KEYS.customTabs(currentUserId);
 
   const loadTabs = useCallback(async () => {
     const { data, error } = await supabase
       .from('custom_tabs')
       .select('*')
+      .eq('user_id', currentUserId)
       .order('created_at', { ascending: true });
 
     if (error) {
@@ -47,7 +32,17 @@ export function useCustomTabs(currentUserId: string, isDemoUser: boolean) {
       name: row.name,
       icon: row.icon,
     })));
-  }, []);
+  }, [currentUserId]);
+
+  useEffect(() => {
+    if (isDemoUser) {
+      setCustomTabs(loadDemoData<CustomTab[]>(storageKey, []));
+    } else {
+      loadTabs();
+    }
+  }, [currentUserId, isDemoUser, storageKey, loadTabs]);
+
+  useDemoSync(storageKey, customTabs, isDemoUser);
 
   const addCustomTab = async (tab: Omit<CustomTab, 'id'>): Promise<CustomTab> => {
     if (isDemoUser) {
@@ -81,7 +76,8 @@ export function useCustomTabs(currentUserId: string, isDemoUser: boolean) {
       const { error } = await supabase
         .from('custom_tabs')
         .delete()
-        .eq('id', tabId);
+        .eq('id', tabId)
+        .eq('user_id', currentUserId);
 
       if (error) {
         toast.error('Failed to delete tab', { description: error.message });
@@ -95,30 +91,13 @@ export function useCustomTabs(currentUserId: string, isDemoUser: boolean) {
 
 export function useCustomSections(currentUserId: string, isDemoUser: boolean) {
   const [customSections, setCustomSections] = useState<CustomSection[]>([]);
-
-  useEffect(() => {
-    if (isDemoUser) {
-      const saved = localStorage.getItem(`customSections-${currentUserId}`);
-      if (saved) {
-        setCustomSections(JSON.parse(saved));
-      } else {
-        setCustomSections([]);
-      }
-    } else {
-      loadSections();
-    }
-  }, [currentUserId, isDemoUser]);
-
-  useEffect(() => {
-    if (isDemoUser) {
-      localStorage.setItem(`customSections-${currentUserId}`, JSON.stringify(customSections));
-    }
-  }, [customSections, currentUserId, isDemoUser]);
+  const storageKey = STORAGE_KEYS.customSections(currentUserId);
 
   const loadSections = useCallback(async () => {
     const { data, error } = await supabase
       .from('custom_sections')
       .select('*')
+      .eq('user_id', currentUserId)
       .order('created_at', { ascending: true });
 
     if (error) {
@@ -131,7 +110,17 @@ export function useCustomSections(currentUserId: string, isDemoUser: boolean) {
       name: row.name,
       contentType: row.content_type,
     })));
-  }, []);
+  }, [currentUserId]);
+
+  useEffect(() => {
+    if (isDemoUser) {
+      setCustomSections(loadDemoData<CustomSection[]>(storageKey, []));
+    } else {
+      loadSections();
+    }
+  }, [currentUserId, isDemoUser, storageKey, loadSections]);
+
+  useDemoSync(storageKey, customSections, isDemoUser);
 
   const addCustomSection = async (section: Omit<CustomSection, 'id'>): Promise<CustomSection> => {
     if (isDemoUser) {
@@ -164,6 +153,7 @@ export function useCustomSections(currentUserId: string, isDemoUser: boolean) {
       const { error } = await supabase
         .from('custom_sections')
         .delete()
+        .eq('user_id', currentUserId)
         .eq('content_type', contentType);
 
       if (error) {
