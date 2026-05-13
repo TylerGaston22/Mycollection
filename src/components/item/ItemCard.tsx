@@ -31,7 +31,7 @@ function PosterImage({ src, alt, className }: { src: string; alt: string; classN
   const [hasImageLoadError, setHasImageLoadError] = useState(false);
   if (hasImageLoadError) {
     return (
-      <div className={`inline-block bg-gray-100 flex items-center justify-center w-full h-full ${className ?? ''}`}>
+      <div className={`inline-block bg-muted flex items-center justify-center w-full h-full ${className ?? ''}`}>
         <img src={ERROR_IMG} alt="Error loading image" />
       </div>
     );

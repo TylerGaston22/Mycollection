@@ -142,12 +142,12 @@ export function FormatGuideDialog({ open, onOpenChange }: FormatGuideDialogProps
             </div>
           </div>
 
-          <div className="bg-blue-50 p-4 rounded-lg space-y-2">
+          <div className="bg-accent p-4 rounded-lg space-y-2">
             <h4 className="font-semibold text-sm flex items-center gap-2">💡 Pro Tip: Use AI to Format Your List</h4>
             <p className="text-sm text-muted-foreground">
               Copy the format above and paste it into ChatGPT or Claude along with your list of items/shows/places.
             </p>
-            <div className="bg-white p-3 rounded text-sm italic border">
+            <div className="bg-background p-3 rounded text-sm italic border">
               "Please format my list according to this CSV format: [paste format here]. Here's my list: [paste your list]"
             </div>
             <div className="flex items-center justify-between mt-2">
