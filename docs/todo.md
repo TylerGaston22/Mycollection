@@ -6,20 +6,18 @@ Short list of concrete next actions, prioritized. Cross items off as you finish 
 
 ## 🔴 Top priority — do these next
 
-### 1. Verify Supabase is wired up end-to-end
-This has been hanging since the very first session. Nothing real works until it's verified.
+### 1. ~~Verify schema applied in Supabase~~ ✅ Done 2026-05-14
+Tables, policies, and `handle_new_user` trigger all confirmed in the Supabase dashboard.
 
-Steps:
-1. Open your Supabase project dashboard → **SQL Editor** → **+ New query**.
-2. Paste the contents of [supabase/schema.sql](../supabase/schema.sql) → **Run**. Should see "Success. No rows returned."
-3. In the running app, click **Sign Up**, create a test account with a real email.
-4. Confirm via the email link (or disable email confirmation in **Authentication → Providers → Email** in Supabase if you don't want to confirm every test signup).
-5. Add an item, sign out, sign back in. Confirm the item is still there.
-6. As a bonus: verify RLS by signing up a second user and confirming they can't see the first user's items.
+### 2. End-to-end smoke test (currently in progress)
+Sign-up + auth + persistence round-trip. Steps remaining:
+- Sign up a real test account through `npm run dev`
+- Confirm via email (or disable email confirmation in Supabase under **Authentication → Providers → Email**)
+- Add an item, verify it appears in `collection_items` in the Supabase Table Editor
+- Sign out, sign back in, confirm the item is still there
+- (Bonus) Sign up a second user and confirm RLS prevents them from reading the first user's items
 
-If anything in steps 1-6 breaks, that's the next thing to fix.
-
-### 2. `npm audit fix`
+### 3. `npm audit fix`
 3 vulnerabilities flagged since deps were installed (1 moderate, 2 high). Should be cleaned up before any production push.
 
 ```
@@ -68,4 +66,4 @@ Both require Supabase schema additions and are multi-day features. Don't start w
 
 ---
 
-_Last touched: 2026-05-13_
+_Last touched: 2026-05-14_
