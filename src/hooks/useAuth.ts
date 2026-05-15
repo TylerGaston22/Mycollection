@@ -12,6 +12,7 @@ import { mockUsers, DEMO_USER_ID, DEMO_CREDENTIALS } from '../demo';
 import { User } from '../types';
 
 const DEMO_MODE = 'demo';
+const DEMO_SESSION_KEY = 'mycollection.demoSignedIn';
 
 export function useAuth() {
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -21,7 +22,7 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(true);
   const [authMode, setAuthMode] = useState<'demo' | 'supabase'>(DEMO_MODE);
 
-  // Check for existing Supabase session on mount
+  // Check for existing Supabase session on mount (falls back to persisted demo session)
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -31,6 +32,11 @@ export function useAuth() {
         setCurrentUser(profile);
         setIsSignedIn(true);
         setAuthMode('supabase');
+      } else if (localStorage.getItem(DEMO_SESSION_KEY) === '1') {
+        setIsSignedIn(true);
+        setCurrentUserId(DEMO_USER_ID);
+        setCurrentUser(mockUsers[0]);
+        setAuthMode(DEMO_MODE);
       }
       setIsLoading(false);
     };
@@ -91,6 +97,7 @@ export function useAuth() {
   const handleSignIn = async (emailOrUsername: string, password: string) => {
     // Demo account shortcut
     if (emailOrUsername === DEMO_CREDENTIALS.username && password === DEMO_CREDENTIALS.password) {
+      localStorage.setItem(DEMO_SESSION_KEY, '1');
       setIsSignedIn(true);
       setShowSignInPage(false);
       setCurrentUserId(DEMO_USER_ID);
@@ -135,6 +142,7 @@ export function useAuth() {
     if (authMode === 'supabase') {
       await supabase.auth.signOut();
     }
+    localStorage.removeItem(DEMO_SESSION_KEY);
     setIsSignedIn(false);
     setShowSignInPage(false);
     setCurrentUserId(DEMO_USER_ID);
