@@ -9,13 +9,8 @@ Short list of concrete next actions, prioritized. Cross items off as you finish 
 ### 1. ~~Verify schema applied in Supabase~~ ✅ Done 2026-05-14
 Tables, policies, and `handle_new_user` trigger all confirmed in the Supabase dashboard.
 
-### 2. End-to-end smoke test (currently in progress)
-Sign-up + auth + persistence round-trip. Steps remaining:
-- Sign up a real test account through `npm run dev`
-- Confirm via email (or disable email confirmation in Supabase under **Authentication → Providers → Email**)
-- Add an item, verify it appears in `collection_items` in the Supabase Table Editor
-- Sign out, sign back in, confirm the item is still there
-- (Bonus) Sign up a second user and confirm RLS prevents them from reading the first user's items
+### 2. ~~End-to-end smoke test~~ ✅ Done 2026-05-14
+Sign-up + sign-in + adding items + persistence across sign-out all verified. Email confirmation disabled in Supabase to skip the localhost redirect issue. RLS bonus check (second user can't see first user's items) still untested — flag for any future session if you want to be paranoid.
 
 ### 3. `npm audit fix`
 3 vulnerabilities flagged since deps were installed (1 moderate, 2 high). Should be cleaned up before any production push.
@@ -69,4 +64,4 @@ Both require Supabase schema additions and are multi-day features. Don't start w
 
 ---
 
-_Last touched: 2026-05-14_
+_Last touched: 2026-05-14 (post smoke-test)_

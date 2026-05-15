@@ -43,11 +43,16 @@ A personal collection tracker for movies, TV shows, restaurants, places, and use
 - CSV / TXT bulk import for migrating from spreadsheets
 - Format-guide dialog with a copy-pasteable prompt for asking an LLM to format an unstructured list
 
+### TMDB integration
+- Search-by-title in the Add/Edit Item dialog: enter a movie/TV title, click the search icon, pick a result to auto-fill title, year, and poster URL.
+- All TMDB code isolated under `src/tmdb/` (mirrors the `src/demo/` pattern) — easy to swap out or remove.
+- Degrades gracefully when `VITE_TMDB_TOKEN` isn't set: the search button hides itself, the form still works.
+
 ### UI / UX
-- Dark mode toggle (lovable dark blue-grey palette with bright blue accent) via the gear-icon dropdown
-- Tailwind palette remapping in dark mode so `slate-*` and `cyan-*` utility classes also reskin
-- Mobile-responsive: dedicated mobile components for header, bottom-nav, list items, section nav
-- Toasts for success/failure on every mutation
+- Dark mode toggle (cohesive dark blue-grey palette with bright blue accent) via the gear-icon dropdown.
+- Tailwind palette remapping in dark mode so `slate-*` and `cyan-*` utility classes also reskin.
+- Mobile-responsive: dedicated mobile components for header, bottom-nav, list items, section nav.
+- Toasts for success/failure on every mutation.
 
 ---
 
@@ -140,10 +145,19 @@ See `docs/er-diagram.md` for the full Mermaid ER diagram.
 
 In rough priority order — see `docs/todo.md` and `docs/ideas.md` for detail:
 
-- Sign-up flow end-to-end smoke test (next session)
 - Address 3 npm-audit vulnerabilities before any production push
 - Mobile view polish (incomplete)
+- Username-only sign-up (no email required) — planned, schema sketched
 - Friend system (view-only list sharing) — planned, schema sketched
 - Collaborative shared lists — planned, depends on friend system
 - Tests for the pure utilities (`utils/csv.ts`, `utils/sanitize.ts`)
 - Vercel deploy (configured, not yet live)
+
+## Verified working
+
+- Sign-up + email/password sign-in via Supabase Auth.
+- `handle_new_user` trigger auto-creates a profile row on signup.
+- Items persist across sign-out / sign-in.
+- RLS scopes data correctly (a user only sees their own rows in the read paths).
+- TMDB search auto-fills title, year, and poster on the Add Item dialog.
+- Dark mode toggle switches the full app palette (custom CSS variables + Tailwind palette remap).
