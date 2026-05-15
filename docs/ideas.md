@@ -52,6 +52,31 @@ Update this file as new ideas come up. Cross items off (or delete them) when the
 **Why deferred:** Desktop view was the priority.
 **When to do:** Before pitching the app to mobile users / before publishing.
 
+### Username-only sign-up (no email required)
+**What:** Let users sign up with just a username + password — no email — for users who don't want to link a real address.
+
+**Approach — synthetic emails:** Supabase Auth requires an email as the identifier. The trick is to synthesize one when the user supplies only a username:
+- Signup: `username "alice"` + password → call `supabase.auth.signUp({ email: 'alice@no-email.mycollection.local', password })`. Domain choice doesn't matter as long as it's consistent and not a real receivable domain.
+- Sign-in: accept a single field that's either an email or a username. If it contains `@`, treat as email; otherwise append the synthetic domain.
+- Email confirmation must be off for synthetic emails (which is fine — they're unreachable). Either disable confirmation globally or skip the confirm flow for the synthetic domain.
+
+**Schema impact:**
+- Add `unique` constraint on `profiles.username` (currently the column exists but isn't unique-enforced — two users could pick the same username today).
+- Add a check constraint or app-level validation rejecting usernames that contain `@` (so they don't collide with the email parser).
+
+**UI:**
+- Sign-up form gains a mode toggle: "Email" / "Username only".
+- Sign-in form: single combined "Email or username" input.
+
+**The real downside — password recovery:**
+- Email users can use Supabase's built-in password reset email link.
+- Username-only users *cannot recover their password* if they forget it — there's no email to send the link to. Options to mitigate, in order of cost:
+  1. Show a clear warning at signup: "Without an email, lost passwords cannot be recovered."
+  2. Offer a one-time **recovery code** at signup (a random 12-character string) that the user must save. Recovery flow accepts username + recovery code → forced password reset. Requires a `recovery_codes` table with hashed codes.
+  3. Offer to *upgrade* a username-only account to an email account later: change `email` on the auth row from synthetic to a real address, send confirmation. Supabase supports email change.
+
+**When to do:** When you actually have users asking for it. Until then it's optional complexity. Schema/RLS work is light; the recovery-code system (if added) is the biggest chunk.
+
 ### Friend system (view-only list sharing)
 **What:** Users can send friend requests, accept/decline, and view friends' lists in read-only mode. Each user has a "list visibility" setting (private / friends-only / public).
 **Schema impact:** New `friendships` table — columns `(user_id_a, user_id_b, status)` with status `pending | accepted | blocked`. RLS: a user can SELECT rows where they're either party; INSERT only with self as `user_id_a`; UPDATE only as `user_id_b` (to accept/decline). Also add `list_visibility` column to `profiles`, default `private`.
