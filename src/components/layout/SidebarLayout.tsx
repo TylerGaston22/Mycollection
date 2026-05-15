@@ -1,8 +1,9 @@
 /**
- * SidebarLayout – top-level layout wrapper.
- * On desktop: composes the fixed Sidebar and scrollable MainContent side by side.
- * On mobile: renders a Goodreads-style layout with a top header, horizontal
- * section chips, full-width content, and a bottom tab bar.
+ * SidebarLayout – top-level layout wrapper that picks mobile vs desktop.
+ * Desktop: Sidebar + DesktopMainContent side by side.
+ * Mobile: MobileHeader + MobileMainContent + MobileBottomNav stacked.
+ * Each branch uses its own dedicated content component so the two layouts
+ * can be styled independently.
  */
 
 import { Item, CustomTab, CustomSection, User } from "../../types";
@@ -10,7 +11,8 @@ import { ThemeConfig } from "../../utils/themeConfig";
 import { getCategoryDisplayName } from "../../utils/contentHelpers";
 import { useIsMobile } from "../../hooks/useIsMobile";
 import { Sidebar } from "../navigation/Sidebar";
-import { MainContent } from "./MainContent";
+import { DesktopMainContent } from "./DesktopMainContent";
+import { MobileMainContent } from "./MobileMainContent";
 import { MobileHeader } from "../mobile/MobileHeader";
 import { MobileBottomNav } from "../mobile/MobileBottomNav";
 import { MobileSectionNav } from "../mobile/MobileSectionNav";
@@ -80,7 +82,6 @@ export function SidebarLayout({
 }: SidebarLayoutProps) {
   const isMobile = useIsMobile();
 
-  // Mobile: top header + section chips + full-width content + bottom tab bar
   if (isMobile) {
     return (
       <div className="relative z-10 min-h-screen pt-16 pb-16">
@@ -92,7 +93,7 @@ export function SidebarLayout({
           onAddDialogOpen={onAddDialogOpen}
         />
 
-        <MainContent
+        <MobileMainContent
           items={items}
           customTabs={customTabs}
           customSections={customSections}
@@ -100,13 +101,9 @@ export function SidebarLayout({
           activeSection={activeSection}
           currentTheme={currentTheme}
           onAddDialogOpen={onAddDialogOpen}
-          onAddSectionDialogOpen={onAddSectionDialogOpen}
-          onShareDialogOpen={onShareDialogOpen}
           onItemUpdate={onItemUpdate}
-          onItemDelete={onItemDelete}
           onItemClick={onItemClick}
           getSectionContent={getSectionContent}
-          isMobile={true}
           mobileSectionNav={
             <MobileSectionNav
               contentType={contentType}
@@ -136,7 +133,6 @@ export function SidebarLayout({
     );
   }
 
-  // Desktop: sidebar + main content side by side
   return (
     <div className="relative z-10 flex min-h-screen">
       <Sidebar
@@ -163,7 +159,7 @@ export function SidebarLayout({
         onTabDelete={onTabDelete}
       />
 
-      <MainContent
+      <DesktopMainContent
         items={items}
         customTabs={customTabs}
         customSections={customSections}
