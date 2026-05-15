@@ -24,6 +24,7 @@ import { Item, CustomSection } from "../../types";
 import { ThemeConfig } from "../../utils/themeConfig";
 import { getContentTypeFieldConfig, getWatchedLabel, getWantToSeeLabel, isMediaContentType } from "../../utils/contentHelpers";
 import { sanitizeImageUrl } from "../../utils/sanitize";
+import { TmdbSearchableInput } from "../../tmdb";
 import { DEFAULT_CONTENT_TYPE, type ItemStatus } from "../../constants";
 
 interface MovieFormDialogProps {
@@ -66,12 +67,15 @@ export function ItemFormDialog({
   const [seasons, setSeasons] = useState('');
   const [episodes, setEpisodes] = useState('');
   const [selectedSections, setSelectedSections] = useState<string[]>([]);
+  // Increments each time the dialog opens, used to clear TMDB results inside the search input
+  const [tmdbResetCount, setTmdbResetCount] = useState(0);
 
   const sectionsForCurrentContentType = customSections.filter((section) => section.contentType === itemContentType);
 
   // Populate form fields when the dialog opens (edit mode copies from item, add mode resets)
   useEffect(() => {
     if (!open) return;
+    setTmdbResetCount((count) => count + 1);
     if (item) {
       setTitle(item.title);
       setYear(item.year || '');
@@ -177,11 +181,18 @@ export function ItemFormDialog({
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="mf-title">{fieldConfig.titleFieldLabel} *</Label>
-              <Input
+              <TmdbSearchableInput
                 id="mf-title"
-                placeholder={`Enter ${fieldConfig.displayLabel.toLowerCase()} ${fieldConfig.titleFieldWord}`}
+                contentType={itemContentType}
                 value={title}
-                onChange={(event) => setTitle(event.target.value)}
+                onChange={setTitle}
+                onPick={(result) => {
+                  setTitle(result.title);
+                  if (result.year) setYear(result.year);
+                  if (result.posterUrl) setPosterUrl(result.posterUrl);
+                }}
+                resetSignal={tmdbResetCount}
+                placeholder={`Enter ${fieldConfig.displayLabel.toLowerCase()} ${fieldConfig.titleFieldWord}`}
                 required
               />
             </div>
