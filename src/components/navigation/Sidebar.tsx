@@ -7,7 +7,7 @@
  */
 
 import { Button } from "../ui/button";
-import { Plus, Film, Tv, UtensilsCrossed, MapPin, User, Settings, LogOut, Star, Moon, Sun, SlidersHorizontal } from 'lucide-react';
+import { Plus, Film, Tv, UtensilsCrossed, MapPin, Settings, LogOut, Star, Moon, Sun, SlidersHorizontal } from 'lucide-react';
 import { useTheme } from "next-themes";
 import { Item, CustomTab, CustomSection } from "../../types";
 import type { User as UserType } from "../../types";
@@ -126,42 +126,26 @@ export function Sidebar({
     >
       {/* User Profile Section */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg"
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onProfileDialogOpen}
+            aria-label="Open profile"
+            title="Open profile"
+            className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg cursor-pointer transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2"
             style={{
-              background: `linear-gradient(to bottom right, ${currentTheme.accentColor}, ${currentTheme.accentColor}cc)`
+              background: `linear-gradient(to bottom right, ${currentTheme.accentColor}, ${currentTheme.accentColor}cc)`,
+              outlineColor: currentTheme.accentColor,
             }}
           >
             {currentUser.name.charAt(0)}
-          </div>
-          <div>
+          </button>
+          <button
+            onClick={onProfileDialogOpen}
+            className="flex-1 text-left cursor-pointer"
+          >
             <div className="text-white text-sm font-medium">{currentUser.name}</div>
             <div className="text-purple-300 text-xs">Signed in</div>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            onClick={onProfileDialogOpen}
-            variant="ghost"
-            size="sm"
-            style={{
-              background: `linear-gradient(to right, ${colorToRgba(currentTheme.accentColor, 0)} 0%, ${colorToRgba(currentTheme.accentColor, 0)} 100%)`,
-              color: 'white',
-            }}
-            onMouseEnter={(event: React.MouseEvent<HTMLButtonElement>) => {
-              event.currentTarget.style.background = `linear-gradient(to right, ${colorToRgba(currentTheme.accentColor, 0.2)}, ${colorToRgba(currentTheme.accentColor, 0.1)})`;
-              event.currentTarget.style.color = currentTheme.accentColor;
-            }}
-            onMouseLeave={(event: React.MouseEvent<HTMLButtonElement>) => {
-              event.currentTarget.style.background = 'transparent';
-              event.currentTarget.style.color = 'white';
-            }}
-            className="flex-1"
-          >
-            <User className="h-4 w-4 mr-1" />
-            Profile
-          </Button>
+          </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
