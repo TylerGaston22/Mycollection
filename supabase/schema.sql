@@ -1,6 +1,10 @@
 -- ============================================================
 -- My Collection – Supabase database schema
 -- Run this in your Supabase SQL Editor (Dashboard > SQL Editor)
+--
+-- This script is idempotent: tables use `create table if not exists`,
+-- policies use `drop ... if exists` + `create`, and the trigger is
+-- dropped before being recreated. Safe to re-run.
 -- ============================================================
 
 -- 1. Profiles table (extends Supabase auth.users)
@@ -16,14 +20,17 @@ create table if not exists public.profiles (
 
 alter table public.profiles enable row level security;
 
+drop policy if exists "Users can read their own profile" on public.profiles;
 create policy "Users can read their own profile"
   on public.profiles for select
   using (auth.uid() = id);
 
+drop policy if exists "Users can update their own profile" on public.profiles;
 create policy "Users can update their own profile"
   on public.profiles for update
   using (auth.uid() = id);
 
+drop policy if exists "Users can insert their own profile" on public.profiles;
 create policy "Users can insert their own profile"
   on public.profiles for insert
   with check (auth.uid() = id);
@@ -72,18 +79,22 @@ create table if not exists public.collection_items (
 
 alter table public.collection_items enable row level security;
 
+drop policy if exists "Users can read their own items" on public.collection_items;
 create policy "Users can read their own items"
   on public.collection_items for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert their own items" on public.collection_items;
 create policy "Users can insert their own items"
   on public.collection_items for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "Users can update their own items" on public.collection_items;
 create policy "Users can update their own items"
   on public.collection_items for update
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can delete their own items" on public.collection_items;
 create policy "Users can delete their own items"
   on public.collection_items for delete
   using (auth.uid() = user_id);
@@ -99,18 +110,22 @@ create table if not exists public.custom_tabs (
 
 alter table public.custom_tabs enable row level security;
 
+drop policy if exists "Users can read their own tabs" on public.custom_tabs;
 create policy "Users can read their own tabs"
   on public.custom_tabs for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert their own tabs" on public.custom_tabs;
 create policy "Users can insert their own tabs"
   on public.custom_tabs for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "Users can update their own tabs" on public.custom_tabs;
 create policy "Users can update their own tabs"
   on public.custom_tabs for update
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can delete their own tabs" on public.custom_tabs;
 create policy "Users can delete their own tabs"
   on public.custom_tabs for delete
   using (auth.uid() = user_id);
@@ -126,18 +141,22 @@ create table if not exists public.custom_sections (
 
 alter table public.custom_sections enable row level security;
 
+drop policy if exists "Users can read their own sections" on public.custom_sections;
 create policy "Users can read their own sections"
   on public.custom_sections for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert their own sections" on public.custom_sections;
 create policy "Users can insert their own sections"
   on public.custom_sections for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "Users can update their own sections" on public.custom_sections;
 create policy "Users can update their own sections"
   on public.custom_sections for update
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can delete their own sections" on public.custom_sections;
 create policy "Users can delete their own sections"
   on public.custom_sections for delete
   using (auth.uid() = user_id);
@@ -151,14 +170,17 @@ create table if not exists public.preferences (
 
 alter table public.preferences enable row level security;
 
+drop policy if exists "Users can read their own preferences" on public.preferences;
 create policy "Users can read their own preferences"
   on public.preferences for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert their own preferences" on public.preferences;
 create policy "Users can insert their own preferences"
   on public.preferences for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "Users can update their own preferences" on public.preferences;
 create policy "Users can update their own preferences"
   on public.preferences for update
   using (auth.uid() = user_id);
