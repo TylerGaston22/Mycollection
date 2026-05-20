@@ -45,10 +45,16 @@ export default function App() {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const auth = useAuth();
-  const { backgroundColors, setBackgroundColors } = usePreferences(auth.currentUserId, auth.isDemoUser);
-  const { items, setItems, addItem, updateItem, deleteItem, removeByType, importItems } = useItems(auth.currentUserId, auth.isDemoUser);
-  const { customTabs, setCustomTabs, addCustomTab: addTab, removeTab } = useCustomTabs(auth.currentUserId, auth.isDemoUser);
-  const { customSections, setCustomSections, addCustomSection: addSection, removeByContentType } = useCustomSections(auth.currentUserId, auth.isDemoUser);
+  const { backgroundColors, setBackgroundColors, isLoading: prefsLoading } = usePreferences(auth.currentUserId, auth.isDemoUser);
+  const { items, setItems, addItem, updateItem, deleteItem, removeByType, importItems, isLoading: itemsLoading } = useItems(auth.currentUserId, auth.isDemoUser);
+  const { customTabs, setCustomTabs, addCustomTab: addTab, removeTab, isLoading: tabsLoading } = useCustomTabs(auth.currentUserId, auth.isDemoUser);
+  const { customSections, setCustomSections, addCustomSection: addSection, removeByContentType, isLoading: sectionsLoading } = useCustomSections(auth.currentUserId, auth.isDemoUser);
+
+  // After a successful Supabase sign-in the auth state flips to signed-in
+  // before the data hooks have finished fetching. Keep the SignInPage mounted
+  // (with its spinner forced on) until everything is loaded so the user
+  // doesn't see a flash of the previous (demo) collection.
+  const isHydratingUserData = auth.isSignedIn && (itemsLoading || tabsLoading || sectionsLoading || prefsLoading);
 
   // Dialog open/close state, keyed by dialog name
   const dialogs = useDialogState();
@@ -99,12 +105,19 @@ export default function App() {
   // Bound helpers
   const getItemsForSection = (sectionId: string) => getSectionContent(sectionId, items, contentType);
 
-  // Decide what page to show based on auth state
+  // Decide what page to show based on auth state.
+  // When signed in but still hydrating, we keep SignInPage mounted with
+  // externalLoading=true so its spinner stays visible during the transition.
   let mainPageContent;
-  if (!auth.isSignedIn) {
-    if (auth.showSignInPage) {
+  if (!auth.isSignedIn || isHydratingUserData) {
+    if (auth.showSignInPage || isHydratingUserData) {
       mainPageContent = (
-        <SignInPage onSignIn={auth.handleSignIn} onSignUp={auth.handleSignUp} onBack={auth.handleBackToLanding} />
+        <SignInPage
+          onSignIn={auth.handleSignIn}
+          onSignUp={auth.handleSignUp}
+          onBack={auth.handleBackToLanding}
+          externalLoading={isHydratingUserData}
+        />
       );
     } else {
       mainPageContent = (

@@ -13,7 +13,9 @@ import { STORAGE_KEYS } from '../constants';
 
 export function useCustomTabs(currentUserId: string, isDemoUser: boolean) {
   const [customTabs, setCustomTabs] = useState<CustomTab[]>([]);
+  const [loadedForUserId, setLoadedForUserId] = useState<string | null>(null);
   const storageKey = STORAGE_KEYS.customTabs(currentUserId);
+  const isLoading = !isDemoUser && loadedForUserId !== currentUserId;
 
   const loadTabs = useCallback(async () => {
     const { data, error } = await supabase
@@ -32,12 +34,15 @@ export function useCustomTabs(currentUserId: string, isDemoUser: boolean) {
       name: row.name,
       icon: row.icon,
     })));
+    setLoadedForUserId(currentUserId);
   }, [currentUserId]);
 
   useEffect(() => {
     if (isDemoUser) {
       setCustomTabs(loadDemoData<CustomTab[]>(storageKey, []));
+      setLoadedForUserId(currentUserId);
     } else {
+      setCustomTabs([]);
       loadTabs();
     }
   }, [currentUserId, isDemoUser, storageKey, loadTabs]);
@@ -86,12 +91,14 @@ export function useCustomTabs(currentUserId: string, isDemoUser: boolean) {
     }
   };
 
-  return { customTabs, setCustomTabs, addCustomTab, removeTab };
+  return { customTabs, setCustomTabs, addCustomTab, removeTab, isLoading };
 }
 
 export function useCustomSections(currentUserId: string, isDemoUser: boolean) {
   const [customSections, setCustomSections] = useState<CustomSection[]>([]);
+  const [loadedForUserId, setLoadedForUserId] = useState<string | null>(null);
   const storageKey = STORAGE_KEYS.customSections(currentUserId);
+  const isLoading = !isDemoUser && loadedForUserId !== currentUserId;
 
   const loadSections = useCallback(async () => {
     const { data, error } = await supabase
@@ -110,12 +117,15 @@ export function useCustomSections(currentUserId: string, isDemoUser: boolean) {
       name: row.name,
       contentType: row.content_type,
     })));
+    setLoadedForUserId(currentUserId);
   }, [currentUserId]);
 
   useEffect(() => {
     if (isDemoUser) {
       setCustomSections(loadDemoData<CustomSection[]>(storageKey, []));
+      setLoadedForUserId(currentUserId);
     } else {
+      setCustomSections([]);
       loadSections();
     }
   }, [currentUserId, isDemoUser, storageKey, loadSections]);
@@ -163,5 +173,5 @@ export function useCustomSections(currentUserId: string, isDemoUser: boolean) {
     }
   };
 
-  return { customSections, setCustomSections, addCustomSection, removeByContentType };
+  return { customSections, setCustomSections, addCustomSection, removeByContentType, isLoading };
 }

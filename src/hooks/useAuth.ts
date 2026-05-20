@@ -117,7 +117,9 @@ export function useAuth() {
       return;
     }
 
-    setShowSignInPage(false);
+    // Leave showSignInPage=true so App.tsx keeps the SignInPage mounted
+    // with the spinner running until data hydration completes. App.tsx
+    // swaps to SidebarLayout once isSignedIn && allDataReady.
     toast.success('Signed in successfully!');
   };
 

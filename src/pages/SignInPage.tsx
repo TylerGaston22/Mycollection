@@ -14,15 +14,20 @@ interface SignInPageProps {
   onSignIn: (email: string, password: string) => void;
   onSignUp?: (email: string, password: string, name: string) => void;
   onBack: () => void;
+  // True while App.tsx is still hydrating the user's data after a
+  // successful Supabase sign-in. Keeps the button spinner visible so
+  // the user doesn't see a flash of the demo collection.
+  externalLoading?: boolean;
 }
 
-export function SignInPage({ onSignIn, onSignUp, onBack }: SignInPageProps) {
+export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false }: SignInPageProps) {
   const [isSignUpMode, setIsSignUpMode] = useState(false);
   const [enteredEmail, setEnteredEmail] = useState("");
   const [enteredPassword, setEnteredPassword] = useState("");
   const [enteredName, setEnteredName] = useState("");
   const [formValidationError, setFormValidationError] = useState("");
   const [isSignInRequestLoading, setIsSignInRequestLoading] = useState(false);
+  const isButtonLoading = isSignInRequestLoading || externalLoading;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -64,7 +69,7 @@ export function SignInPage({ onSignIn, onSignUp, onBack }: SignInPageProps) {
   };
 
   let signInButtonContent;
-  if (isSignInRequestLoading) {
+  if (isButtonLoading) {
     signInButtonContent = (
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -133,7 +138,7 @@ export function SignInPage({ onSignIn, onSignUp, onBack }: SignInPageProps) {
                   value={enteredName}
                   onChange={(event) => setEnteredName(event.target.value)}
                   className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-orange-500/50 focus:ring-orange-500/20"
-                  disabled={isSignInRequestLoading}
+                  disabled={isButtonLoading}
                 />
               </div>
             )}
@@ -149,7 +154,7 @@ export function SignInPage({ onSignIn, onSignUp, onBack }: SignInPageProps) {
                 value={enteredEmail}
                 onChange={(event) => setEnteredEmail(event.target.value)}
                 className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-orange-500/50 focus:ring-orange-500/20"
-                disabled={isSignInRequestLoading}
+                disabled={isButtonLoading}
               />
             </div>
 
@@ -164,7 +169,7 @@ export function SignInPage({ onSignIn, onSignUp, onBack }: SignInPageProps) {
                 value={enteredPassword}
                 onChange={(event) => setEnteredPassword(event.target.value)}
                 className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-orange-500/50 focus:ring-orange-500/20"
-                disabled={isSignInRequestLoading}
+                disabled={isButtonLoading}
               />
             </div>
 
@@ -179,7 +184,7 @@ export function SignInPage({ onSignIn, onSignUp, onBack }: SignInPageProps) {
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
-              disabled={isSignInRequestLoading}
+              disabled={isButtonLoading}
             >
               {signInButtonContent}
             </Button>
@@ -215,7 +220,7 @@ export function SignInPage({ onSignIn, onSignUp, onBack }: SignInPageProps) {
             onClick={handleDemoLogin}
             variant="outline"
             className="w-full border-white/10 hover:bg-white/5 py-6 rounded-xl transition-all"
-            disabled={isSignInRequestLoading}
+            disabled={isButtonLoading}
           >
             Try Demo Account
           </Button>

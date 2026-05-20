@@ -18,12 +18,16 @@ const DEFAULT_BACKGROUND_COLORS = {
 
 export function usePreferences(currentUserId: string, isDemoUser: boolean) {
   const [backgroundColors, setBackgroundColors] = useState(DEFAULT_BACKGROUND_COLORS);
+  const [loadedForUserId, setLoadedForUserId] = useState<string | null>(null);
   const storageKey = STORAGE_KEYS.backgroundColors(currentUserId);
+  const isLoading = !isDemoUser && loadedForUserId !== currentUserId;
 
   useEffect(() => {
     if (isDemoUser) {
       setBackgroundColors(loadDemoData(storageKey, DEFAULT_BACKGROUND_COLORS));
+      setLoadedForUserId(currentUserId);
     } else {
+      setBackgroundColors(DEFAULT_BACKGROUND_COLORS);
       loadPreferences();
     }
   }, [currentUserId, isDemoUser, storageKey]);
@@ -42,6 +46,7 @@ export function usePreferences(currentUserId: string, isDemoUser: boolean) {
     } else {
       setBackgroundColors(DEFAULT_BACKGROUND_COLORS);
     }
+    setLoadedForUserId(currentUserId);
   };
 
   // Wrap setBackgroundColors to also persist to Supabase
@@ -60,5 +65,5 @@ export function usePreferences(currentUserId: string, isDemoUser: boolean) {
     }
   };
 
-  return { backgroundColors, setBackgroundColors: updateBackgroundColors };
+  return { backgroundColors, setBackgroundColors: updateBackgroundColors, isLoading };
 }

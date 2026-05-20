@@ -54,7 +54,13 @@ function itemToRow(item: Partial<Item> & { type?: string }, userId: string): Rec
 
 export function useItems(currentUserId: string, isDemoUser: boolean) {
   const [items, setItems] = useState<Item[]>([]);
+  // Tracks which user's data the items array currently reflects. Derived
+  // isLoading stays true until the fetch for the current user completes,
+  // so callers (App.tsx) can keep the spinner up and avoid flashing the
+  // previous user's data.
+  const [loadedForUserId, setLoadedForUserId] = useState<string | null>(null);
   const storageKey = STORAGE_KEYS.items(currentUserId);
+  const isLoading = !isDemoUser && loadedForUserId !== currentUserId;
 
   const loadFromSupabase = useCallback(async () => {
     const { data, error } = await supabase
@@ -69,6 +75,7 @@ export function useItems(currentUserId: string, isDemoUser: boolean) {
     }
 
     setItems((data || []).map(rowToItem));
+    setLoadedForUserId(currentUserId);
   }, [currentUserId]);
 
   // Load on user change
@@ -79,7 +86,10 @@ export function useItems(currentUserId: string, isDemoUser: boolean) {
         ? mockItems
         : loadDemoData<Item[]>(storageKey, []);
       setItems(data);
+      setLoadedForUserId(currentUserId);
     } else {
+      // Clear stale items while the Supabase fetch is in flight
+      setItems([]);
       loadFromSupabase();
     }
   }, [currentUserId, isDemoUser, storageKey, loadFromSupabase]);
@@ -218,5 +228,6 @@ export function useItems(currentUserId: string, isDemoUser: boolean) {
     deleteItem,
     removeByType,
     importItems,
+    isLoading,
   };
 }
