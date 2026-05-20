@@ -15,4 +15,14 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient(
   supabaseUrl || '',
   supabaseAnonKey || '',
+  {
+    auth: {
+      // No-op lock: supabase-js defaults to navigator.locks to serialize
+      // auth across tabs, but in Codespaces dev tunnels the lock can be
+      // acquired and never released, causing signInWithPassword to hang
+      // after the HTTP response comes back. We don't need cross-tab
+      // coordination here, so just run the callback directly.
+      lock: async (_name, _acquireTimeout, fn) => await fn(),
+    },
+  },
 );
