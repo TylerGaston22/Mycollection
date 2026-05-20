@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
 } from "./components/ui/alert-dialog";
 import { Toaster } from "./components/ui/sonner";
-import ghibliBackground from 'figma:asset/dd104f7b8489f1285cea3966c272ab6ab1c18fb9.png';
+import ghibliBackground from './assets/ghibli-background.png';
 import { Item, CustomTab, CustomSection } from "./types";
 import { getTheme } from "./utils/themeConfig";
 import { getSectionDisplayName, getCategoryDisplayName, getSectionContent } from "./utils/contentHelpers";

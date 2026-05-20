@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { copyToClipboard } from "../../utils/clipboard";
 
 const FORMAT_EXAMPLE = `Title,Type,Platform,Genre,Status,Rating,Notes

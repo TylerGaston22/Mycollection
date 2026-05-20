@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { supabase } from '../lib/supabase';
 import { Item } from '../types';
 import { mockItems, DEMO_USER_ID, loadDemoData, useDemoSync } from '../demo';

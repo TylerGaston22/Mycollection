@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { supabase } from '../lib/supabase';
 import { CustomTab, CustomSection } from '../types';
 import { loadDemoData, useDemoSync } from '../demo';

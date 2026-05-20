@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { supabase } from '../lib/supabase';
 import { mockUsers, DEMO_USER_ID, DEMO_CREDENTIALS } from '../demo';
 import { User } from '../types';
@@ -141,15 +141,23 @@ export function useAuth() {
   };
 
   const handleLogout = async () => {
-    if (authMode === 'supabase') {
-      await supabase.auth.signOut();
-    }
+    // Reset local state first so the UI reflects logout instantly,
+    // regardless of whether the Supabase signOut request hangs.
+    const wasSupabaseSession = authMode === 'supabase';
     localStorage.removeItem(DEMO_SESSION_KEY);
     setIsSignedIn(false);
     setShowSignInPage(false);
     setCurrentUserId(DEMO_USER_ID);
     setCurrentUser(mockUsers[0]);
     setAuthMode(DEMO_MODE);
+
+    // Then clear the Supabase session in the background (best-effort).
+    if (wasSupabaseSession) {
+      supabase.auth.signOut().catch(() => {
+        // Swallow — local state is already cleared; if the token couldn't
+        // be invalidated server-side, it will expire on its own.
+      });
+    }
   };
 
   const handleGoToSignIn = () => setShowSignInPage(true);

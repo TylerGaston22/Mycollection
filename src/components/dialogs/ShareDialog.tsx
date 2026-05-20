@@ -18,7 +18,7 @@ import { Separator } from "../ui/separator";
 import { Copy, Download, Check, Share2 } from 'lucide-react';
 import { Item } from "../../types";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 
 interface ShareDialogProps {
   open: boolean;

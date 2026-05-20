@@ -5,7 +5,7 @@
  * file I/O and parsing code.
  */
 
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { Item, CustomTab, CustomSection } from '../types';
 import { validateItem, validateCustomTab, validateCustomSection } from '../utils/sanitize';
 import { parseCsvIntoItems, serializeItemsToCsv } from '../utils/csv';
