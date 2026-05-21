@@ -63,11 +63,17 @@ export function useAuth() {
 
   // Load or create a profile row for a Supabase user
   const loadProfile = async (userId: string, email: string): Promise<User> => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
+
+    // PGRST116 = "no rows" — expected when the trigger hasn't fired yet;
+    // fall through to the synthesized fallback profile silently.
+    if (error && error.code !== 'PGRST116') {
+      toast.error('Failed to load profile', { description: error.message });
+    }
 
     if (data) {
       return {

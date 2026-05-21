@@ -36,8 +36,8 @@ Both are bigger UI changes. Only worth doing if you want dark mode to be a flags
 ### 5. Mobile view completion
 Earlier commit said "working on mobile view" — components exist in `src/components/mobile/` but weren't finished. Tackle when you have mobile users or before publishing.
 
-### 6. Toast/banner on Supabase failures
-A few places (e.g., `usePreferences.ts` upsert) just `console.error` on failure. User has no feedback when persistence breaks. Quick win once you start using real Supabase persistence.
+### 6. ~~Toast/banner on Supabase failures~~ ✅ Done 2026-05-14
+`usePreferences.ts` upsert + load and `useAuth.ts` profile load now toast on real failures instead of silently `console.error`-ing. PGRST116 (no rows) is still treated as expected (new users with no preferences row, or sign-up trigger hasn't fired yet) and falls through to defaults silently.
 
 ### 7. Add tests for `utils/csv.ts`
 The CSV utility is a perfect first test target — pure functions, clear inputs/outputs. Whenever you regress a CSV import this is the obvious thing to set up.
@@ -49,12 +49,13 @@ The CSV utility is a perfect first test target — pure functions, clear inputs/
 
 ## 🌱 New feature ideas (longer-term)
 
-Detailed write-ups for both are in [ideas.md](./ideas.md) under "Features":
+Detailed write-ups for all three are in [ideas.md](./ideas.md) under "Features":
 
-- **Friend system (view-only list sharing)** — friend requests, view friends' lists read-only.
-- **Shared / collaborative lists** — multiple users editing the same list together. Depends on the friend system being built first.
+- **Username-only signup** (no email required) — synthetic-email auth pattern. Schema sketch + recovery-code tradeoffs already documented. Mid-effort (a few hours), single-session feasible.
+- **Friend system (view-only list sharing)** — friend requests, view friends' lists read-only. Multi-day feature.
+- **Shared / collaborative lists** — multiple users editing the same list together. Depends on the friend system being built first. Multi-day feature.
 
-Both require Supabase schema additions and are multi-day features. Don't start without a clear plan.
+All three require Supabase schema additions. Don't start without a clear plan — open ideas.md before kicking off.
 
 ---
 

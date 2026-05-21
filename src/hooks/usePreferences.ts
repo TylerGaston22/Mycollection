@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
 import { loadDemoData, useDemoSync } from '../demo';
 import { STORAGE_KEYS } from '../constants';
@@ -35,11 +36,17 @@ export function usePreferences(currentUserId: string, isDemoUser: boolean) {
   useDemoSync(storageKey, backgroundColors, isDemoUser);
 
   const loadPreferences = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('preferences')
       .select('background_colors')
       .eq('user_id', currentUserId)
       .single();
+
+    // PGRST116 = "no rows" — expected for new users who haven't saved
+    // preferences yet, fall through to defaults without toasting.
+    if (error && error.code !== 'PGRST116') {
+      toast.error('Failed to load preferences', { description: error.message });
+    }
 
     if (data) {
       setBackgroundColors(data.background_colors as typeof DEFAULT_BACKGROUND_COLORS);
@@ -59,7 +66,7 @@ export function usePreferences(currentUserId: string, isDemoUser: boolean) {
         .upsert({ user_id: currentUserId, background_colors: colors, updated_at: new Date().toISOString() })
         .then(({ error }) => {
           if (error) {
-            console.error('Failed to save preferences:', error.message);
+            toast.error('Failed to save preferences', { description: error.message });
           }
         });
     }
