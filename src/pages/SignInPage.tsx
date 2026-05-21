@@ -211,7 +211,7 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
             {/* Username-only signup: lost-password warning */}
             {isUsernameSignUp && (
               <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
-                <p className="text-yellow-200 text-xs">
+                <p className="text-white text-xs">
                   <strong>Heads up:</strong> Without an email on file, lost passwords cannot be recovered. Save your password somewhere safe.
                 </p>
               </div>
