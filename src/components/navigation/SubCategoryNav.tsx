@@ -8,6 +8,7 @@
 import { Plus } from 'lucide-react';
 import { Item, CustomSection } from "../../types";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
+import { accentColorHoverHandlers } from "../../utils/accentHover";
 import { getWatchedLabel, getWantToSeeLabel } from "../../utils/contentHelpers";
 import { SectionButton } from "./SectionButton";
 
@@ -95,8 +96,7 @@ export function SubCategoryNav({
         onClick={() => onAddSectionDialogOpen()}
         style={{ color: colorToRgba(currentTheme.accentColor, 0.6) }}
         className="w-full text-left px-3 py-2 rounded text-sm transition-all hover:bg-slate-700/50 flex items-center gap-2"
-        onMouseEnter={(event) => event.currentTarget.style.color = currentTheme.accentColor}
-        onMouseLeave={(event) => event.currentTarget.style.color = colorToRgba(currentTheme.accentColor, 0.6)}
+        {...accentColorHoverHandlers(currentTheme, { restingOpacity: 0.6 })}
       >
         <Plus className="h-3 w-3" />
         Add Subcategory

@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase';
 import { Item } from '../types';
 import { mockItems, DEMO_USER_ID, loadDemoData, useDemoSync } from '../demo';
 import { STORAGE_KEYS, type ItemStatus } from '../constants';
+import { handleSupabaseError } from '../utils/toastError';
 
 // Convert a DB row (snake_case) to a Item object (camelCase)
 function rowToItem(row: Record<string, unknown>): Item {
@@ -69,10 +70,7 @@ export function useItems(currentUserId: string, isDemoUser: boolean) {
       .eq('user_id', currentUserId)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      toast.error('Failed to load collection', { description: error.message });
-      return;
-    }
+    if (handleSupabaseError('Failed to load collection', error)) return;
 
     setItems((data || []).map(rowToItem));
     setLoadedForUserId(currentUserId);
@@ -119,10 +117,7 @@ export function useItems(currentUserId: string, isDemoUser: boolean) {
         .select()
         .single();
 
-      if (error) {
-        toast.error('Failed to add item', { description: error.message });
-        return;
-      }
+      if (handleSupabaseError('Failed to add item', error)) return;
       setItems((prev) => [rowToItem(data), ...prev]);
     }
   };
@@ -145,8 +140,7 @@ export function useItems(currentUserId: string, isDemoUser: boolean) {
         .eq('id', id)
         .eq('user_id', currentUserId);
 
-      if (error) {
-        toast.error('Failed to update item', { description: error.message });
+      if (handleSupabaseError('Failed to update item', error)) {
         loadFromSupabase(); // Revert on failure
       }
     }
@@ -162,8 +156,7 @@ export function useItems(currentUserId: string, isDemoUser: boolean) {
         .eq('id', id)
         .eq('user_id', currentUserId);
 
-      if (error) {
-        toast.error('Failed to delete item', { description: error.message });
+      if (handleSupabaseError('Failed to delete item', error)) {
         loadFromSupabase();
       }
     }
@@ -179,8 +172,7 @@ export function useItems(currentUserId: string, isDemoUser: boolean) {
         .eq('user_id', currentUserId)
         .eq('type', typeToRemove);
 
-      if (error) {
-        toast.error('Failed to remove items', { description: error.message });
+      if (handleSupabaseError('Failed to remove items', error)) {
         loadFromSupabase();
       }
     }
@@ -198,10 +190,7 @@ export function useItems(currentUserId: string, isDemoUser: boolean) {
         .delete()
         .eq('user_id', currentUserId);
 
-      if (deleteError) {
-        toast.error('Import failed', { description: deleteError.message });
-        return;
-      }
+      if (handleSupabaseError('Import failed', deleteError)) return;
 
       const rows = importedMovies.map((item) => itemToRow(item, currentUserId));
 
@@ -210,10 +199,7 @@ export function useItems(currentUserId: string, isDemoUser: boolean) {
           .from('collection_items')
           .insert(rows);
 
-        if (insertError) {
-          toast.error('Import failed', { description: insertError.message });
-          return;
-        }
+        if (handleSupabaseError('Import failed', insertError)) return;
       }
 
       loadFromSupabase();

@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "../components/ui/dialog";
 import { Button } from "../components/ui/button";
+import { ThemePrimaryButton } from "../components/ui/ThemePrimaryButton";
 import { Item } from "../types";
 import { ThemeConfig } from "../utils/themeConfig";
 import { getContentTypeFieldConfig } from "../utils/contentHelpers";
@@ -146,14 +147,13 @@ export function DicePicker({ items, contentType, currentTheme, onOpenItem }: Dic
               <Dices className="h-4 w-4 mr-2" />
               Re-roll
             </Button>
-            <Button
+            <ThemePrimaryButton
               type="button"
               onClick={handleOpenItem}
-              style={{ backgroundColor: currentTheme.accentColor }}
-              className="text-white hover:opacity-90"
+              currentTheme={currentTheme}
             >
               Open
-            </Button>
+            </ThemePrimaryButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

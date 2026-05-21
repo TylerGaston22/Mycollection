@@ -14,9 +14,11 @@ import {
 } from "../ui/dialog";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { ThemePrimaryButton } from "../ui/ThemePrimaryButton";
 import { Tv, Film, ExternalLink, Edit } from 'lucide-react';
 import { Item, CustomSection } from "../../types";
 import { ThemeConfig } from "../../utils/themeConfig";
+import { pluralize } from "../../utils/pluralize";
 import { Separator } from "../ui/separator";
 import { ItemFormDialog } from "./ItemFormDialog";
 
@@ -59,19 +61,8 @@ export function ItemDetailDialog({
     platformFieldHeadingText = 'Where to Watch';
   }
 
-  let seasonsPluralLabel;
-  if (item.seasons === 1) {
-    seasonsPluralLabel = 'season';
-  } else {
-    seasonsPluralLabel = 'seasons';
-  }
-
-  let episodesPluralLabel;
-  if (item.episodes === 1) {
-    episodesPluralLabel = 'episode';
-  } else {
-    episodesPluralLabel = 'episodes';
-  }
+  const seasonsPluralLabel = pluralize(item.seasons ?? 0, 'season');
+  const episodesPluralLabel = pluralize(item.episodes ?? 0, 'episode');
 
   let movieDetailsContent;
   if (movieHasAdditionalDetails) {
@@ -169,19 +160,16 @@ export function ItemDetailDialog({
                 {contentTypeHeaderIcon}
                 {item.title}
               </div>
-              <Button
+              <ThemePrimaryButton
                 variant="outline"
                 size="sm"
                 onClick={() => setIsMovieEditDialogOpen(true)}
-                style={currentTheme ? {
-                  backgroundColor: currentTheme.accentColor,
-                  borderColor: currentTheme.accentColor,
-                } : undefined}
-                className={currentTheme ? "text-white hover:opacity-90" : ""}
+                currentTheme={currentTheme}
+                style={currentTheme ? { borderColor: currentTheme.accentColor } : undefined}
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
-              </Button>
+              </ThemePrimaryButton>
             </DialogTitle>
             <DialogDescription>
               View and manage details for this item.

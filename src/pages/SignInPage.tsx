@@ -9,6 +9,8 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { PasswordInput } from "../components/ui/PasswordInput";
+import { AlertBox } from "../components/ui/AlertBox";
+import { DecorativeIconBox } from "../components/ui/DecorativeIconBox";
 import { Sparkles, Film, Tv, UtensilsCrossed, MapPin, ArrowLeft } from "lucide-react";
 import { isValidEmailFormat, validateUsername, AUTH_INPUT_CLASS, AUTH_CARD_CLASS } from "../auth";
 import type { SignUpMode } from "../hooks/useAuth";
@@ -183,18 +185,10 @@ export function SignInPage({ onSignIn, onSignUp, onForgotPassword, onBack, exter
 
           {/* Decorative Icons */}
           <div className="flex justify-center gap-4 mb-6">
-            <div className="p-2 bg-orange-500/10 rounded-lg">
-              <Film className="h-5 w-5 text-orange-400" />
-            </div>
-            <div className="p-2 bg-purple-500/10 rounded-lg">
-              <Tv className="h-5 w-5 text-purple-400" />
-            </div>
-            <div className="p-2 bg-blue-500/10 rounded-lg">
-              <UtensilsCrossed className="h-5 w-5 text-blue-400" />
-            </div>
-            <div className="p-2 bg-green-500/10 rounded-lg">
-              <MapPin className="h-5 w-5 text-green-400" />
-            </div>
+            <DecorativeIconBox color="orange" icon={Film} />
+            <DecorativeIconBox color="purple" icon={Tv} />
+            <DecorativeIconBox color="blue" icon={UtensilsCrossed} />
+            <DecorativeIconBox color="green" icon={MapPin} />
           </div>
 
           {/* Form */}
@@ -252,18 +246,14 @@ export function SignInPage({ onSignIn, onSignUp, onForgotPassword, onBack, exter
 
             {/* Username-only signup: lost-password warning */}
             {isUsernameSignUp && !isResetMode && (
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
-                <p className="text-white text-xs">
-                  <strong>Heads up:</strong> Without an email on file, lost passwords cannot be recovered. Save your password somewhere safe.
-                </p>
-              </div>
+              <AlertBox variant="warning">
+                <strong>Heads up:</strong> Without an email on file, lost passwords cannot be recovered. Save your password somewhere safe.
+              </AlertBox>
             )}
 
             {/* Error Message */}
             {formValidationError && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                <p className="text-red-400 text-sm">{formValidationError}</p>
-              </div>
+              <AlertBox variant="error">{formValidationError}</AlertBox>
             )}
 
             {/* Submit Button */}

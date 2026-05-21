@@ -5,10 +5,12 @@
  */
 
 import { Button } from "../ui/button";
+import { ThemePrimaryButton } from "../ui/ThemePrimaryButton";
 import { Plus, Share2 } from 'lucide-react';
 import { Item, CustomTab, CustomSection } from "../../types";
 import { ListView } from "../item/ListView";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
+import { accentColorHoverHandlers } from "../../utils/accentHover";
 import { getSectionDisplayName, getContentTypeName, getCategoryDisplayName } from "../../utils/contentHelpers";
 import { DicePicker } from "../../picker";
 
@@ -63,14 +65,13 @@ export function DesktopMainContent({
       <div className="text-center py-16">
         <p className="text-gray-400 mb-4">{emptyStateMessageText}</p>
         {activeSection === 'all' && (
-          <Button
+          <ThemePrimaryButton
             onClick={onAddDialogOpen}
-            style={{ backgroundColor: currentTheme.accentColor }}
-            className="text-white hover:opacity-90"
+            currentTheme={currentTheme}
           >
             <Plus className="mr-2 h-4 w-4" />
             Add {addButtonLabel}
-          </Button>
+          </ThemePrimaryButton>
         )}
       </div>
     );
@@ -102,14 +103,7 @@ export function DesktopMainContent({
                 variant="ghost"
                 size="sm"
                 style={{ color: colorToRgba(currentTheme.accentColor, 0.7) }}
-                onMouseEnter={(event: React.MouseEvent<HTMLButtonElement>) => {
-                  event.currentTarget.style.color = currentTheme.accentColor;
-                  event.currentTarget.style.backgroundColor = 'rgba(51, 65, 85, 0.5)';
-                }}
-                onMouseLeave={(event: React.MouseEvent<HTMLButtonElement>) => {
-                  event.currentTarget.style.color = colorToRgba(currentTheme.accentColor, 0.7);
-                  event.currentTarget.style.backgroundColor = 'transparent';
-                }}
+                {...accentColorHoverHandlers(currentTheme, { withBackground: true })}
               >
                 <Share2 className="h-4 w-4" />
               </Button>
@@ -123,14 +117,13 @@ export function DesktopMainContent({
               onOpenItem={onItemClick}
             />
 
-            <Button
+            <ThemePrimaryButton
               onClick={onAddDialogOpen}
-              style={{ backgroundColor: currentTheme.accentColor }}
-              className="text-white hover:opacity-90"
+              currentTheme={currentTheme}
             >
               <Plus className="mr-1 h-4 w-4" />
               Add {addButtonLabel}
-            </Button>
+            </ThemePrimaryButton>
 
             <Button
               onClick={onAddSectionDialogOpen}

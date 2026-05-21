@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
+import { ThemePrimaryButton } from "../ui/ThemePrimaryButton";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { CustomSection } from "../../types";
@@ -91,14 +92,13 @@ export function AddSectionDialog({ open, onOpenChange, onAdd, contentType, curre
             >
               Cancel
             </Button>
-            <Button
+            <ThemePrimaryButton
               type="submit"
               disabled={!subcategoryName.trim()}
-              style={currentTheme ? { backgroundColor: currentTheme.accentColor } : undefined}
-              className={currentTheme ? "text-white hover:opacity-90" : ""}
+              currentTheme={currentTheme}
             >
               Create Subcategory
-            </Button>
+            </ThemePrimaryButton>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -12,6 +12,7 @@ import { useTheme } from "next-themes";
 import { Item, CustomTab, CustomSection } from "../../types";
 import type { User as UserType } from "../../types";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
+import { accentGradientHoverHandlers } from "../../utils/accentHover";
 import { CategoryButton } from "./CategoryButton";
 import { SubCategoryNav } from "./SubCategoryNav";
 import {
@@ -155,14 +156,7 @@ export function Sidebar({
                   background: `linear-gradient(to right, ${colorToRgba(currentTheme.accentColor, 0)} 0%, ${colorToRgba(currentTheme.accentColor, 0)} 100%)`,
                   color: 'white',
                 }}
-                onMouseEnter={(event: React.MouseEvent<HTMLButtonElement>) => {
-                  event.currentTarget.style.background = `linear-gradient(to right, ${colorToRgba(currentTheme.accentColor, 0.2)}, ${colorToRgba(currentTheme.accentColor, 0.1)})`;
-                  event.currentTarget.style.color = currentTheme.accentColor;
-                }}
-                onMouseLeave={(event: React.MouseEvent<HTMLButtonElement>) => {
-                  event.currentTarget.style.background = 'transparent';
-                  event.currentTarget.style.color = 'white';
-                }}
+                {...accentGradientHoverHandlers(currentTheme)}
               >
                 <Settings className="h-4 w-4" />
               </Button>

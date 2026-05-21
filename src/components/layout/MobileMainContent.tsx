@@ -5,7 +5,7 @@
  */
 
 import { ReactNode } from 'react';
-import { Button } from "../ui/button";
+import { ThemePrimaryButton } from "../ui/ThemePrimaryButton";
 import { Plus } from 'lucide-react';
 import { Item, CustomTab, CustomSection } from "../../types";
 import { MobileListItem } from "../mobile/MobileListItem";
@@ -56,14 +56,13 @@ export function MobileMainContent({
       <div className="text-center py-16">
         <p className="text-gray-400 mb-4">{emptyStateMessageText}</p>
         {activeSection === 'all' && (
-          <Button
+          <ThemePrimaryButton
             onClick={onAddDialogOpen}
-            style={{ backgroundColor: currentTheme.accentColor }}
-            className="text-white hover:opacity-90"
+            currentTheme={currentTheme}
           >
             <Plus className="mr-2 h-4 w-4" />
             Add {addButtonLabel}
-          </Button>
+          </ThemePrimaryButton>
         )}
       </div>
     );

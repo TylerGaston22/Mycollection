@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
 import { loadDemoData, useDemoSync } from '../demo';
 import { STORAGE_KEYS } from '../constants';
+import { handleSupabaseError } from '../utils/toastError';
 
 const DEFAULT_BACKGROUND_COLORS = {
   item: 'current',
@@ -65,9 +66,7 @@ export function usePreferences(currentUserId: string, isDemoUser: boolean) {
         .from('preferences')
         .upsert({ user_id: currentUserId, background_colors: colors, updated_at: new Date().toISOString() })
         .then(({ error }) => {
-          if (error) {
-            toast.error('Failed to save preferences', { description: error.message });
-          }
+          handleSupabaseError('Failed to save preferences', error);
         });
     }
   };

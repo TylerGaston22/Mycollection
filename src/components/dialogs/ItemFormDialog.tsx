@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
+import { ThemePrimaryButton } from "../ui/ThemePrimaryButton";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
@@ -321,14 +322,13 @@ export function ItemFormDialog({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button
+            <ThemePrimaryButton
               type="submit"
               disabled={!title.trim()}
-              style={currentTheme ? { backgroundColor: currentTheme.accentColor } : undefined}
-              className={currentTheme ? "text-white hover:opacity-90" : ""}
+              currentTheme={currentTheme}
             >
               {submitButtonLabel}
-            </Button>
+            </ThemePrimaryButton>
           </DialogFooter>
         </form>
       </DialogContent>

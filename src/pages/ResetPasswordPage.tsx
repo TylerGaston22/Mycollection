@@ -8,6 +8,7 @@ import { useState } from "react";
 import { Button } from "../components/ui/button";
 import { Label } from "../components/ui/label";
 import { PasswordInput } from "../components/ui/PasswordInput";
+import { AlertBox } from "../components/ui/AlertBox";
 import { KeyRound, Sparkles } from "lucide-react";
 import { AUTH_INPUT_CLASS, AUTH_CARD_CLASS } from "../auth";
 
@@ -93,9 +94,7 @@ export function ResetPasswordPage({ onChangePassword }: ResetPasswordPageProps) 
             </div>
 
             {formValidationError && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                <p className="text-red-400 text-sm">{formValidationError}</p>
-              </div>
+              <AlertBox variant="error">{formValidationError}</AlertBox>
             )}
 
             <Button

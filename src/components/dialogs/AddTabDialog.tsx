@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
+import { ThemePrimaryButton } from "../ui/ThemePrimaryButton";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { CustomTab } from "../../types";
@@ -144,14 +145,13 @@ export function AddTabDialog({ open, onOpenChange, onAdd, currentTheme }: AddTab
             >
               Cancel
             </Button>
-            <Button
+            <ThemePrimaryButton
               type="submit"
               disabled={!categoryTabName.trim()}
-              style={currentTheme ? { backgroundColor: currentTheme.accentColor } : undefined}
-              className={currentTheme ? "text-white hover:opacity-90" : ""}
+              currentTheme={currentTheme}
             >
               Create Tab
-            </Button>
+            </ThemePrimaryButton>
           </DialogFooter>
         </form>
       </DialogContent>

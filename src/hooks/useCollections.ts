@@ -5,11 +5,11 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { toast } from "sonner";
 import { supabase } from '../lib/supabase';
 import { CustomTab, CustomSection } from '../types';
 import { loadDemoData, useDemoSync } from '../demo';
 import { STORAGE_KEYS } from '../constants';
+import { handleSupabaseError } from '../utils/toastError';
 
 export function useCustomTabs(currentUserId: string, isDemoUser: boolean) {
   const [customTabs, setCustomTabs] = useState<CustomTab[]>([]);
@@ -24,10 +24,7 @@ export function useCustomTabs(currentUserId: string, isDemoUser: boolean) {
       .eq('user_id', currentUserId)
       .order('created_at', { ascending: true });
 
-    if (error) {
-      toast.error('Failed to load tabs', { description: error.message });
-      return;
-    }
+    if (handleSupabaseError('Failed to load tabs', error)) return;
 
     setCustomTabs((data || []).map((row) => ({
       id: row.id,
@@ -62,8 +59,7 @@ export function useCustomTabs(currentUserId: string, isDemoUser: boolean) {
       .select()
       .single();
 
-    if (error) {
-      toast.error('Failed to create tab', { description: error.message });
+    if (handleSupabaseError('Failed to create tab', error)) {
       // Return a temporary tab so the UI doesn't break
       const fallback: CustomTab = { ...tab, id: `temp-${Date.now()}` };
       return fallback;
@@ -84,8 +80,7 @@ export function useCustomTabs(currentUserId: string, isDemoUser: boolean) {
         .eq('id', tabId)
         .eq('user_id', currentUserId);
 
-      if (error) {
-        toast.error('Failed to delete tab', { description: error.message });
+      if (handleSupabaseError('Failed to delete tab', error)) {
         loadTabs();
       }
     }
@@ -107,10 +102,7 @@ export function useCustomSections(currentUserId: string, isDemoUser: boolean) {
       .eq('user_id', currentUserId)
       .order('created_at', { ascending: true });
 
-    if (error) {
-      toast.error('Failed to load sections', { description: error.message });
-      return;
-    }
+    if (handleSupabaseError('Failed to load sections', error)) return;
 
     setCustomSections((data || []).map((row) => ({
       id: row.id,
@@ -145,8 +137,7 @@ export function useCustomSections(currentUserId: string, isDemoUser: boolean) {
       .select()
       .single();
 
-    if (error) {
-      toast.error('Failed to create section', { description: error.message });
+    if (handleSupabaseError('Failed to create section', error)) {
       const fallback: CustomSection = { ...section, id: `temp-${Date.now()}` };
       return fallback;
     }
@@ -166,8 +157,7 @@ export function useCustomSections(currentUserId: string, isDemoUser: boolean) {
         .eq('user_id', currentUserId)
         .eq('content_type', contentType);
 
-      if (error) {
-        toast.error('Failed to remove sections', { description: error.message });
+      if (handleSupabaseError('Failed to remove sections', error)) {
         loadSections();
       }
     }

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { supabase } from '../lib/supabase';
 import { mockUsers, DEMO_USER_ID, DEMO_CREDENTIALS } from '../demo';
 import { isSyntheticEmail, isValidEmailFormat, resolveSignInEmail, usernameToSyntheticEmail, validateUsername } from '../auth';
+import { handleSupabaseError } from '../utils/toastError';
 import { User } from '../types';
 
 export type SignUpMode = 'email' | 'username';
@@ -142,10 +143,7 @@ export function useAuth() {
       password,
     });
 
-    if (error) {
-      toast.error('Sign in failed', { description: error.message });
-      return;
-    }
+    if (handleSupabaseError('Sign in failed', error)) return;
 
     // Leave showSignInPage=true so App.tsx keeps the SignInPage mounted
     // with the spinner running until data hydration completes. App.tsx
@@ -233,10 +231,7 @@ export function useAuth() {
       .update(trimmed)
       .eq('id', currentUserId);
 
-    if (error) {
-      toast.error('Failed to update profile', { description: error.message });
-      return false;
-    }
+    if (handleSupabaseError('Failed to update profile', error)) return false;
 
     setCurrentUser((prev) => ({ ...prev, ...trimmed }));
     toast.success('Profile updated');
@@ -271,10 +266,7 @@ export function useAuth() {
 
     const { error } = await supabase.auth.updateUser({ email: trimmed });
 
-    if (error) {
-      toast.error('Failed to update email', { description: error.message });
-      return false;
-    }
+    if (handleSupabaseError('Failed to update email', error)) return false;
 
     toast.success('Confirmation email sent', {
       description: 'Check your new email and click the link to confirm the change.',
@@ -309,10 +301,7 @@ export function useAuth() {
       redirectTo: window.location.origin,
     });
 
-    if (error) {
-      toast.error('Failed to send reset email', { description: error.message });
-      return false;
-    }
+    if (handleSupabaseError('Failed to send reset email', error)) return false;
 
     toast.success('Reset link sent', {
       description: 'Check your email for a password reset link. (Note: Supabase always shows success here, even for unknown emails — that\'s privacy protection.)',
@@ -356,10 +345,7 @@ export function useAuth() {
 
     const { error } = await supabase.auth.updateUser({ password: newPassword });
 
-    if (error) {
-      toast.error('Failed to update password', { description: error.message });
-      return false;
-    }
+    if (handleSupabaseError('Failed to update password', error)) return false;
 
     setShowPasswordResetPage(false);
     toast.success('Password updated', { description: 'You\'re all set — signed in with your new password.' });
