@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Lock, Palette, Info, ImageIcon, Film, Tv, UtensilsCrossed, MapPin, User as UserIcon, Mail, KeyRound } from 'lucide-react';
+import { Lock, Palette, Info, ImageIcon, Film, Tv, UtensilsCrossed, MapPin, User as UserIcon, Mail, KeyRound, Eye } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -36,7 +36,7 @@ interface SettingsDialogProps {
   onBackgroundColorsChange: (colors: { item: string; 'tv-show': string; restaurant: string; place: string }) => void;
   currentUser: User;
   isDemoUser: boolean;
-  onUpdateProfile: (updates: { name?: string }) => Promise<boolean>;
+  onUpdateProfile: (updates: { name?: string; listVisibility?: 'private' | 'friends' }) => Promise<boolean>;
   onUpdateEmail: (newEmail: string) => Promise<boolean>;
   onChangePassword: (newPassword: string, currentPassword?: string) => Promise<boolean>;
 }
@@ -193,6 +193,35 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
                     </div>
                   </div>
                 </div>
+
+                {!isDemoUser && (
+                  <div className="space-y-3">
+                    <h4 className="flex items-center gap-2">
+                      <Eye className="h-4 w-4" />
+                      List visibility
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      {currentUser.listVisibility === 'friends'
+                        ? 'Your friends can see your collection (read-only).'
+                        : 'Your collection is private — only you can see it.'}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        onUpdateProfile({
+                          listVisibility:
+                            currentUser.listVisibility === 'friends' ? 'private' : 'friends',
+                        })
+                      }
+                    >
+                      {currentUser.listVisibility === 'friends'
+                        ? 'Make private'
+                        : 'Share with friends'}
+                    </Button>
+                  </div>
+                )}
 
                 {!isDemoUser && (
                   <div className="space-y-3">

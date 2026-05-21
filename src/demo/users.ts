@@ -17,5 +17,6 @@ export const mockUsers: User[] = [
     location: "",
     email: "demo@example.com",
     joinDate: "January 2026",
+    listVisibility: "private",
   },
 ];

@@ -109,6 +109,7 @@ export function useAuth() {
         profileImage: data.profile_image || undefined,
         email: displayEmail,
         joinDate: new Date(data.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+        listVisibility: (data.list_visibility === 'friends' ? 'friends' : 'private'),
       };
     }
 
@@ -121,6 +122,7 @@ export function useAuth() {
       location: '',
       email: displayEmail,
       joinDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      listVisibility: 'private',
     };
   };
 
@@ -208,32 +210,47 @@ export function useAuth() {
     }
   };
 
-  // Update editable profile fields. Currently exposed: `name`.
+  // Update editable profile fields. Exposed: name + listVisibility.
   // Demo users update in-memory only (mockUsers); Supabase users hit the
   // profiles table. Returns true on success so callers can clear "dirty" UI.
-  const handleUpdateProfile = async (updates: { name?: string }): Promise<boolean> => {
-    const trimmed: { name?: string } = {};
-    if (typeof updates.name === 'string') trimmed.name = updates.name.trim();
+  const handleUpdateProfile = async (
+    updates: { name?: string; listVisibility?: 'private' | 'friends' },
+  ): Promise<boolean> => {
+    // Build the patch — only include fields the caller actually supplied.
+    const dbUpdates: Record<string, string> = {};
+    const stateUpdates: Partial<User> = {};
 
-    if (!trimmed.name) {
-      toast.error('Name cannot be empty');
-      return false;
+    if (typeof updates.name === 'string') {
+      const trimmedName = updates.name.trim();
+      if (!trimmedName) {
+        toast.error('Name cannot be empty');
+        return false;
+      }
+      dbUpdates.name = trimmedName;
+      stateUpdates.name = trimmedName;
     }
 
+    if (updates.listVisibility) {
+      dbUpdates.list_visibility = updates.listVisibility;
+      stateUpdates.listVisibility = updates.listVisibility;
+    }
+
+    if (Object.keys(dbUpdates).length === 0) return true;
+
     if (authMode === DEMO_MODE) {
-      setCurrentUser((prev) => ({ ...prev, ...trimmed }));
+      setCurrentUser((prev) => ({ ...prev, ...stateUpdates }));
       toast.success('Profile updated');
       return true;
     }
 
     const { error } = await supabase
       .from('profiles')
-      .update(trimmed)
+      .update(dbUpdates)
       .eq('id', currentUserId);
 
     if (handleSupabaseError('Failed to update profile', error)) return false;
 
-    setCurrentUser((prev) => ({ ...prev, ...trimmed }));
+    setCurrentUser((prev) => ({ ...prev, ...stateUpdates }));
     toast.success('Profile updated');
     return true;
   };

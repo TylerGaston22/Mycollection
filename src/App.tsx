@@ -41,6 +41,7 @@ import { usePreferences } from "./hooks/usePreferences";
 import { useDialogState } from "./hooks/useDialogState";
 import { useCollectionStats } from "./hooks/useCollectionStats";
 import { DEFAULT_CONTENT_TYPE } from "./constants";
+import { FriendsDialog, useFriends } from "./friends";
 
 export default function App() {
   const { resolvedTheme } = useTheme();
@@ -50,6 +51,7 @@ export default function App() {
   const { items, setItems, addItem, updateItem, deleteItem, removeByType, importItems, isLoading: itemsLoading } = useItems(auth.currentUserId, auth.isDemoUser);
   const { customTabs, setCustomTabs, addCustomTab: addTab, removeTab, isLoading: tabsLoading } = useCustomTabs(auth.currentUserId, auth.isDemoUser);
   const { customSections, setCustomSections, addCustomSection: addSection, removeByContentType, isLoading: sectionsLoading } = useCustomSections(auth.currentUserId, auth.isDemoUser);
+  const friends = useFriends(auth.currentUserId, auth.isDemoUser);
 
   // After a successful Supabase sign-in the auth state flips to signed-in
   // before the data hooks have finished fetching. Keep the SignInPage mounted
@@ -158,6 +160,7 @@ export default function App() {
           onAddTabDialogOpen={() => dialogs.open('addTab')}
           onProfileDialogOpen={() => dialogs.open('profile')}
           onSettingsDialogOpen={() => dialogs.open('settings')}
+          onFriendsDialogOpen={() => dialogs.open('friends')}
           onLogout={auth.handleLogout}
           onTabDelete={(tab) => setTabToDelete(tab)}
           onItemUpdate={updateItem}
@@ -221,6 +224,13 @@ export default function App() {
           onUpdateProfile={auth.handleUpdateProfile}
           onUpdateEmail={auth.handleUpdateEmail}
           onChangePassword={auth.handleChangePassword}
+        />
+
+        <FriendsDialog
+          open={dialogs.isOpen('friends')}
+          onOpenChange={(v) => dialogs.setOpen('friends', v)}
+          friends={friends}
+          isDemoUser={auth.isDemoUser}
         />
 
         <ItemDetailDialog

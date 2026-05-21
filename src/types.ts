@@ -3,7 +3,9 @@
  * These interfaces are shared across all components, hooks, and utilities.
  */
 
-import type { ItemStatus } from '../constants';
+import type { ItemStatus } from './constants';
+
+export type ListVisibility = 'private' | 'friends';
 
 export interface Item {
   id: string;
@@ -44,4 +46,5 @@ export interface User {
   profileImage?: string;
   email: string;
   joinDate: string;
+  listVisibility: ListVisibility;
 }

@@ -40,6 +40,7 @@ interface SidebarLayoutProps {
   onAddTabDialogOpen: () => void;
   onProfileDialogOpen: () => void;
   onSettingsDialogOpen: () => void;
+  onFriendsDialogOpen: () => void;
   onLogout: () => void;
   onTabDelete: (tab: CustomTab) => void;
   onItemUpdate: (id: string, updates: Partial<Item>) => void;
@@ -72,6 +73,7 @@ export function SidebarLayout({
   onAddTabDialogOpen,
   onProfileDialogOpen,
   onSettingsDialogOpen,
+  onFriendsDialogOpen,
   onLogout,
   onTabDelete,
   onItemUpdate,
@@ -155,6 +157,7 @@ export function SidebarLayout({
         onAddTabDialogOpen={onAddTabDialogOpen}
         onProfileDialogOpen={onProfileDialogOpen}
         onSettingsDialogOpen={onSettingsDialogOpen}
+        onFriendsDialogOpen={onFriendsDialogOpen}
         onLogout={onLogout}
         onTabDelete={onTabDelete}
       />

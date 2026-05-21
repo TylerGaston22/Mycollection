@@ -7,7 +7,7 @@
  */
 
 import { Button } from "../ui/button";
-import { Plus, Film, Tv, UtensilsCrossed, MapPin, Settings, LogOut, Star, Moon, Sun, SlidersHorizontal } from 'lucide-react';
+import { Plus, Film, Tv, UtensilsCrossed, MapPin, Settings, LogOut, Star, Moon, Sun, SlidersHorizontal, Users } from 'lucide-react';
 import { useTheme } from "next-themes";
 import { Item, CustomTab, CustomSection } from "../../types";
 import type { User as UserType } from "../../types";
@@ -49,6 +49,7 @@ interface SidebarProps {
   onAddTabDialogOpen: () => void;
   onProfileDialogOpen: () => void;
   onSettingsDialogOpen: () => void;
+  onFriendsDialogOpen: () => void;
   onLogout: () => void;
   onTabDelete: (tab: CustomTab) => void;
 }
@@ -73,6 +74,7 @@ export function Sidebar({
   onAddTabDialogOpen,
   onProfileDialogOpen,
   onSettingsDialogOpen,
+  onFriendsDialogOpen,
   onLogout,
   onTabDelete,
 }: SidebarProps) {
@@ -165,6 +167,10 @@ export function Sidebar({
               <DropdownMenuItem onClick={() => setTheme(isDark ? "light" : "dark")}>
                 {isDark ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
                 {isDark ? "Light Mode" : "Dark Mode"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onFriendsDialogOpen}>
+                <Users className="h-4 w-4 mr-2" />
+                Friends
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onSettingsDialogOpen}>
                 <SlidersHorizontal className="h-4 w-4 mr-2" />
