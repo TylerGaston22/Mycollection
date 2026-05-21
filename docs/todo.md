@@ -36,26 +36,8 @@ Both are bigger UI changes. Only worth doing if you want dark mode to be a flags
 ### 5. In-app change password (for logged-in users)
 Add a "Change password" section in Settings → Account that lets a signed-in user set a new password without going through the email-reset roundtrip. `auth.handleChangePassword` already exists (created during #10) — just needs a UI: current password (optional, Supabase doesn't require it for an active session), new password, confirm. Mirrors the display-name / email-change pattern. ~30 min.
 
-### 6. Dice picker — random suggestion from a category
-Its own self-contained feature, isolated under `src/picker/` (same pattern as `src/demo/`, `src/tmdb/`, `src/auth/`). A small dice icon button placed in the category view; clicking it pops up a modal with one randomly chosen item from the items currently in that category.
-
-**Files:**
-- `src/picker/DicePicker.tsx` — the icon button + the result modal (self-contained — accepts the items array, renders both)
-- `src/picker/pickRandom.ts` — pure helper for the picking logic (testable; `pickRandom(items, excludeId?)` returns a new random item, optionally excluding the previously-shown one so re-roll doesn't repeat)
-- `src/picker/index.ts` — barrel
-
-**Behavior:**
-- Click the dice icon → modal opens with one item from the current category
-- "Re-roll" button picks another item from the same pool (excludes the just-shown one so it actually changes)
-- "Open item" button → opens the existing ItemDetailDialog for that item
-- Close button to dismiss
-- If the category has 0 items: friendly empty state ("Add some items first")
-- If the category has 1 item: re-roll is disabled
-
-**Defaults to consider:**
-- Probably default to rolling from the current section (e.g., only "Want to See" restaurants by default — Watched suggestions aren't actionable for the "what should I eat / watch tonight" use case). Could expose a small toggle in the modal for "include watched" later.
-
-Mid-effort (~1-2 hours), pure client-side, no schema changes.
+### 6. ~~Dice picker — random suggestion from a category~~ ✅ Done 2026-05-14
+Implemented as planned, isolated under `src/picker/` (matches `src/demo/`, `src/tmdb/`, `src/auth/`). Dice icon button sits next to the "+ Add" button on desktop; clicking pops a modal with a random item, re-roll button excludes the just-shown one so it actually changes. Empty pool disables the icon entirely; single-item pool disables re-roll. Picks from whatever the user is currently viewing (`itemsInActiveSection`) — so they can scope by navigating to Want to See / Watched / All before rolling. Mobile addition is a follow-up.
 
 ### 7. Mobile view completion
 Earlier commit said "working on mobile view" — components exist in `src/components/mobile/` but weren't finished. Tackle when you have mobile users or before publishing.

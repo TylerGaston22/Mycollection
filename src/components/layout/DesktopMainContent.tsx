@@ -10,6 +10,7 @@ import { Item, CustomTab, CustomSection } from "../../types";
 import { ListView } from "../item/ListView";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
 import { getSectionDisplayName, getContentTypeName, getCategoryDisplayName } from "../../utils/contentHelpers";
+import { DicePicker } from "../../picker";
 
 interface DesktopMainContentProps {
   items: Item[];
@@ -115,6 +116,13 @@ export function DesktopMainContent({
             )}
           </div>
           <div className="flex items-center gap-2">
+            <DicePicker
+              items={itemsInActiveSection}
+              contentType={contentType}
+              currentTheme={currentTheme}
+              onOpenItem={onItemClick}
+            />
+
             <Button
               onClick={onAddDialogOpen}
               style={{ backgroundColor: currentTheme.accentColor }}
