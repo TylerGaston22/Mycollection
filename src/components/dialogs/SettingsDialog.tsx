@@ -185,24 +185,32 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
                   </div>
                 </div>
 
-                {hasRealEmail && (
+                {!isDemoUser && (
                   <div className="space-y-3">
                     <h4 className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
                       Email
                     </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Current: <span className="font-mono">{currentUser.email}</span>
-                    </p>
+                    {hasRealEmail ? (
+                      <p className="text-sm text-muted-foreground">
+                        Current: <span className="font-mono">{currentUser.email}</span>
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        No email on file — your account is username-only. Add an email to enable password recovery.
+                      </p>
+                    )}
                     <div className="space-y-2">
-                      <Label htmlFor="settings-new-email">Change email</Label>
+                      <Label htmlFor="settings-new-email">
+                        {hasRealEmail ? 'Change email' : 'Add email'}
+                      </Label>
                       <div className="flex gap-2">
                         <Input
                           id="settings-new-email"
                           type="email"
                           value={newEmail}
                           onChange={(event) => setNewEmail(event.target.value)}
-                          placeholder="new-address@example.com"
+                          placeholder="your-address@example.com"
                           disabled={isSavingEmail}
                           autoComplete="off"
                         />
@@ -216,6 +224,7 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
                       </div>
                       <p className="text-xs text-muted-foreground">
                         We'll send a confirmation link to the new address. The change only takes effect after you click it.
+                        {!hasRealEmail && ' Once confirmed, you\'ll sign in with this email instead of your username.'}
                       </p>
                     </div>
                   </div>
