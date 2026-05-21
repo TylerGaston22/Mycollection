@@ -9,6 +9,7 @@ import { Button } from "../components/ui/button";
 import { Label } from "../components/ui/label";
 import { PasswordInput } from "../components/ui/PasswordInput";
 import { KeyRound, Sparkles } from "lucide-react";
+import { AUTH_INPUT_CLASS, AUTH_CARD_CLASS } from "../auth";
 
 interface ResetPasswordPageProps {
   onChangePassword: (newPassword: string) => Promise<boolean>;
@@ -42,7 +43,7 @@ export function ResetPasswordPage({ onChangePassword }: ResetPasswordPageProps) 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 relative z-10">
       <div className="w-full max-w-md">
-        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 shadow-2xl">
+        <div className={AUTH_CARD_CLASS}>
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 mb-4">
               <Sparkles className="h-6 w-6 text-orange-500" />
@@ -70,7 +71,7 @@ export function ResetPasswordPage({ onChangePassword }: ResetPasswordPageProps) 
                 placeholder="At least 6 characters"
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
-                className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-white/10 focus-visible:ring-0 focus-visible:border-white/10"
+                className={AUTH_INPUT_CLASS}
                 disabled={isSubmitting}
                 autoComplete="new-password"
               />
@@ -85,7 +86,7 @@ export function ResetPasswordPage({ onChangePassword }: ResetPasswordPageProps) 
                 placeholder="Re-enter password"
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
-                className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-white/10 focus-visible:ring-0 focus-visible:border-white/10"
+                className={AUTH_INPUT_CLASS}
                 disabled={isSubmitting}
                 autoComplete="new-password"
               />

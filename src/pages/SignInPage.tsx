@@ -10,7 +10,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { PasswordInput } from "../components/ui/PasswordInput";
 import { Sparkles, Film, Tv, UtensilsCrossed, MapPin, ArrowLeft } from "lucide-react";
-import { isValidEmailFormat, validateUsername } from "../auth";
+import { isValidEmailFormat, validateUsername, AUTH_INPUT_CLASS, AUTH_CARD_CLASS } from "../auth";
 import type { SignUpMode } from "../hooks/useAuth";
 
 interface SignInPageProps {
@@ -162,7 +162,7 @@ export function SignInPage({ onSignIn, onSignUp, onForgotPassword, onBack, exter
         </button>
 
         {/* Sign In Card */}
-        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 shadow-2xl">
+        <div className={AUTH_CARD_CLASS}>
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 mb-4">
@@ -210,7 +210,7 @@ export function SignInPage({ onSignIn, onSignUp, onForgotPassword, onBack, exter
                   placeholder="Enter your name"
                   value={enteredName}
                   onChange={(event) => setEnteredName(event.target.value)}
-                  className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-white/10 focus-visible:ring-0 focus-visible:border-white/10"
+                  className={AUTH_INPUT_CLASS}
                   disabled={isButtonLoading}
                 />
               </div>
@@ -226,7 +226,7 @@ export function SignInPage({ onSignIn, onSignUp, onForgotPassword, onBack, exter
                 placeholder={identifierPlaceholder}
                 value={enteredIdentifier}
                 onChange={(event) => setEnteredIdentifier(event.target.value)}
-                className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-white/10 focus-visible:ring-0 focus-visible:border-white/10"
+                className={AUTH_INPUT_CLASS}
                 disabled={isButtonLoading}
                 autoCapitalize="off"
                 autoCorrect="off"
@@ -244,7 +244,7 @@ export function SignInPage({ onSignIn, onSignUp, onForgotPassword, onBack, exter
                   placeholder="Enter your password"
                   value={enteredPassword}
                   onChange={(event) => setEnteredPassword(event.target.value)}
-                  className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-white/10 focus-visible:ring-0 focus-visible:border-white/10"
+                  className={AUTH_INPUT_CLASS}
                   disabled={isButtonLoading}
                 />
               </div>
