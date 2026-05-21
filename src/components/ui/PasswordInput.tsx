@@ -39,7 +39,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
           title={isVisible ? "Hide password" : "Show password"}
           tabIndex={-1}
           disabled={disabled}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-white hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed p-1"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-black hover:opacity-70 disabled:opacity-50 disabled:cursor-not-allowed p-1"
         >
           {isVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
