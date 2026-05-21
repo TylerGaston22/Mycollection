@@ -24,7 +24,8 @@ interface NotificationBadgeProps {
 const COUNT_CLASS =
   "min-w-[18px] h-[18px] px-1 rounded-full bg-orange-500 text-white text-[10px] font-semibold flex items-center justify-center leading-none";
 
-const DOT_CLASS = "w-3 h-3 rounded-full bg-orange-500 inline-block ring-2 ring-white";
+const DOT_CLASS =
+  "w-2.5 h-2.5 rounded-full bg-orange-500 inline-block shadow-[0_0_6px_2px_rgba(249,115,22,0.85)]";
 
 const FLOATING_POSITION_CLASS = "absolute -bottom-1 -right-1 pointer-events-none";
 
