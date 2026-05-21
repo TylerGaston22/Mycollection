@@ -38,7 +38,7 @@ interface SettingsDialogProps {
   isDemoUser: boolean;
   onUpdateProfile: (updates: { name?: string }) => Promise<boolean>;
   onUpdateEmail: (newEmail: string) => Promise<boolean>;
-  onChangePassword: (newPassword: string) => Promise<boolean>;
+  onChangePassword: (newPassword: string, currentPassword?: string) => Promise<boolean>;
 }
 
 export function SettingsDialog({ open, onOpenChange, items, customTabs, customSections, onImport, backgroundColors, onBackgroundColorsChange, currentUser, isDemoUser, onUpdateProfile, onUpdateEmail, onChangePassword }: SettingsDialogProps) {
@@ -47,6 +47,7 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
   const [isSavingName, setIsSavingName] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [isSavingEmail, setIsSavingEmail] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
@@ -65,6 +66,7 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
     if (open) {
       setDisplayName(currentUser.name);
       setNewEmail('');
+      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setPasswordError('');
@@ -75,7 +77,9 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
   const isEmailDirty =
     newEmail.trim().length > 0 && newEmail.trim().toLowerCase() !== currentUser.email.toLowerCase();
   const canSavePassword =
-    newPassword.length >= 6 && newPassword === confirmPassword;
+    currentPassword.length > 0 &&
+    newPassword.length >= 6 &&
+    newPassword === confirmPassword;
 
   const handleSaveName = async () => {
     setIsSavingName(true);
@@ -92,18 +96,23 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
 
   const handleSavePassword = async () => {
     setPasswordError('');
+    if (!currentPassword) {
+      setPasswordError('Please enter your current password.');
+      return;
+    }
     if (newPassword.length < 6) {
-      setPasswordError('Password must be at least 6 characters.');
+      setPasswordError('New password must be at least 6 characters.');
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError("Passwords don't match.");
+      setPasswordError("New passwords don't match.");
       return;
     }
     setIsSavingPassword(true);
-    const ok = await onChangePassword(newPassword);
+    const ok = await onChangePassword(newPassword, currentPassword);
     setIsSavingPassword(false);
     if (ok) {
+      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     }
@@ -236,6 +245,17 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
                       <KeyRound className="h-4 w-4" />
                       Password
                     </h4>
+                    <div className="space-y-2">
+                      <Label htmlFor="settings-current-password">Current password</Label>
+                      <PasswordInput
+                        id="settings-current-password"
+                        value={currentPassword}
+                        onChange={(event) => setCurrentPassword(event.target.value)}
+                        placeholder="Your existing password"
+                        disabled={isSavingPassword}
+                        autoComplete="current-password"
+                      />
+                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="settings-new-password">New password</Label>
                       <PasswordInput

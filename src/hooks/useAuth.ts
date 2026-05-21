@@ -320,12 +320,38 @@ export function useAuth() {
     return true;
   };
 
-  // Set a new password — called from ResetPasswordPage during the recovery
-  // flow, AND can be reused for an in-app "change password" feature later.
-  const handleChangePassword = async (newPassword: string): Promise<boolean> => {
+  // Set a new password. When `currentPassword` is provided we re-verify it
+  // with Supabase before updating — used by the in-app Settings change-
+  // password flow so an autofill / typo can't silently save the wrong
+  // value. The password-recovery flow (ResetPasswordPage) calls this
+  // without currentPassword because the recovery session itself proves
+  // identity.
+  const handleChangePassword = async (
+    newPassword: string,
+    currentPassword?: string,
+  ): Promise<boolean> => {
     if (newPassword.length < 6) {
       toast.error('Password must be at least 6 characters.');
       return false;
+    }
+
+    if (currentPassword !== undefined) {
+      // Look up the actual auth email (might be synthetic for username-only
+      // users — currentUser.email is empty in that case).
+      const { data: userData } = await supabase.auth.getUser();
+      const authEmail = userData?.user?.email;
+      if (!authEmail) {
+        toast.error('Could not verify session — please sign in again.');
+        return false;
+      }
+      const { error: verifyError } = await supabase.auth.signInWithPassword({
+        email: authEmail,
+        password: currentPassword,
+      });
+      if (verifyError) {
+        toast.error('Current password is incorrect');
+        return false;
+      }
     }
 
     const { error } = await supabase.auth.updateUser({ password: newPassword });
