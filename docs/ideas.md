@@ -84,6 +84,31 @@ Update this file as new ideas come up. Cross items off (or delete them) when the
 **Privacy:** Read-only must be enforced at BOTH the UI layer (no edit buttons rendered) AND the RLS policy layer (a friend's SELECT policy can read items where the owner has set visibility=friends-only; UPDATE/DELETE policies must still reject non-owners). Never trust the UI alone for access control.
 **When to do:** When you have multiple real users wanting to share. Until then it's not worth the schema overhead.
 
+### Recommend an item to a friend (with a note)
+**What:** From inside an item (or via a button on the item card), the user can pick a friend and send the item as a recommendation with an optional note like "you'd love this — way better than the sequel." The friend sees recommendations in a new section (likely a "Recommendations" tab in the FriendsDialog, or a small badge on the gear icon) and can:
+- Add the item to their own collection (status defaults to "want to see").
+- Dismiss the recommendation.
+- See who recommended it and the note.
+
+Depends on the friend system (already shipped). Mid-effort (~2-3 hours).
+
+**Schema:**
+- New `recommendations` table — columns `(id, from_user_id, to_user_id, item_snapshot jsonb, note text, status, created_at, updated_at)`.
+- `item_snapshot` holds a copy of the recommended item's title/year/posterUrl/etc. at the time of recommendation. We snapshot instead of foreign-key-ing to `collection_items.id` so the recommendation survives if the sender later deletes the item from their collection.
+- `status` enum: `pending | added | dismissed`.
+- RLS: both parties can read rows where they're `from_user_id` or `to_user_id`; only the sender can INSERT (with self as `from_user_id`); only the receiver can UPDATE status; either can DELETE.
+- Add `unique (from_user_id, to_user_id, (item_snapshot->>'title'))` or similar to prevent spamming the same item.
+
+**UI:**
+- `<RecommendButton>` on each item card / detail dialog (visible only when the user has at least one accepted friend).
+- Recommendation modal: friend picker + note textarea + Send.
+- New "Recommendations" tab in FriendsDialog: shows incoming pending recommendations with "Add to my collection" / "Dismiss" actions.
+- Light notification: small dot on the gear icon when there are unread recommendations.
+
+**Open design questions:**
+- One item to multiple friends in a single action, or one-at-a-time? (Probably one-at-a-time for v1 — simpler.)
+- Should the recipient see the sender's whole collection through the recommendation? No — keep it scoped to the single item.
+
 ### Shared / collaborative lists (both can edit)
 **What:** A user can share a list (or a custom section / sublist) with friends so they can both add, edit, and delete items in it. Distinct from the read-only friend view above.
 **Schema impact:** Bigger refactor — currently `collection_items.user_id` is the sole owner. For shared lists you need either:
