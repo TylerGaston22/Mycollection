@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { PasswordInput } from "../ui/PasswordInput";
 import { DataManagementButtons } from "../settings/DataManagementButtons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Item, CustomTab, CustomSection } from "../../types";
@@ -228,9 +229,8 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
                     </h4>
                     <div className="space-y-2">
                       <Label htmlFor="settings-new-password">New password</Label>
-                      <Input
+                      <PasswordInput
                         id="settings-new-password"
-                        type="password"
                         value={newPassword}
                         onChange={(event) => setNewPassword(event.target.value)}
                         placeholder="At least 6 characters"
@@ -241,9 +241,8 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
                     <div className="space-y-2">
                       <Label htmlFor="settings-confirm-password">Confirm new password</Label>
                       <div className="flex gap-2">
-                        <Input
+                        <PasswordInput
                           id="settings-confirm-password"
-                          type="password"
                           value={confirmPassword}
                           onChange={(event) => setConfirmPassword(event.target.value)}
                           placeholder="Re-enter password"

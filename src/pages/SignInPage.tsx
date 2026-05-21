@@ -8,6 +8,7 @@ import { DEMO_CREDENTIALS } from "../demo";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import { PasswordInput } from "../components/ui/PasswordInput";
 import { Sparkles, Film, Tv, UtensilsCrossed, MapPin, ArrowLeft } from "lucide-react";
 import { isValidEmailFormat, validateUsername } from "../auth";
 import type { SignUpMode } from "../hooks/useAuth";
@@ -238,9 +239,8 @@ export function SignInPage({ onSignIn, onSignUp, onForgotPassword, onBack, exter
                 <Label htmlFor="password" className="text-gray-200">
                   Password
                 </Label>
-                <Input
+                <PasswordInput
                   id="password"
-                  type="password"
                   placeholder="Enter your password"
                   value={enteredPassword}
                   onChange={(event) => setEnteredPassword(event.target.value)}

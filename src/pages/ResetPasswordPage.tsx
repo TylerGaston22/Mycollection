@@ -6,8 +6,8 @@
  */
 import { useState } from "react";
 import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import { PasswordInput } from "../components/ui/PasswordInput";
 import { KeyRound, Sparkles } from "lucide-react";
 
 interface ResetPasswordPageProps {
@@ -65,9 +65,8 @@ export function ResetPasswordPage({ onChangePassword }: ResetPasswordPageProps) 
               <Label htmlFor="new-password" className="text-gray-200">
                 New password
               </Label>
-              <Input
+              <PasswordInput
                 id="new-password"
-                type="password"
                 placeholder="At least 6 characters"
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
@@ -81,9 +80,8 @@ export function ResetPasswordPage({ onChangePassword }: ResetPasswordPageProps) 
               <Label htmlFor="confirm-password" className="text-gray-200">
                 Confirm new password
               </Label>
-              <Input
+              <PasswordInput
                 id="confirm-password"
-                type="password"
                 placeholder="Re-enter password"
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
