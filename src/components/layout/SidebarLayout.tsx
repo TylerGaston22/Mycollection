@@ -48,6 +48,7 @@ interface SidebarLayoutProps {
   onItemClick: (item: Item) => void;
   onShareDialogOpen: () => void;
   getSectionContent: (sectionId: string) => Item[];
+  pendingFriendRequestsCount: number;
 }
 
 export function SidebarLayout({
@@ -81,6 +82,7 @@ export function SidebarLayout({
   onItemClick,
   onShareDialogOpen,
   getSectionContent,
+  pendingFriendRequestsCount,
 }: SidebarLayoutProps) {
   const isMobile = useIsMobile();
 
@@ -160,6 +162,7 @@ export function SidebarLayout({
         onFriendsDialogOpen={onFriendsDialogOpen}
         onLogout={onLogout}
         onTabDelete={onTabDelete}
+        pendingFriendRequestsCount={pendingFriendRequestsCount}
       />
 
       <DesktopMainContent

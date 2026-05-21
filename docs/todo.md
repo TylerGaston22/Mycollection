@@ -19,6 +19,15 @@ Cleared all 4 vulnerabilities (postcss XSS, ws memory disclosure, 5 vite dev-ser
 
 ## 🟡 Worth a look soon
 
+### A. Refresh shouldn't flash through landing → sign-in → target
+When a signed-in user hits browser refresh, the app momentarily renders the landing page, then the sign-in page, then the page they were actually on. Should go straight from refresh → restored page (probably show a neutral loading state while `supabase.auth.getSession()` resolves, instead of defaulting to "logged-out landing" first). Likely fix is in `App.tsx` / `useAuth` initial-render branch — gate the landing/sign-in fallback on `auth.isReady` so unauthenticated UI only renders after we've confirmed there's no session.
+
+### B. Clean up orphan profile rows + prevent future leftovers
+Right now when an `auth.users` row is deleted, the matching `public.profiles` row can stay behind (no `on delete cascade` from profiles.id → auth.users.id). That means a re-signed-up "test" user can collide with an old "test" profile, and username searches can return ghosts. To fix:
+- Add `on delete cascade` to the `profiles_id_fkey` (drop + recreate the FK).
+- One-time cleanup: `delete from public.profiles where id not in (select id from auth.users);`
+- Verify the same cascade exists on `collection_items.user_id`, `custom_tabs.user_id`, `custom_sections.user_id`, `preferences.user_id`, `friendships.requester_id` / `addressee_id` (the friendships table already has it — confirm the rest).
+
 ### 3. ~~Check FormatGuideDialog's Pro Tip box in light mode~~ ✅ Done 2026-05-14
 Visually verified — `bg-accent` reads as distinct from the surrounding dialog in light mode.
 

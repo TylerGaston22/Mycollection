@@ -78,7 +78,24 @@ create policy "Users can delete their own friendship rows"
   on public.friendships for delete
   using (auth.uid() = requester_id or auth.uid() = addressee_id);
 
--- 3. Friend-read policy on collection_items
+-- 3. Friend-read policy on profiles
+-- Lets users read the profile (name/username) of anyone they share a
+-- friendship row with — any status, so pending-request senders/receivers
+-- can resolve each other's display info. Without this, the existing
+-- "Users can read their own profile" policy hides the counterparty's
+-- name and the FriendsDialog drops the row at the decorate step.
+drop policy if exists "Users can read profiles of friendship counterparts" on public.profiles;
+create policy "Users can read profiles of friendship counterparts"
+  on public.profiles for select
+  using (
+    exists (
+      select 1 from public.friendships f
+      where (f.requester_id = auth.uid() and f.addressee_id = profiles.id)
+         or (f.addressee_id = auth.uid() and f.requester_id = profiles.id)
+    )
+  );
+
+-- 4. Friend-read policy on collection_items
 -- Allows reading another user's items IF (a) we're accepted friends and
 -- (b) they've set list_visibility = 'friends'.
 drop policy if exists "Friends can read items when visibility allows" on public.collection_items;
@@ -99,7 +116,7 @@ create policy "Friends can read items when visibility allows"
     )
   );
 
--- 4. RPC: search users by username (returns safe public fields only)
+-- 5. RPC: search users by username (returns safe public fields only)
 -- Runs with security definer so unauthenticated calls work too — but the
 -- function itself checks auth.uid() so only signed-in users get results.
 create or replace function public.search_users_by_username(query text)

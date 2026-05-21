@@ -168,6 +168,7 @@ export default function App() {
           onItemClick={setSelectedItem}
           onShareDialogOpen={() => dialogs.open('share')}
           getSectionContent={getItemsForSection}
+          pendingFriendRequestsCount={friends.incomingRequests.length}
         />
 
         <ItemFormDialog

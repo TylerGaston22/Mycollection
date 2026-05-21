@@ -15,6 +15,7 @@ import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
 import { accentGradientHoverHandlers } from "../../utils/accentHover";
 import { CategoryButton } from "./CategoryButton";
 import { SubCategoryNav } from "./SubCategoryNav";
+import { NotificationBadge } from "../ui/NotificationBadge";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -52,6 +53,7 @@ interface SidebarProps {
   onFriendsDialogOpen: () => void;
   onLogout: () => void;
   onTabDelete: (tab: CustomTab) => void;
+  pendingFriendRequestsCount: number;
 }
 
 export function Sidebar({
@@ -77,6 +79,7 @@ export function Sidebar({
   onFriendsDialogOpen,
   onLogout,
   onTabDelete,
+  pendingFriendRequestsCount,
 }: SidebarProps) {
   const { theme, setTheme } = useTheme();
   const isDark = theme === "dark";
@@ -151,17 +154,20 @@ export function Sidebar({
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                style={{
-                  background: `linear-gradient(to right, ${colorToRgba(currentTheme.accentColor, 0)} 0%, ${colorToRgba(currentTheme.accentColor, 0)} 100%)`,
-                  color: 'white',
-                }}
-                {...accentGradientHoverHandlers(currentTheme)}
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  style={{
+                    background: `linear-gradient(to right, ${colorToRgba(currentTheme.accentColor, 0)} 0%, ${colorToRgba(currentTheme.accentColor, 0)} 100%)`,
+                    color: 'white',
+                  }}
+                  {...accentGradientHoverHandlers(currentTheme)}
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+                <NotificationBadge count={pendingFriendRequestsCount} variant="floating" />
+              </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => setTheme(isDark ? "light" : "dark")}>
@@ -170,7 +176,8 @@ export function Sidebar({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onFriendsDialogOpen}>
                 <Users className="h-4 w-4 mr-2" />
-                Friends
+                <span>Friends</span>
+                <NotificationBadge count={pendingFriendRequestsCount} className="ml-auto" />
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onSettingsDialogOpen}>
                 <SlidersHorizontal className="h-4 w-4 mr-2" />
