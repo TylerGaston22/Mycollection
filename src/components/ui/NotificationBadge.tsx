@@ -25,12 +25,12 @@ interface NotificationBadgeProps {
 const COUNT_CLASS =
   "min-w-[18px] h-[18px] px-1 rounded-full bg-orange-500 text-white text-[10px] font-semibold flex items-center justify-center leading-none";
 
-const DOT_CLASS = "w-2.5 h-2.5 rounded-full bg-orange-500 inline-block";
+const DOT_CLASS = "w-2.5 h-2.5 rounded-full inline-block";
 
 const DOT_GLOW_STYLE = {
-  backgroundColor: "#ffb13b",
+  backgroundColor: "#fde047",
   boxShadow:
-    "0 0 6px 2px rgba(255, 200, 80, 1), 0 0 14px 5px rgba(255, 140, 30, 1), 0 0 26px 10px rgba(255, 115, 0, 0.9), 0 0 40px 16px rgba(255, 115, 0, 0.55)",
+    "0 0 3px 1px rgba(253, 224, 71, 1), 0 0 7px 2px rgba(250, 204, 21, 0.95)",
 };
 
 const FLOATING_POSITION_CLASS = "absolute -bottom-1 -right-1 pointer-events-none";
