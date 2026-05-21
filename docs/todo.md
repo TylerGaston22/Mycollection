@@ -33,7 +33,10 @@ Both are bigger UI changes. Only worth doing if you want dark mode to be a flags
 
 ## 🟢 Nice to have (no rush)
 
-### 5. Mobile view completion
+### 5. In-app change password (for logged-in users)
+Add a "Change password" section in Settings → Account that lets a signed-in user set a new password without going through the email-reset roundtrip. `auth.handleChangePassword` already exists (created during #10) — just needs a UI: current password (optional, Supabase doesn't require it for an active session), new password, confirm. Mirrors the display-name / email-change pattern. ~30 min.
+
+### 6. Mobile view completion
 Earlier commit said "working on mobile view" — components exist in `src/components/mobile/` but weren't finished. Tackle when you have mobile users or before publishing.
 
 ### 6. ~~Toast/banner on Supabase failures~~ ✅ Done 2026-05-14
