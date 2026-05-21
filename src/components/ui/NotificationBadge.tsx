@@ -28,8 +28,9 @@ const COUNT_CLASS =
 const DOT_CLASS = "w-2.5 h-2.5 rounded-full bg-orange-500 inline-block";
 
 const DOT_GLOW_STYLE = {
+  backgroundColor: "#ffb13b",
   boxShadow:
-    "0 0 4px 1px rgba(255, 165, 60, 1), 0 0 10px 3px rgba(249, 115, 22, 0.95), 0 0 18px 6px rgba(249, 115, 22, 0.55)",
+    "0 0 6px 2px rgba(255, 200, 80, 1), 0 0 14px 5px rgba(255, 140, 30, 1), 0 0 26px 10px rgba(255, 115, 0, 0.9), 0 0 40px 16px rgba(255, 115, 0, 0.55)",
 };
 
 const FLOATING_POSITION_CLASS = "absolute -bottom-1 -right-1 pointer-events-none";
