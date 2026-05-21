@@ -33,8 +33,8 @@ Both are bigger UI changes. Only worth doing if you want dark mode to be a flags
 
 ## 🟢 Nice to have (no rush)
 
-### 5. In-app change password (for logged-in users)
-Add a "Change password" section in Settings → Account that lets a signed-in user set a new password without going through the email-reset roundtrip. `auth.handleChangePassword` already exists (created during #10) — just needs a UI: current password (optional, Supabase doesn't require it for an active session), new password, confirm. Mirrors the display-name / email-change pattern. ~30 min.
+### 5. ~~In-app change password~~ ✅ Done 2026-05-14
+Password section in Settings → Account: new-password + confirm-password fields with a Save button. Save enables only when the new password is ≥ 6 chars AND matches the confirm input. Mismatch / too-short surface as inline errors before hitting Supabase. Section hidden for demo users (no Supabase Auth row to update). Hooks into the existing `auth.handleChangePassword` that was added during #10.
 
 ### 6. ~~Dice picker — random suggestion from a category~~ ✅ Done 2026-05-14
 Implemented as planned, isolated under `src/picker/` (matches `src/demo/`, `src/tmdb/`, `src/auth/`). Dice icon button sits next to the "+ Add" button on desktop; clicking pops a modal with a random item, re-roll button excludes the just-shown one so it actually changes. Empty pool disables the icon entirely; single-item pool disables re-roll. Picks from whatever the user is currently viewing (`itemsInActiveSection`) — so they can scope by navigating to Want to See / Watched / All before rolling. Mobile addition is a follow-up.

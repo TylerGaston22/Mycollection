@@ -217,8 +217,10 @@ export default function App() {
           backgroundColors={backgroundColors}
           onBackgroundColorsChange={setBackgroundColors}
           currentUser={auth.currentUser}
+          isDemoUser={auth.isDemoUser}
           onUpdateProfile={auth.handleUpdateProfile}
           onUpdateEmail={auth.handleUpdateEmail}
+          onChangePassword={auth.handleChangePassword}
         />
 
         <ItemDetailDialog

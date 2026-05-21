@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Lock, Palette, Info, ImageIcon, Film, Tv, UtensilsCrossed, MapPin, User as UserIcon, Mail } from 'lucide-react';
+import { Lock, Palette, Info, ImageIcon, Film, Tv, UtensilsCrossed, MapPin, User as UserIcon, Mail, KeyRound } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -34,21 +34,29 @@ interface SettingsDialogProps {
   };
   onBackgroundColorsChange: (colors: { item: string; 'tv-show': string; restaurant: string; place: string }) => void;
   currentUser: User;
+  isDemoUser: boolean;
   onUpdateProfile: (updates: { name?: string }) => Promise<boolean>;
   onUpdateEmail: (newEmail: string) => Promise<boolean>;
+  onChangePassword: (newPassword: string) => Promise<boolean>;
 }
 
-export function SettingsDialog({ open, onOpenChange, items, customTabs, customSections, onImport, backgroundColors, onBackgroundColorsChange, currentUser, onUpdateProfile, onUpdateEmail }: SettingsDialogProps) {
+export function SettingsDialog({ open, onOpenChange, items, customTabs, customSections, onImport, backgroundColors, onBackgroundColorsChange, currentUser, isDemoUser, onUpdateProfile, onUpdateEmail, onChangePassword }: SettingsDialogProps) {
   const [isFormatGuideDialogOpen, setIsFormatGuideDialogOpen] = useState(false);
   const [displayName, setDisplayName] = useState(currentUser.name);
   const [isSavingName, setIsSavingName] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [isSavingEmail, setIsSavingEmail] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
   const { bulkImportCsv, exportCsv } = useDataExportImport();
 
   // Username-only accounts have empty email (synthetic addresses are stripped
   // out in loadProfile). Hide the email-change UI for those users.
   const hasRealEmail = currentUser.email.trim().length > 0;
+  // Demo users have no Supabase Auth row — password changes wouldn't work.
+  const canChangePassword = !isDemoUser;
 
   // Reset fields whenever the dialog opens or the current user changes,
   // so reopening doesn't show stale input from a previous edit attempt.
@@ -56,12 +64,17 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
     if (open) {
       setDisplayName(currentUser.name);
       setNewEmail('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordError('');
     }
   }, [open, currentUser.name]);
 
   const isNameDirty = displayName.trim() !== currentUser.name && displayName.trim().length > 0;
   const isEmailDirty =
     newEmail.trim().length > 0 && newEmail.trim().toLowerCase() !== currentUser.email.toLowerCase();
+  const canSavePassword =
+    newPassword.length >= 6 && newPassword === confirmPassword;
 
   const handleSaveName = async () => {
     setIsSavingName(true);
@@ -74,6 +87,25 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
     const ok = await onUpdateEmail(newEmail);
     setIsSavingEmail(false);
     if (ok) setNewEmail(''); // Clear the input on success — old email shown above stays until confirmed
+  };
+
+  const handleSavePassword = async () => {
+    setPasswordError('');
+    if (newPassword.length < 6) {
+      setPasswordError('Password must be at least 6 characters.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Passwords don't match.");
+      return;
+    }
+    setIsSavingPassword(true);
+    const ok = await onChangePassword(newPassword);
+    setIsSavingPassword(false);
+    if (ok) {
+      setNewPassword('');
+      setConfirmPassword('');
+    }
   };
 
   const updateColor = (type: 'item' | 'tv-show' | 'restaurant' | 'place', colorId: string) => {
@@ -185,6 +217,51 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
                         We'll send a confirmation link to the new address. The change only takes effect after you click it.
                       </p>
                     </div>
+                  </div>
+                )}
+
+                {canChangePassword && (
+                  <div className="space-y-3">
+                    <h4 className="flex items-center gap-2">
+                      <KeyRound className="h-4 w-4" />
+                      Password
+                    </h4>
+                    <div className="space-y-2">
+                      <Label htmlFor="settings-new-password">New password</Label>
+                      <Input
+                        id="settings-new-password"
+                        type="password"
+                        value={newPassword}
+                        onChange={(event) => setNewPassword(event.target.value)}
+                        placeholder="At least 6 characters"
+                        disabled={isSavingPassword}
+                        autoComplete="new-password"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="settings-confirm-password">Confirm new password</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="settings-confirm-password"
+                          type="password"
+                          value={confirmPassword}
+                          onChange={(event) => setConfirmPassword(event.target.value)}
+                          placeholder="Re-enter password"
+                          disabled={isSavingPassword}
+                          autoComplete="new-password"
+                        />
+                        <Button
+                          type="button"
+                          onClick={handleSavePassword}
+                          disabled={!canSavePassword || isSavingPassword}
+                        >
+                          {isSavingPassword ? 'Saving…' : 'Save'}
+                        </Button>
+                      </div>
+                    </div>
+                    {passwordError && (
+                      <p className="text-sm text-destructive">{passwordError}</p>
+                    )}
                   </div>
                 )}
 
