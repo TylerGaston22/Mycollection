@@ -70,7 +70,7 @@ export function ResetPasswordPage({ onChangePassword }: ResetPasswordPageProps) 
                 placeholder="At least 6 characters"
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
-                className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-orange-500/50 focus:ring-orange-500/20"
+                className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-white/10 focus-visible:ring-0 focus-visible:border-white/10"
                 disabled={isSubmitting}
                 autoComplete="new-password"
               />
@@ -85,7 +85,7 @@ export function ResetPasswordPage({ onChangePassword }: ResetPasswordPageProps) 
                 placeholder="Re-enter password"
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
-                className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-orange-500/50 focus:ring-orange-500/20"
+                className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-white/10 focus-visible:ring-0 focus-visible:border-white/10"
                 disabled={isSubmitting}
                 autoComplete="new-password"
               />

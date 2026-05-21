@@ -210,7 +210,7 @@ export function SignInPage({ onSignIn, onSignUp, onForgotPassword, onBack, exter
                   placeholder="Enter your name"
                   value={enteredName}
                   onChange={(event) => setEnteredName(event.target.value)}
-                  className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-orange-500/50 focus:ring-orange-500/20"
+                  className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-white/10 focus-visible:ring-0 focus-visible:border-white/10"
                   disabled={isButtonLoading}
                 />
               </div>
@@ -226,7 +226,7 @@ export function SignInPage({ onSignIn, onSignUp, onForgotPassword, onBack, exter
                 placeholder={identifierPlaceholder}
                 value={enteredIdentifier}
                 onChange={(event) => setEnteredIdentifier(event.target.value)}
-                className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-orange-500/50 focus:ring-orange-500/20"
+                className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-white/10 focus-visible:ring-0 focus-visible:border-white/10"
                 disabled={isButtonLoading}
                 autoCapitalize="off"
                 autoCorrect="off"
@@ -244,7 +244,7 @@ export function SignInPage({ onSignIn, onSignUp, onForgotPassword, onBack, exter
                   placeholder="Enter your password"
                   value={enteredPassword}
                   onChange={(event) => setEnteredPassword(event.target.value)}
-                  className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-orange-500/50 focus:ring-orange-500/20"
+                  className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-white/10 focus-visible:ring-0 focus-visible:border-white/10"
                   disabled={isButtonLoading}
                 />
               </div>
