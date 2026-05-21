@@ -64,7 +64,7 @@ export function FriendsDialog({ open, onOpenChange, friends, isDemoUser }: Frien
               <TabsTrigger value="requests">
                 <Inbox className="h-4 w-4 mr-2" />
                 Requests
-                <NotificationBadge count={friends.incomingRequests.length} className="ml-2" />
+                <NotificationBadge count={friends.incomingRequests.length} dot className="ml-2" />
               </TabsTrigger>
               <TabsTrigger value="find">
                 <UserPlus className="h-4 w-4 mr-2" />

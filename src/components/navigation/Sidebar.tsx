@@ -154,7 +154,7 @@ export function Sidebar({
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className="relative">
+              <div className="relative inline-flex">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -177,7 +177,7 @@ export function Sidebar({
               <DropdownMenuItem onClick={onFriendsDialogOpen}>
                 <Users className="h-4 w-4 mr-2" />
                 <span>Friends</span>
-                <NotificationBadge count={pendingFriendRequestsCount} className="ml-auto" />
+                <NotificationBadge count={pendingFriendRequestsCount} dot className="ml-auto" />
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onSettingsDialogOpen}>
                 <SlidersHorizontal className="h-4 w-4 mr-2" />
