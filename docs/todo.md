@@ -36,7 +36,14 @@ Both are bigger UI changes. Only worth doing if you want dark mode to be a flags
 ### 5. In-app change password (for logged-in users)
 Add a "Change password" section in Settings → Account that lets a signed-in user set a new password without going through the email-reset roundtrip. `auth.handleChangePassword` already exists (created during #10) — just needs a UI: current password (optional, Supabase doesn't require it for an active session), new password, confirm. Mirrors the display-name / email-change pattern. ~30 min.
 
-### 6. Mobile view completion
+### 6. "Pick something for me" — random picker per category
+A "Surprise me" / "Pick random" button on each category view that picks an item at random and shows it in a modal. Use case: standing in front of the restaurant list undecided — hit the button, get a suggestion. Re-roll button on the result to spin again. Worth thinking about scoping:
+- Filter by current section (e.g., only roll from "Want to See" by default, since "Watched" suggestions aren't actionable for the next-thing-to-watch use case)
+- Optional filter for favorites only / specific genres / etc. (probably v2)
+- Result modal shows the picked item with a "Re-roll" button and a "Mark as watched" / "I went here" shortcut
+Mid-effort (~1-2 hours) — pure client-side, no schema changes.
+
+### 7. Mobile view completion
 Earlier commit said "working on mobile view" — components exist in `src/components/mobile/` but weren't finished. Tackle when you have mobile users or before publishing.
 
 ### 6. ~~Toast/banner on Supabase failures~~ ✅ Done 2026-05-14
