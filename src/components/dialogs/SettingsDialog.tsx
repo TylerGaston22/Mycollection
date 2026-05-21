@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Lock, Palette, Info, ImageIcon, Film, Tv, UtensilsCrossed, MapPin, User as UserIcon } from 'lucide-react';
+import { Lock, Palette, Info, ImageIcon, Film, Tv, UtensilsCrossed, MapPin, User as UserIcon, Mail } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -35,26 +35,45 @@ interface SettingsDialogProps {
   onBackgroundColorsChange: (colors: { item: string; 'tv-show': string; restaurant: string; place: string }) => void;
   currentUser: User;
   onUpdateProfile: (updates: { name?: string }) => Promise<boolean>;
+  onUpdateEmail: (newEmail: string) => Promise<boolean>;
 }
 
-export function SettingsDialog({ open, onOpenChange, items, customTabs, customSections, onImport, backgroundColors, onBackgroundColorsChange, currentUser, onUpdateProfile }: SettingsDialogProps) {
+export function SettingsDialog({ open, onOpenChange, items, customTabs, customSections, onImport, backgroundColors, onBackgroundColorsChange, currentUser, onUpdateProfile, onUpdateEmail }: SettingsDialogProps) {
   const [isFormatGuideDialogOpen, setIsFormatGuideDialogOpen] = useState(false);
   const [displayName, setDisplayName] = useState(currentUser.name);
   const [isSavingName, setIsSavingName] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [isSavingEmail, setIsSavingEmail] = useState(false);
   const { bulkImportCsv, exportCsv } = useDataExportImport();
 
-  // Reset the name field whenever the dialog opens or the current user changes,
+  // Username-only accounts have empty email (synthetic addresses are stripped
+  // out in loadProfile). Hide the email-change UI for those users.
+  const hasRealEmail = currentUser.email.trim().length > 0;
+
+  // Reset fields whenever the dialog opens or the current user changes,
   // so reopening doesn't show stale input from a previous edit attempt.
   useEffect(() => {
-    if (open) setDisplayName(currentUser.name);
+    if (open) {
+      setDisplayName(currentUser.name);
+      setNewEmail('');
+    }
   }, [open, currentUser.name]);
 
   const isNameDirty = displayName.trim() !== currentUser.name && displayName.trim().length > 0;
+  const isEmailDirty =
+    newEmail.trim().length > 0 && newEmail.trim().toLowerCase() !== currentUser.email.toLowerCase();
 
   const handleSaveName = async () => {
     setIsSavingName(true);
     await onUpdateProfile({ name: displayName });
     setIsSavingName(false);
+  };
+
+  const handleSaveEmail = async () => {
+    setIsSavingEmail(true);
+    const ok = await onUpdateEmail(newEmail);
+    setIsSavingEmail(false);
+    if (ok) setNewEmail(''); // Clear the input on success — old email shown above stays until confirmed
   };
 
   const updateColor = (type: 'item' | 'tv-show' | 'restaurant' | 'place', colorId: string) => {
@@ -132,6 +151,42 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
                     </div>
                   </div>
                 </div>
+
+                {hasRealEmail && (
+                  <div className="space-y-3">
+                    <h4 className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Current: <span className="font-mono">{currentUser.email}</span>
+                    </p>
+                    <div className="space-y-2">
+                      <Label htmlFor="settings-new-email">Change email</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="settings-new-email"
+                          type="email"
+                          value={newEmail}
+                          onChange={(event) => setNewEmail(event.target.value)}
+                          placeholder="new-address@example.com"
+                          disabled={isSavingEmail}
+                          autoComplete="off"
+                        />
+                        <Button
+                          type="button"
+                          onClick={handleSaveEmail}
+                          disabled={!isEmailDirty || isSavingEmail}
+                        >
+                          {isSavingEmail ? 'Sending…' : 'Save'}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        We'll send a confirmation link to the new address. The change only takes effect after you click it.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-3">
                   <h4>Data Management</h4>

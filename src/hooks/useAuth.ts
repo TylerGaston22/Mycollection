@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { supabase } from '../lib/supabase';
 import { mockUsers, DEMO_USER_ID, DEMO_CREDENTIALS } from '../demo';
-import { isSyntheticEmail, resolveSignInEmail, usernameToSyntheticEmail, validateUsername } from '../auth';
+import { isSyntheticEmail, isValidEmailFormat, resolveSignInEmail, usernameToSyntheticEmail, validateUsername } from '../auth';
 import { User } from '../types';
 
 export type SignUpMode = 'email' | 'username';
@@ -230,6 +230,45 @@ export function useAuth() {
     return true;
   };
 
+  // Change the Supabase Auth email. Sends a confirmation link to the NEW
+  // address; the change only takes effect once that link is clicked.
+  // (Supabase may also confirm to the OLD address depending on project
+  // settings, as a defense against takeover via stolen session.)
+  // Not available for demo users or username-only accounts.
+  const handleUpdateEmail = async (newEmail: string): Promise<boolean> => {
+    const trimmed = newEmail.trim();
+
+    if (!isValidEmailFormat(trimmed)) {
+      toast.error('That doesn\'t look like a valid email address.');
+      return false;
+    }
+
+    if (isSyntheticEmail(trimmed)) {
+      // Don't let users masquerade their email as one of our synthetic
+      // addresses — that would let them "become" a username-only user
+      // via a route that bypasses the username uniqueness check.
+      toast.error('Pick a real email address.');
+      return false;
+    }
+
+    if (authMode === DEMO_MODE) {
+      toast.error('Email changes are not available for the demo account.');
+      return false;
+    }
+
+    const { error } = await supabase.auth.updateUser({ email: trimmed });
+
+    if (error) {
+      toast.error('Failed to update email', { description: error.message });
+      return false;
+    }
+
+    toast.success('Confirmation email sent', {
+      description: 'Check your new email and click the link to confirm the change.',
+    });
+    return true;
+  };
+
   const handleLogout = async () => {
     // Reset local state first so the UI reflects logout instantly,
     // regardless of whether the Supabase signOut request hangs.
@@ -268,5 +307,6 @@ export function useAuth() {
     handleGoToSignIn,
     handleBackToLanding,
     handleUpdateProfile,
+    handleUpdateEmail,
   };
 }

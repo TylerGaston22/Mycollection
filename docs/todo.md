@@ -45,8 +45,8 @@ The CSV utility is a perfect first test target — pure functions, clear inputs/
 ### 8. ~~Account settings: change display name~~ ✅ Done 2026-05-14
 "Display name" field in Settings → Account. Save button enables when dirty, calls `auth.handleUpdateProfile({ name })`, toast on success/failure. Demo updates in-memory (mockUsers), Supabase users hit `profiles.name`.
 
-### 9. Account settings: change email (for email-based accounts only)
-Add a "Change email" flow that calls `supabase.auth.updateUser({ email: newEmail })`. Supabase sends confirmation to BOTH old and new addresses by default. Hide this option for username-only accounts (no real email to send to — detect via `isSyntheticEmail`). Medium effort.
+### 9. ~~Account settings: change email~~ ✅ Done 2026-05-14
+"Email" section in Settings → Account shows the current email and a "Change email" input + Save button. Calls `supabase.auth.updateUser({ email })`, which sends a confirmation link to the new address — the change only takes effect after the user clicks it. Section is hidden entirely for username-only accounts (their `currentUser.email` is empty after `loadProfile` strips out synthetic addresses). Client-side validation rejects malformed emails and any attempt to switch to a `*@no-email.mycollection.local` synthetic address.
 
 ### 10. Account settings: reset password
 - For email accounts: trigger `supabase.auth.resetPasswordForEmail(email, { redirectTo })` and add a password-reset landing page that calls `updateUser({ password })`. Needs `redirectTo` configured for the deployed URL.
