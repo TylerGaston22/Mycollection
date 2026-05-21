@@ -160,9 +160,11 @@ export function useAuth() {
       storedUsername = normalised;
     } else {
       authEmail = identifier.trim();
-      // Username derived from the email local-part, no '@' prefix (kept lowercase
-      // so the unique-on-lower index in profiles_username_lower_unique applies).
-      storedUsername = authEmail.split('@')[0].toLowerCase();
+      // Email signups don't get a username — they identify by email, and
+      // loadProfile falls back to the email's local-part for display.
+      // (Avoids unique-constraint collisions when an unrelated username-only
+      // user already owns the same local-part string.)
+      storedUsername = '';
     }
 
     const { error } = await supabase.auth.signUp({

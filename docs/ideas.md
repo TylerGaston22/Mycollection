@@ -52,17 +52,6 @@ Update this file as new ideas come up. Cross items off (or delete them) when the
 **Why deferred:** Desktop view was the priority.
 **When to do:** Before pitching the app to mobile users / before publishing.
 
-### Email signup collision with the auto-derived username
-**What:** When a user signs up with an email, [useAuth.ts:handleSignUp](../src/hooks/useAuth.ts) auto-derives their `profiles.username` from the email's local-part (`alice@example.com` → `alice`). If another user already has the username `alice` (from a username-only signup), the trigger fails on the unique constraint and the email signup is rejected with "Username already taken" — even though the email user never picked a username.
-
-**Why deferred:** Uncommon in practice and the existing error message at least surfaces the conflict. Functional today; just bad UX in the rare collision case.
-
-**When to do:** First time a real user hits it. Two viable fixes:
-- **(a) Don't derive at all** — leave `profiles.username` empty for email signups. The display logic in `loadProfile` already falls back to the email local-part at render time, so this is mostly free. Simplest fix; matches the mental model "email users don't have a username."
-- **(b) Auto-suffix on conflict** — modify `handle_new_user` trigger to try `alice`, `alice2`, `alice3`, etc. More work but preserves the "everyone has a username for display" property.
-
-(a) is the recommended path.
-
 ### Username-only sign-up (no email required)
 **What:** Let users sign up with just a username + password — no email — for users who don't want to link a real address.
 
