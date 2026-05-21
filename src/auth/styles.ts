@@ -19,11 +19,15 @@
 
 export const AUTH_INPUT_CLASS =
   "mt-2 " +
-  "bg-white/5 border-white/10 text-white placeholder:text-gray-500 " +
+  // Solid white field with black text — reads like a physical card on
+  // the dark sign-in background. Pairs with the black eye toggle in
+  // PasswordInput. `auth-input` marker is referenced by index.css for
+  // scoped autofill background suppression.
+  "auth-input bg-white text-black placeholder:text-gray-500 border-gray-300 " +
   // Lock focus visuals to the resting style so clicking/typing
   // doesn't paint a coloured ring or border.
-  "focus:border-white/10 focus:ring-0 focus:outline-none " +
-  "focus-visible:border-white/10 focus-visible:ring-0 focus-visible:outline-none focus-visible:shadow-none";
+  "focus:border-gray-300 focus:ring-0 focus:outline-none " +
+  "focus-visible:border-gray-300 focus-visible:ring-0 focus-visible:outline-none focus-visible:shadow-none";
 
 export const AUTH_CARD_CLASS =
   "bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 shadow-2xl";

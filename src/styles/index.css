@@ -3546,17 +3546,19 @@ html {
 /* ============================================================
  * Auth-form input overrides
  * Suppress browser autofill background tint (Edge / Chrome paint
- * saved-credential inputs yellow/blue by default). The long-duration
- * transition is the standard workaround — it effectively never
- * completes, so the autofill background colour never applies.
+ * saved-credential inputs yellow/blue by default). Scoped to the
+ * `auth-input` marker class so it only touches sign-in/reset/sign-up
+ * form fields (which are white with black text), not other inputs
+ * elsewhere in the app. The inset box-shadow paints the field white;
+ * the long-duration transition prevents the browser from flashing
+ * its own colour over the top.
  * ============================================================ */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
-  -webkit-text-fill-color: #ffffff !important;
-  caret-color: #ffffff !important;
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover,
+.auth-input:-webkit-autofill:focus,
+.auth-input:-webkit-autofill:active {
+  -webkit-text-fill-color: #000000 !important;
+  caret-color: #000000 !important;
+  -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
   transition: background-color 9999s ease-out 0s, color 9999s ease-out 0s !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
 }
