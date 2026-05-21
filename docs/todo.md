@@ -12,14 +12,8 @@ Tables, policies, and `handle_new_user` trigger all confirmed in the Supabase da
 ### 2. ~~End-to-end smoke test~~ ✅ Done 2026-05-14
 Sign-up + sign-in + adding items + persistence across sign-out all verified. Email confirmation disabled in Supabase to skip the localhost redirect issue. RLS bonus check (second user can't see first user's items) still untested — flag for any future session if you want to be paranoid.
 
-### 3. `npm audit fix`
-3 vulnerabilities flagged since deps were installed (1 moderate, 2 high). Should be cleaned up before any production push.
-
-```
-npm audit              # see what's affected
-npm audit fix          # auto-fix the non-breaking ones
-npm audit fix --force  # only if needed AND the remaining issues look minor
-```
+### 3. ~~`npm audit fix`~~ ✅ Done 2026-05-14
+Cleared all 4 vulnerabilities (postcss XSS, ws memory disclosure, 5 vite dev-server CVEs). Required a minor-version bump of vite from 6.3.5 → 6.4.2. Build verified clean afterward. `npm audit` now reports 0 vulnerabilities.
 
 ---
 
