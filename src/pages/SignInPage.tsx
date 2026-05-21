@@ -24,14 +24,16 @@ interface SignInPageProps {
 
 export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false }: SignInPageProps) {
   const [isSignUpMode, setIsSignUpMode] = useState(false);
-  const [signUpMode, setSignUpMode] = useState<SignUpMode>("email");
   const [enteredIdentifier, setEnteredIdentifier] = useState("");
   const [enteredPassword, setEnteredPassword] = useState("");
   const [enteredName, setEnteredName] = useState("");
   const [formValidationError, setFormValidationError] = useState("");
   const [isSignInRequestLoading, setIsSignInRequestLoading] = useState(false);
   const isButtonLoading = isSignInRequestLoading || externalLoading;
-  const isUsernameSignUp = isSignUpMode && signUpMode === "username";
+  // Auto-detect mode from the identifier: contains '@' → email, otherwise → username.
+  // Same rule used by sign-in via resolveSignInEmail().
+  const inferredSignUpMode: SignUpMode = enteredIdentifier.includes("@") ? "email" : "username";
+  const isUsernameSignUp = isSignUpMode && inferredSignUpMode === "username" && enteredIdentifier.trim().length > 0;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -72,7 +74,7 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
     setIsSignInRequestLoading(true);
 
     if (isSignUpMode && onSignUp) {
-      await onSignUp(enteredIdentifier, enteredPassword, enteredName, signUpMode);
+      await onSignUp(enteredIdentifier, enteredPassword, enteredName, inferredSignUpMode);
     } else {
       await onSignIn(enteredIdentifier, enteredPassword);
     }
@@ -96,23 +98,14 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
     signInButtonContent = isSignUpMode ? "Create Account" : "Sign In";
   }
 
-  // Identifier field label/placeholder/type vary by mode
-  let identifierLabel: string;
-  let identifierPlaceholder: string;
-  let identifierInputType: string;
-  if (isUsernameSignUp) {
-    identifierLabel = "Username";
-    identifierPlaceholder = "Choose a username (3-30 chars, no @)";
-    identifierInputType = "text";
-  } else if (isSignUpMode) {
-    identifierLabel = "Email";
-    identifierPlaceholder = "Enter your email";
-    identifierInputType = "email";
-  } else {
-    identifierLabel = "Email or username";
-    identifierPlaceholder = "Enter your email or username";
-    identifierInputType = "text";
-  }
+  // Single combined identifier field — auto-detects email vs username by '@'.
+  // type="text" (not "email") so the username case isn't blocked by the
+  // browser's built-in email validation.
+  const identifierLabel = "Email or username";
+  const identifierPlaceholder = isSignUpMode
+    ? "Enter an email — or a username for no-email signup"
+    : "Enter your email or username";
+  const identifierInputType = "text";
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 relative z-10">
@@ -157,44 +150,6 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
               <MapPin className="h-5 w-5 text-green-400" />
             </div>
           </div>
-
-          {/* Sign-up mode toggle: Email vs Username-only */}
-          {isSignUpMode && (
-            <div className="grid grid-cols-2 gap-2 mb-5 p-1 bg-white/5 rounded-lg border border-white/10">
-              <button
-                type="button"
-                onClick={() => {
-                  setSignUpMode("email");
-                  setFormValidationError("");
-                  setEnteredIdentifier("");
-                }}
-                disabled={isButtonLoading}
-                className={`py-2 px-3 rounded-md text-sm transition-colors ${
-                  signUpMode === "email"
-                    ? "bg-orange-500/20 text-orange-300"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                With Email
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSignUpMode("username");
-                  setFormValidationError("");
-                  setEnteredIdentifier("");
-                }}
-                disabled={isButtonLoading}
-                className={`py-2 px-3 rounded-md text-sm transition-colors ${
-                  signUpMode === "username"
-                    ? "bg-orange-500/20 text-orange-300"
-                    : "text-gray-400 hover:text-white"
-                }`}
-              >
-                Username only
-              </button>
-            </div>
-          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
