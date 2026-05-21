@@ -166,7 +166,7 @@ export function Sidebar({
                 >
                   <Settings className="h-4 w-4" />
                 </Button>
-                <NotificationBadge count={pendingFriendRequestsCount} variant="floating" />
+                <NotificationBadge count={pendingFriendRequestsCount} variant="floating" dot />
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
