@@ -19,8 +19,8 @@ Cleared all 4 vulnerabilities (postcss XSS, ws memory disclosure, 5 vite dev-ser
 
 ## 🟡 Worth a look soon
 
-### 3. Check FormatGuideDialog's Pro Tip box in light mode
-Recent `bg-blue-50` → `bg-accent` swap might look too washed out in light mode (very light gray on a white dialog). Open Settings → Account → "Import Format Guide" button. If it looks indistinct, ping me to pick a better token.
+### 3. ~~Check FormatGuideDialog's Pro Tip box in light mode~~ ✅ Done 2026-05-14
+Visually verified — `bg-accent` reads as distinct from the surrounding dialog in light mode.
 
 ### 4. Decide on dark-mode polish (or skip)
 Two items in [ideas.md](./ideas.md) under "Architecture":
