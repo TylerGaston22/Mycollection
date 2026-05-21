@@ -11,6 +11,7 @@ import { useTheme } from "next-themes";
 import { SidebarLayout } from "./components/layout/SidebarLayout";
 import { LandingPage } from "./pages/LandingPage";
 import { SignInPage } from "./pages/SignInPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { ItemFormDialog } from "./components/dialogs/ItemFormDialog";
 import { ProfileDialog } from "./components/dialogs/ProfileDialog";
 import { SettingsDialog } from "./components/dialogs/SettingsDialog";
@@ -109,12 +110,19 @@ export default function App() {
   // When signed in but still hydrating, we keep SignInPage mounted with
   // externalLoading=true so its spinner stays visible during the transition.
   let mainPageContent;
-  if (!auth.isSignedIn || isHydratingUserData) {
+  if (auth.showPasswordResetPage) {
+    // User just clicked the password-reset link from their email — force
+    // the reset page on top until they pick a new password (or refresh).
+    mainPageContent = (
+      <ResetPasswordPage onChangePassword={auth.handleChangePassword} />
+    );
+  } else if (!auth.isSignedIn || isHydratingUserData) {
     if (auth.showSignInPage || isHydratingUserData) {
       mainPageContent = (
         <SignInPage
           onSignIn={auth.handleSignIn}
           onSignUp={auth.handleSignUp}
+          onForgotPassword={auth.handleResetPasswordRequest}
           onBack={auth.handleBackToLanding}
           externalLoading={isHydratingUserData}
         />

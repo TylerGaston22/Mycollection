@@ -20,6 +20,7 @@ const DEMO_SESSION_KEY = 'mycollection.demoSignedIn';
 export function useAuth() {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [showSignInPage, setShowSignInPage] = useState(false);
+  const [showPasswordResetPage, setShowPasswordResetPage] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(DEMO_USER_ID);
   const [currentUser, setCurrentUser] = useState<User>(mockUsers[0]);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,9 +46,20 @@ export function useAuth() {
     };
     checkSession();
 
-    // Listen for auth state changes (e.g. token refresh, sign out from another tab)
+    // Listen for auth state changes (e.g. token refresh, sign out from another tab,
+    // password-recovery link click)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
+      if (event === 'PASSWORD_RECOVERY' && session) {
+        // User just clicked a reset-password link in their email. Hydrate the
+        // user state AND force the reset-password page on top so they're
+        // prompted to set a new password before going back to the main app.
+        const profile = await loadProfile(session.user.id, session.user.email || '');
+        setCurrentUserId(session.user.id);
+        setCurrentUser(profile);
+        setIsSignedIn(true);
+        setAuthMode('supabase');
+        setShowPasswordResetPage(true);
+      } else if (event === 'SIGNED_IN' && session) {
         const profile = await loadProfile(session.user.id, session.user.email || '');
         setCurrentUserId(session.user.id);
         setCurrentUser(profile);
@@ -58,6 +70,7 @@ export function useAuth() {
         setCurrentUserId(DEMO_USER_ID);
         setCurrentUser(mockUsers[0]);
         setAuthMode(DEMO_MODE);
+        setShowPasswordResetPage(false);
       }
     });
 
@@ -269,6 +282,64 @@ export function useAuth() {
     return true;
   };
 
+  // Send a password-reset email. The link in the email lands the user
+  // back at our app and fires the PASSWORD_RECOVERY auth event, which
+  // pops the ResetPasswordPage on top of the main app.
+  const handleResetPasswordRequest = async (emailOrUsername: string): Promise<boolean> => {
+    const trimmed = emailOrUsername.trim();
+
+    if (!trimmed.includes('@')) {
+      toast.error('Password reset is not available', {
+        description: 'Username-only accounts have no email to send a reset link to. If you remember your password, sign in normally.',
+      });
+      return false;
+    }
+
+    if (!isValidEmailFormat(trimmed)) {
+      toast.error('That doesn\'t look like a valid email address.');
+      return false;
+    }
+
+    if (isSyntheticEmail(trimmed)) {
+      toast.error('Password reset is not available for this account.');
+      return false;
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
+      redirectTo: window.location.origin,
+    });
+
+    if (error) {
+      toast.error('Failed to send reset email', { description: error.message });
+      return false;
+    }
+
+    toast.success('Reset link sent', {
+      description: 'Check your email for a password reset link. (Note: Supabase always shows success here, even for unknown emails — that\'s privacy protection.)',
+    });
+    return true;
+  };
+
+  // Set a new password — called from ResetPasswordPage during the recovery
+  // flow, AND can be reused for an in-app "change password" feature later.
+  const handleChangePassword = async (newPassword: string): Promise<boolean> => {
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters.');
+      return false;
+    }
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+      toast.error('Failed to update password', { description: error.message });
+      return false;
+    }
+
+    setShowPasswordResetPage(false);
+    toast.success('Password updated', { description: 'You\'re all set — signed in with your new password.' });
+    return true;
+  };
+
   const handleLogout = async () => {
     // Reset local state first so the UI reflects logout instantly,
     // regardless of whether the Supabase signOut request hangs.
@@ -308,5 +379,8 @@ export function useAuth() {
     handleBackToLanding,
     handleUpdateProfile,
     handleUpdateEmail,
+    handleResetPasswordRequest,
+    handleChangePassword,
+    showPasswordResetPage,
   };
 }

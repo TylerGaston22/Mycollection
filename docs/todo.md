@@ -48,9 +48,12 @@ The CSV utility is a perfect first test target — pure functions, clear inputs/
 ### 9. ~~Account settings: change email~~ ✅ Done 2026-05-14
 "Email" section in Settings → Account shows the current email and a "Change email" input + Save button. Calls `supabase.auth.updateUser({ email })`, which sends a confirmation link to the new address — the change only takes effect after the user clicks it. Section is hidden entirely for username-only accounts (their `currentUser.email` is empty after `loadProfile` strips out synthetic addresses). Client-side validation rejects malformed emails and any attempt to switch to a `*@no-email.mycollection.local` synthetic address.
 
-### 10. Account settings: reset password
-- For email accounts: trigger `supabase.auth.resetPasswordForEmail(email, { redirectTo })` and add a password-reset landing page that calls `updateUser({ password })`. Needs `redirectTo` configured for the deployed URL.
-- For username-only accounts: no recovery is possible (no email to send to). Show a clear "not available — passwords for username-only accounts cannot be reset." If users want to enable recovery, offer to add an email to their account first (depends on #9). Medium-to-high effort.
+### 10. ~~Account settings: reset password~~ ✅ Done 2026-05-14
+"Forgot password?" link on the Sign In page → user enters their email → `supabase.auth.resetPasswordForEmail()` sends a reset link to that address. Clicking the link fires Supabase's `PASSWORD_RECOVERY` event, which `useAuth` listens for and flips a `showPasswordResetPage` flag. App.tsx mounts the new `ResetPasswordPage` on top of everything else until the user enters a new password (`updateUser({ password })`).
+
+Username-only accounts are explicitly blocked at the reset request — toast says "no email to send a reset link to."
+
+Not yet built: in-app "change password" for logged-in users (no email roundtrip). Different flow; defer.
 
 ### 11. Pre-launch Supabase settings audit (do this before going live)
 Walk through Supabase dashboard → **Authentication** and confirm each setting matches the intended production behavior. Today most of these are at default or set for dev convenience.

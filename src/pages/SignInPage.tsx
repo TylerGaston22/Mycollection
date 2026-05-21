@@ -15,6 +15,7 @@ import type { SignUpMode } from "../hooks/useAuth";
 interface SignInPageProps {
   onSignIn: (emailOrUsername: string, password: string) => void;
   onSignUp?: (identifier: string, password: string, name: string, mode: SignUpMode) => void;
+  onForgotPassword?: (email: string) => Promise<boolean>;
   onBack: () => void;
   // True while App.tsx is still hydrating the user's data after a
   // successful Supabase sign-in. Keeps the button spinner visible so
@@ -22,8 +23,9 @@ interface SignInPageProps {
   externalLoading?: boolean;
 }
 
-export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false }: SignInPageProps) {
+export function SignInPage({ onSignIn, onSignUp, onForgotPassword, onBack, externalLoading = false }: SignInPageProps) {
   const [isSignUpMode, setIsSignUpMode] = useState(false);
+  const [isResetMode, setIsResetMode] = useState(false);
   const [enteredIdentifier, setEnteredIdentifier] = useState("");
   const [enteredPassword, setEnteredPassword] = useState("");
   const [enteredName, setEnteredName] = useState("");
@@ -87,18 +89,47 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
     setIsSignInRequestLoading(false);
   };
 
+  const handleForgotPasswordSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setFormValidationError("");
+
+    if (!enteredIdentifier.trim()) {
+      setFormValidationError("Please enter the email you signed up with");
+      return;
+    }
+
+    if (!onForgotPassword) return;
+
+    setIsSignInRequestLoading(true);
+    const ok = await onForgotPassword(enteredIdentifier);
+    setIsSignInRequestLoading(false);
+    if (ok) {
+      // Back to sign-in mode with a clean slate so the user can sign in
+      // with the new password once they've reset it.
+      setIsResetMode(false);
+      setEnteredIdentifier("");
+      setEnteredPassword("");
+    }
+  };
+
   const handleDemoLogin = () => {
     onSignIn(DEMO_CREDENTIALS.username, DEMO_CREDENTIALS.password);
   };
 
-  let signInButtonContent;
+  let signInButtonContent: React.ReactNode;
   if (isButtonLoading) {
+    let loadingLabel: string;
+    if (isResetMode) loadingLabel = "Sending reset link...";
+    else if (isSignUpMode) loadingLabel = "Creating account...";
+    else loadingLabel = "Signing in...";
     signInButtonContent = (
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-        <span>{isSignUpMode ? "Creating account..." : "Signing in..."}</span>
+        <span>{loadingLabel}</span>
       </div>
     );
+  } else if (isResetMode) {
+    signInButtonContent = "Send reset link";
   } else {
     signInButtonContent = isSignUpMode ? "Create Account" : "Sign In";
   }
@@ -106,11 +137,16 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
   // Single combined identifier field — auto-detects email vs username by '@'.
   // type="text" (not "email") so the username case isn't blocked by the
   // browser's built-in email validation.
-  const identifierLabel = "Email or username";
-  const identifierPlaceholder = isSignUpMode
-    ? "Enter an email — or a username for no-email signup"
-    : "Enter your email or username";
-  const identifierInputType = "text";
+  let identifierLabel = "Email or username";
+  let identifierPlaceholder = "Enter your email or username";
+  let identifierInputType = "text";
+  if (isResetMode) {
+    identifierLabel = "Email";
+    identifierPlaceholder = "Enter your account email";
+    identifierInputType = "email";
+  } else if (isSignUpMode) {
+    identifierPlaceholder = "Enter an email — or a username for no-email signup";
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 relative z-10">
@@ -131,12 +167,16 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
             <div className="inline-flex items-center gap-2 mb-4">
               <Sparkles className="h-6 w-6 text-orange-500" />
               <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
-                {isSignUpMode ? "Create Account" : "Welcome Back"}
+                {isResetMode ? "Reset Password" : isSignUpMode ? "Create Account" : "Welcome Back"}
               </h1>
               <Sparkles className="h-6 w-6 text-orange-500" />
             </div>
             <p className="text-gray-300">
-              {isSignUpMode ? "Sign up to start building your collection" : "Sign in to access your collection"}
+              {isResetMode
+                ? "Enter the email you signed up with — we'll send you a reset link."
+                : isSignUpMode
+                  ? "Sign up to start building your collection"
+                  : "Sign in to access your collection"}
             </p>
           </div>
 
@@ -157,8 +197,8 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {isSignUpMode && (
+          <form onSubmit={isResetMode ? handleForgotPasswordSubmit : handleSubmit} className="space-y-5">
+            {isSignUpMode && !isResetMode && (
               <div>
                 <Label htmlFor="name" className="text-gray-200">
                   Name
@@ -193,23 +233,25 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
               />
             </div>
 
-            <div>
-              <Label htmlFor="password" className="text-gray-200">
-                Password
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={enteredPassword}
-                onChange={(event) => setEnteredPassword(event.target.value)}
-                className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-orange-500/50 focus:ring-orange-500/20"
-                disabled={isButtonLoading}
-              />
-            </div>
+            {!isResetMode && (
+              <div>
+                <Label htmlFor="password" className="text-gray-200">
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={enteredPassword}
+                  onChange={(event) => setEnteredPassword(event.target.value)}
+                  className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-orange-500/50 focus:ring-orange-500/20"
+                  disabled={isButtonLoading}
+                />
+              </div>
+            )}
 
             {/* Username-only signup: lost-password warning */}
-            {isUsernameSignUp && (
+            {isUsernameSignUp && !isResetMode && (
               <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
                 <p className="text-white text-xs">
                   <strong>Heads up:</strong> Without an email on file, lost passwords cannot be recovered. Save your password somewhere safe.
@@ -234,19 +276,47 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
             </Button>
           </form>
 
-          {/* Toggle Sign In / Sign Up */}
-          <div className="text-center mt-4">
-            <button
-              type="button"
-              onClick={() => {
-                setIsSignUpMode(!isSignUpMode);
-                setFormValidationError("");
-                setEnteredIdentifier("");
-              }}
-              className="text-sm text-gray-400 hover:text-white transition-colors"
-            >
-              {isSignUpMode ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
-            </button>
+          {/* Toggle Sign In / Sign Up / Reset */}
+          <div className="text-center mt-4 space-y-2">
+            {isResetMode ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsResetMode(false);
+                  setFormValidationError("");
+                }}
+                className="text-sm text-gray-400 hover:text-white transition-colors block w-full"
+              >
+                Back to sign in
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSignUpMode(!isSignUpMode);
+                    setFormValidationError("");
+                    setEnteredIdentifier("");
+                  }}
+                  className="text-sm text-gray-400 hover:text-white transition-colors block w-full"
+                >
+                  {isSignUpMode ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
+                </button>
+                {!isSignUpMode && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsResetMode(true);
+                      setFormValidationError("");
+                      setEnteredPassword("");
+                    }}
+                    className="text-sm text-gray-400 hover:text-white transition-colors block w-full"
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </>
+            )}
           </div>
 
           {/* Divider */}
