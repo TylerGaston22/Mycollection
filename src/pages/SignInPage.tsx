@@ -1,7 +1,7 @@
 /**
  * SignInPage – sign-in / sign-up form with demo account shortcut.
- * Supports real Supabase auth (email + password) and a one-click
- * demo login that bypasses authentication entirely.
+ * Supports real Supabase auth (email + password OR username + password)
+ * and a one-click demo login that bypasses authentication entirely.
  */
 import { useState } from "react";
 import { DEMO_CREDENTIALS } from "../demo";
@@ -9,10 +9,12 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Sparkles, Film, Tv, UtensilsCrossed, MapPin, ArrowLeft } from "lucide-react";
+import { validateUsername } from "../auth";
+import type { SignUpMode } from "../hooks/useAuth";
 
 interface SignInPageProps {
-  onSignIn: (email: string, password: string) => void;
-  onSignUp?: (email: string, password: string, name: string) => void;
+  onSignIn: (emailOrUsername: string, password: string) => void;
+  onSignUp?: (identifier: string, password: string, name: string, mode: SignUpMode) => void;
   onBack: () => void;
   // True while App.tsx is still hydrating the user's data after a
   // successful Supabase sign-in. Keeps the button spinner visible so
@@ -22,19 +24,23 @@ interface SignInPageProps {
 
 export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false }: SignInPageProps) {
   const [isSignUpMode, setIsSignUpMode] = useState(false);
-  const [enteredEmail, setEnteredEmail] = useState("");
+  const [signUpMode, setSignUpMode] = useState<SignUpMode>("email");
+  const [enteredIdentifier, setEnteredIdentifier] = useState("");
   const [enteredPassword, setEnteredPassword] = useState("");
   const [enteredName, setEnteredName] = useState("");
   const [formValidationError, setFormValidationError] = useState("");
   const [isSignInRequestLoading, setIsSignInRequestLoading] = useState(false);
   const isButtonLoading = isSignInRequestLoading || externalLoading;
+  const isUsernameSignUp = isSignUpMode && signUpMode === "username";
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setFormValidationError("");
 
-    if (!enteredEmail.trim()) {
-      setFormValidationError("Please enter your email");
+    if (!enteredIdentifier.trim()) {
+      setFormValidationError(
+        isUsernameSignUp ? "Please enter a username" : "Please enter your email or username",
+      );
       return;
     }
 
@@ -53,12 +59,22 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
       return;
     }
 
+    // Client-side username validation so the user gets immediate feedback
+    // instead of a database error from the format constraint.
+    if (isUsernameSignUp) {
+      const result = validateUsername(enteredIdentifier);
+      if (!result.ok) {
+        setFormValidationError(result.error || "Invalid username");
+        return;
+      }
+    }
+
     setIsSignInRequestLoading(true);
 
     if (isSignUpMode && onSignUp) {
-      await onSignUp(enteredEmail, enteredPassword, enteredName);
+      await onSignUp(enteredIdentifier, enteredPassword, enteredName, signUpMode);
     } else {
-      await onSignIn(enteredEmail, enteredPassword);
+      await onSignIn(enteredIdentifier, enteredPassword);
     }
 
     setIsSignInRequestLoading(false);
@@ -78,6 +94,24 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
     );
   } else {
     signInButtonContent = isSignUpMode ? "Create Account" : "Sign In";
+  }
+
+  // Identifier field label/placeholder/type vary by mode
+  let identifierLabel: string;
+  let identifierPlaceholder: string;
+  let identifierInputType: string;
+  if (isUsernameSignUp) {
+    identifierLabel = "Username";
+    identifierPlaceholder = "Choose a username (3-30 chars, no @)";
+    identifierInputType = "text";
+  } else if (isSignUpMode) {
+    identifierLabel = "Email";
+    identifierPlaceholder = "Enter your email";
+    identifierInputType = "email";
+  } else {
+    identifierLabel = "Email or username";
+    identifierPlaceholder = "Enter your email or username";
+    identifierInputType = "text";
   }
 
   return (
@@ -124,6 +158,44 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
             </div>
           </div>
 
+          {/* Sign-up mode toggle: Email vs Username-only */}
+          {isSignUpMode && (
+            <div className="grid grid-cols-2 gap-2 mb-5 p-1 bg-white/5 rounded-lg border border-white/10">
+              <button
+                type="button"
+                onClick={() => {
+                  setSignUpMode("email");
+                  setFormValidationError("");
+                  setEnteredIdentifier("");
+                }}
+                disabled={isButtonLoading}
+                className={`py-2 px-3 rounded-md text-sm transition-colors ${
+                  signUpMode === "email"
+                    ? "bg-orange-500/20 text-orange-300"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                With Email
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSignUpMode("username");
+                  setFormValidationError("");
+                  setEnteredIdentifier("");
+                }}
+                disabled={isButtonLoading}
+                className={`py-2 px-3 rounded-md text-sm transition-colors ${
+                  signUpMode === "username"
+                    ? "bg-orange-500/20 text-orange-300"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Username only
+              </button>
+            </div>
+          )}
+
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             {isSignUpMode && (
@@ -144,17 +216,20 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
             )}
 
             <div>
-              <Label htmlFor="email" className="text-gray-200">
-                Email
+              <Label htmlFor="identifier" className="text-gray-200">
+                {identifierLabel}
               </Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={enteredEmail}
-                onChange={(event) => setEnteredEmail(event.target.value)}
+                id="identifier"
+                type={identifierInputType}
+                placeholder={identifierPlaceholder}
+                value={enteredIdentifier}
+                onChange={(event) => setEnteredIdentifier(event.target.value)}
                 className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-orange-500/50 focus:ring-orange-500/20"
                 disabled={isButtonLoading}
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
               />
             </div>
 
@@ -172,6 +247,15 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
                 disabled={isButtonLoading}
               />
             </div>
+
+            {/* Username-only signup: lost-password warning */}
+            {isUsernameSignUp && (
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+                <p className="text-yellow-200 text-xs">
+                  <strong>Heads up:</strong> Without an email on file, lost passwords cannot be recovered. Save your password somewhere safe.
+                </p>
+              </div>
+            )}
 
             {/* Error Message */}
             {formValidationError && (
@@ -197,6 +281,7 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
               onClick={() => {
                 setIsSignUpMode(!isSignUpMode);
                 setFormValidationError("");
+                setEnteredIdentifier("");
               }}
               className="text-sm text-gray-400 hover:text-white transition-colors"
             >

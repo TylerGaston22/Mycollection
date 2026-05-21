@@ -9,7 +9,10 @@ import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { supabase } from '../lib/supabase';
 import { mockUsers, DEMO_USER_ID, DEMO_CREDENTIALS } from '../demo';
+import { isSyntheticEmail, resolveSignInEmail, usernameToSyntheticEmail, validateUsername } from '../auth';
 import { User } from '../types';
+
+export type SignUpMode = 'email' | 'username';
 
 const DEMO_MODE = 'demo';
 const DEMO_SESSION_KEY = 'mycollection.demoSignedIn';
@@ -75,15 +78,22 @@ export function useAuth() {
       toast.error('Failed to load profile', { description: error.message });
     }
 
+    // Synthetic emails are an implementation detail — don't expose them in
+    // the displayed profile. For username-only users we surface no email
+    // and let the name/username carry their identity.
+    const isSynthetic = isSyntheticEmail(email);
+    const displayEmail = isSynthetic ? '' : email;
+    const localPart = email.split('@')[0];
+
     if (data) {
       return {
         id: data.id,
-        name: data.name || email.split('@')[0],
-        username: data.username || `@${email.split('@')[0]}`,
+        name: data.name || localPart,
+        username: data.username || localPart,
         bio: data.bio || '',
         location: data.location || '',
         profileImage: data.profile_image || undefined,
-        email,
+        email: displayEmail,
         joinDate: new Date(data.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
       };
     }
@@ -91,11 +101,11 @@ export function useAuth() {
     // Fallback if profile doesn't exist yet (trigger may not have fired)
     return {
       id: userId,
-      name: email.split('@')[0],
-      username: `@${email.split('@')[0]}`,
+      name: localPart,
+      username: localPart,
       bio: '',
       location: '',
-      email,
+      email: displayEmail,
       joinDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
     };
   };
@@ -112,9 +122,10 @@ export function useAuth() {
       return;
     }
 
-    // Real Supabase sign-in
+    // Real Supabase sign-in — accepts either an email or a bare username.
+    // Username inputs get mapped to their synthetic email address.
     const { error } = await supabase.auth.signInWithPassword({
-      email: emailOrUsername,
+      email: resolveSignInEmail(emailOrUsername),
       password,
     });
 
@@ -129,21 +140,59 @@ export function useAuth() {
     toast.success('Signed in successfully!');
   };
 
-  const handleSignUp = async (email: string, password: string, name: string) => {
+  const handleSignUp = async (
+    identifier: string,
+    password: string,
+    name: string,
+    mode: SignUpMode = 'email',
+  ) => {
+    let authEmail: string;
+    let storedUsername: string;
+
+    if (mode === 'username') {
+      const result = validateUsername(identifier);
+      if (!result.ok) {
+        toast.error('Sign up failed', { description: result.error });
+        return;
+      }
+      const normalised = identifier.trim().toLowerCase();
+      authEmail = usernameToSyntheticEmail(normalised);
+      storedUsername = normalised;
+    } else {
+      authEmail = identifier.trim();
+      // Username derived from the email local-part, no '@' prefix (kept lowercase
+      // so the unique-on-lower index in profiles_username_lower_unique applies).
+      storedUsername = authEmail.split('@')[0].toLowerCase();
+    }
+
     const { error } = await supabase.auth.signUp({
-      email,
+      email: authEmail,
       password,
       options: {
-        data: { name, username: `@${email.split('@')[0]}` },
+        data: { name, username: storedUsername },
       },
     });
 
     if (error) {
-      toast.error('Sign up failed', { description: error.message });
+      // The handle_new_user trigger may have failed on the username unique
+      // constraint. Surface a friendlier message when that's the case.
+      const isDuplicate = /duplicate|unique|already/i.test(error.message);
+      toast.error('Sign up failed', {
+        description: isDuplicate
+          ? 'That username is already taken — try a different one.'
+          : error.message,
+      });
       return;
     }
 
-    toast.success('Account created!', { description: 'Check your email to confirm your account.' });
+    if (mode === 'username') {
+      toast.success('Account created!', {
+        description:
+          'No email on file — save your password somewhere safe, lost passwords cannot be recovered.',
+      });
+    } else {
+      toast.success('Account created!', { description: 'Check your email to confirm your account.' });
+    }
   };
 
   const handleLogout = async () => {
