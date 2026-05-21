@@ -19,9 +19,9 @@ interface NotificationBadgeProps {
 }
 
 const BASE_CLASS =
-  "min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold flex items-center justify-center leading-none";
+  "min-w-[18px] h-[18px] px-1 rounded-full bg-orange-500 text-white text-[10px] font-semibold flex items-center justify-center leading-none";
 
-const FLOATING_POSITION_CLASS = "absolute -top-1 -right-1 pointer-events-none";
+const FLOATING_POSITION_CLASS = "absolute -bottom-1 -right-1 pointer-events-none";
 
 export function NotificationBadge({ count, variant = "inline", className }: NotificationBadgeProps) {
   if (count <= 0) return null;

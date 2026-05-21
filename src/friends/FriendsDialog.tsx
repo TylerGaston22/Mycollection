@@ -20,6 +20,7 @@ import {
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { NotificationBadge } from "../components/ui/NotificationBadge";
 import { searchUsersByUsername, type FriendSummary, type UserMatch } from "./client";
 import type { useFriends } from "./useFriends";
 import { FriendListView } from "./FriendListView";
@@ -63,6 +64,7 @@ export function FriendsDialog({ open, onOpenChange, friends, isDemoUser }: Frien
               <TabsTrigger value="requests">
                 <Inbox className="h-4 w-4 mr-2" />
                 Requests
+                <NotificationBadge count={friends.incomingRequests.length} className="ml-2" />
               </TabsTrigger>
               <TabsTrigger value="find">
                 <UserPlus className="h-4 w-4 mr-2" />
