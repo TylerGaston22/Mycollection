@@ -9,5 +9,6 @@ export {
   usernameToSyntheticEmail,
   isSyntheticEmail,
   resolveSignInEmail,
+  isValidEmailFormat,
 } from "./username";
 export type { UsernameValidationResult } from "./username";

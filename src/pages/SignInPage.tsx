@@ -9,7 +9,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Sparkles, Film, Tv, UtensilsCrossed, MapPin, ArrowLeft } from "lucide-react";
-import { validateUsername } from "../auth";
+import { isValidEmailFormat, validateUsername } from "../auth";
 import type { SignUpMode } from "../hooks/useAuth";
 
 interface SignInPageProps {
@@ -61,12 +61,17 @@ export function SignInPage({ onSignIn, onSignUp, onBack, externalLoading = false
       return;
     }
 
-    // Client-side username validation so the user gets immediate feedback
-    // instead of a database error from the format constraint.
-    if (isUsernameSignUp) {
-      const result = validateUsername(enteredIdentifier);
-      if (!result.ok) {
-        setFormValidationError(result.error || "Invalid username");
+    // Client-side validation per inferred mode so the user gets immediate
+    // feedback instead of a Supabase error round-trip.
+    if (isSignUpMode) {
+      if (inferredSignUpMode === "username") {
+        const result = validateUsername(enteredIdentifier);
+        if (!result.ok) {
+          setFormValidationError(result.error || "Invalid username");
+          return;
+        }
+      } else if (!isValidEmailFormat(enteredIdentifier)) {
+        setFormValidationError("That doesn't look like a valid email address.");
         return;
       }
     }

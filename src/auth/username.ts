@@ -81,3 +81,14 @@ export function resolveSignInEmail(identifier: string): string {
   if (trimmed.includes("@")) return trimmed;
   return usernameToSyntheticEmail(trimmed);
 }
+
+/**
+ * Pragmatic email-format check. Not full RFC 5322, just enough to catch
+ * obvious typos: a non-empty local part, exactly one '@', a non-empty
+ * domain with at least one dot, and no spaces anywhere.
+ */
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function isValidEmailFormat(value: string): boolean {
+  return EMAIL_PATTERN.test(value.trim());
+}
