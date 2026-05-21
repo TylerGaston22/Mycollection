@@ -24,7 +24,7 @@ import {
 } from "../components/ui/dialog";
 import { Button } from "../components/ui/button";
 import { Item } from "../types";
-import { ThemeConfig, colorToRgba } from "../utils/themeConfig";
+import { ThemeConfig } from "../utils/themeConfig";
 import { getContentTypeFieldConfig } from "../utils/contentHelpers";
 import { sanitizeImageUrl } from "../utils/sanitize";
 import { pickRandom } from "./pickRandom";
@@ -77,15 +77,18 @@ export function DicePicker({ items, contentType, currentTheme, onOpenItem }: Dic
             ? `Pick a random ${fieldConfig.displayLabel.toLowerCase()} for me`
             : `Add some ${fieldConfig.displayLabel.toLowerCase()}s first`
         }
+        // Real-dice colors: white face, black pips. Theme-independent so the
+        // icon reads as a die in both light and dark mode.
         style={{
-          borderColor: colorToRgba(currentTheme.accentColor, 0.5),
-          color: currentTheme.accentColor,
+          backgroundColor: "white",
+          borderColor: "rgba(0, 0, 0, 0.2)",
+          color: "black",
         }}
         onMouseEnter={(event: React.MouseEvent<HTMLButtonElement>) => {
-          event.currentTarget.style.backgroundColor = colorToRgba(currentTheme.accentColor, 0.2);
+          event.currentTarget.style.backgroundColor = "#f0f0f0";
         }}
         onMouseLeave={(event: React.MouseEvent<HTMLButtonElement>) => {
-          event.currentTarget.style.backgroundColor = "transparent";
+          event.currentTarget.style.backgroundColor = "white";
         }}
       >
         <Dices className="h-4 w-4" />
