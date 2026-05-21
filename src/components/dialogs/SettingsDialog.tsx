@@ -5,13 +5,16 @@
  * FormatGuideDialog for import formatting help.
  */
 
-import { useState } from 'react';
-import { Lock, Palette, Info, ImageIcon, Film, Tv, UtensilsCrossed, MapPin } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Lock, Palette, Info, ImageIcon, Film, Tv, UtensilsCrossed, MapPin, User as UserIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import { DataManagementButtons } from "../settings/DataManagementButtons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Item, CustomTab, CustomSection } from "../../types";
+import type { User } from "../../types";
 import { ColorPicker } from "../settings/ColorPicker";
 import { FormatGuideDialog } from "./FormatGuideDialog";
 import { useDataExportImport } from "../../hooks/useDataExportImport";
@@ -30,11 +33,29 @@ interface SettingsDialogProps {
     place: string;
   };
   onBackgroundColorsChange: (colors: { item: string; 'tv-show': string; restaurant: string; place: string }) => void;
+  currentUser: User;
+  onUpdateProfile: (updates: { name?: string }) => Promise<boolean>;
 }
 
-export function SettingsDialog({ open, onOpenChange, items, customTabs, customSections, onImport, backgroundColors, onBackgroundColorsChange }: SettingsDialogProps) {
+export function SettingsDialog({ open, onOpenChange, items, customTabs, customSections, onImport, backgroundColors, onBackgroundColorsChange, currentUser, onUpdateProfile }: SettingsDialogProps) {
   const [isFormatGuideDialogOpen, setIsFormatGuideDialogOpen] = useState(false);
+  const [displayName, setDisplayName] = useState(currentUser.name);
+  const [isSavingName, setIsSavingName] = useState(false);
   const { bulkImportCsv, exportCsv } = useDataExportImport();
+
+  // Reset the name field whenever the dialog opens or the current user changes,
+  // so reopening doesn't show stale input from a previous edit attempt.
+  useEffect(() => {
+    if (open) setDisplayName(currentUser.name);
+  }, [open, currentUser.name]);
+
+  const isNameDirty = displayName.trim() !== currentUser.name && displayName.trim().length > 0;
+
+  const handleSaveName = async () => {
+    setIsSavingName(true);
+    await onUpdateProfile({ name: displayName });
+    setIsSavingName(false);
+  };
 
   const updateColor = (type: 'item' | 'tv-show' | 'restaurant' | 'place', colorId: string) => {
     onBackgroundColorsChange({ ...backgroundColors, [type]: colorId });
@@ -85,6 +106,33 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
 
             <TabsContent value="account" className="space-y-6 mt-6">
               <div className="space-y-4">
+                <div className="space-y-3">
+                  <h4 className="flex items-center gap-2">
+                    <UserIcon className="h-4 w-4" />
+                    Profile
+                  </h4>
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-display-name">Display name</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="settings-display-name"
+                        value={displayName}
+                        onChange={(event) => setDisplayName(event.target.value)}
+                        placeholder="Your name"
+                        disabled={isSavingName}
+                        maxLength={80}
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleSaveName}
+                        disabled={!isNameDirty || isSavingName}
+                      >
+                        {isSavingName ? 'Saving…' : 'Save'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-3">
                   <h4>Data Management</h4>
                   <p className="text-sm text-muted-foreground mb-4">

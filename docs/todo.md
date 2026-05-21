@@ -42,8 +42,8 @@ Earlier commit said "working on mobile view" — components exist in `src/compon
 ### 7. Add tests for `utils/csv.ts`
 The CSV utility is a perfect first test target — pure functions, clear inputs/outputs. Whenever you regress a CSV import this is the obvious thing to set up.
 
-### 8. Account settings: change display name
-Add a "Display name" field to Settings → Account that updates `profiles.name`. Trivial — one input, one `supabase.from('profiles').update({ name })` call, toast on success/failure. Demo mode can update locally (mockUsers).
+### 8. ~~Account settings: change display name~~ ✅ Done 2026-05-14
+"Display name" field in Settings → Account. Save button enables when dirty, calls `auth.handleUpdateProfile({ name })`, toast on success/failure. Demo updates in-memory (mockUsers), Supabase users hit `profiles.name`.
 
 ### 9. Account settings: change email (for email-based accounts only)
 Add a "Change email" flow that calls `supabase.auth.updateUser({ email: newEmail })`. Supabase sends confirmation to BOTH old and new addresses by default. Hide this option for username-only accounts (no real email to send to — detect via `isSyntheticEmail`). Medium effort.

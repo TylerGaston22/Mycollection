@@ -197,6 +197,39 @@ export function useAuth() {
     }
   };
 
+  // Update editable profile fields. Currently exposed: `name`.
+  // Demo users update in-memory only (mockUsers); Supabase users hit the
+  // profiles table. Returns true on success so callers can clear "dirty" UI.
+  const handleUpdateProfile = async (updates: { name?: string }): Promise<boolean> => {
+    const trimmed: { name?: string } = {};
+    if (typeof updates.name === 'string') trimmed.name = updates.name.trim();
+
+    if (!trimmed.name) {
+      toast.error('Name cannot be empty');
+      return false;
+    }
+
+    if (authMode === DEMO_MODE) {
+      setCurrentUser((prev) => ({ ...prev, ...trimmed }));
+      toast.success('Profile updated');
+      return true;
+    }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update(trimmed)
+      .eq('id', currentUserId);
+
+    if (error) {
+      toast.error('Failed to update profile', { description: error.message });
+      return false;
+    }
+
+    setCurrentUser((prev) => ({ ...prev, ...trimmed }));
+    toast.success('Profile updated');
+    return true;
+  };
+
   const handleLogout = async () => {
     // Reset local state first so the UI reflects logout instantly,
     // regardless of whether the Supabase signOut request hangs.
@@ -234,5 +267,6 @@ export function useAuth() {
     handleLogout,
     handleGoToSignIn,
     handleBackToLanding,
+    handleUpdateProfile,
   };
 }

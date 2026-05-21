@@ -208,6 +208,8 @@ export default function App() {
           onImport={handleImportData}
           backgroundColors={backgroundColors}
           onBackgroundColorsChange={setBackgroundColors}
+          currentUser={auth.currentUser}
+          onUpdateProfile={auth.handleUpdateProfile}
         />
 
         <ItemDetailDialog
