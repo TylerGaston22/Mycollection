@@ -29,6 +29,7 @@ import {
   FRIEND_ROW_CLASS,
   FRIEND_ROW_NAME_CLASS,
   FRIEND_ROW_USERNAME_CLASS,
+  FRIEND_TAB_TRIGGER_CLASS,
 } from "./styles";
 
 interface FriendsDialogProps {
@@ -44,7 +45,12 @@ export function FriendsDialog({ open, onOpenChange, friends, isDemoUser }: Frien
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px] max-h-[85vh] overflow-y-auto">
+      <DialogContent
+        className="sm:max-w-[520px] max-h-[85vh] overflow-y-auto text-white border-white/10 [&_[data-slot=dialog-description]]:text-white/70"
+        style={{
+          background: 'linear-gradient(to bottom right, rgb(2, 6, 23), rgb(23, 37, 84), rgb(15, 23, 42))',
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Friends</DialogTitle>
           <DialogDescription>
@@ -56,17 +62,26 @@ export function FriendsDialog({ open, onOpenChange, friends, isDemoUser }: Frien
 
         {!isDemoUser && (
           <Tabs defaultValue="friends" className="w-full mt-2">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="friends">
+            <TabsList className="grid w-full grid-cols-3 bg-white/10">
+              <TabsTrigger
+                value="friends"
+                className={FRIEND_TAB_TRIGGER_CLASS}
+              >
                 <Users className="h-4 w-4 mr-2" />
                 Friends
               </TabsTrigger>
-              <TabsTrigger value="requests">
+              <TabsTrigger
+                value="requests"
+                className={FRIEND_TAB_TRIGGER_CLASS}
+              >
                 <Inbox className="h-4 w-4 mr-2" />
                 Requests
                 <NotificationBadge count={friends.incomingRequests.length} dot className="ml-2" />
               </TabsTrigger>
-              <TabsTrigger value="find">
+              <TabsTrigger
+                value="find"
+                className={FRIEND_TAB_TRIGGER_CLASS}
+              >
                 <UserPlus className="h-4 w-4 mr-2" />
                 Find
               </TabsTrigger>

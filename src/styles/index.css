@@ -3562,3 +3562,20 @@ html {
   -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
   transition: background-color 9999s ease-out 0s, color 9999s ease-out 0s !important;
 }
+
+/* ============================================================
+ * FriendsDialog tab triggers
+ * Tailwind JIT isn't running in this project (index.css is the
+ * fully prebuilt stylesheet), so `text-white!` / `!text-white`
+ * utilities don't get generated. This rule lets us flip tab
+ * text/icon between white (idle) and black (active) reliably.
+ * ============================================================ */
+.friend-tab-trigger,
+.friend-tab-trigger svg {
+  color: #ffffff !important;
+}
+.friend-tab-trigger[data-state="active"],
+.friend-tab-trigger[data-state="active"] svg {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+}
