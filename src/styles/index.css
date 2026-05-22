@@ -3580,6 +3580,58 @@ html {
   background-color: #ffffff !important;
 }
 
+/* Reusable "dark dialog" surface — apply this class to any DialogContent
+ * (alongside the navy background style) and the text/separator/border
+ * colors inside flip to a light palette so it reads on the dark surface.
+ * Used by ProfileDialog; FriendsDialog has its own bespoke styling and
+ * could be migrated to use this in a future cleanup. */
+.dark-surface-dialog,
+.dark-surface-dialog h1,
+.dark-surface-dialog h2,
+.dark-surface-dialog h3,
+.dark-surface-dialog h4,
+.dark-surface-dialog p,
+.dark-surface-dialog span,
+.dark-surface-dialog div {
+  color: #ffffff;
+}
+.dark-surface-dialog .text-muted-foreground {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+.dark-surface-dialog [data-slot="separator"],
+.dark-surface-dialog [data-slot="separator-root"] {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+.dark-surface-dialog .bg-muted\/30,
+.dark-surface-dialog .bg-background,
+.dark-surface-dialog .bg-card,
+.dark-surface-dialog .bg-popover,
+.dark-surface-dialog .bg-secondary {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+.dark-surface-dialog .border {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+.dark-surface-dialog [data-slot="badge"] {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+/* Outline buttons render with bg-background + border-input by default;
+ * override both so they blend with the navy surface instead of standing
+ * out as white rectangles. */
+.dark-surface-dialog button {
+  color: #ffffff;
+}
+.dark-surface-dialog button[data-slot="button"] {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+.dark-surface-dialog button[data-slot="button"]:hover {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
 /* Text inputs inside the FriendsDialog: dark translucent fill so the
  * typed text reads as white against the navy surface. Without this the
  * dialog's text-white color leaks into the (white) input field. */

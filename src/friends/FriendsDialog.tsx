@@ -22,6 +22,7 @@ import { Input } from "../components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { NotificationBadge } from "../components/ui/NotificationBadge";
 import { searchUsersByUsername, type FriendSummary, type UserMatch } from "./client";
+import { NAVY_SURFACE_BACKGROUND } from "../utils/surfaceBackgrounds";
 import type { useFriends } from "./useFriends";
 import { FriendListView } from "./FriendListView";
 import {
@@ -48,9 +49,7 @@ export function FriendsDialog({ open, onOpenChange, friends, isDemoUser }: Frien
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="sm:max-w-[520px] max-h-[85vh] overflow-y-auto text-white border-white/10 [&_[data-slot=dialog-description]]:text-white/70"
-        style={{
-          background: 'linear-gradient(to bottom right, rgb(2, 6, 23), rgb(23, 37, 84), rgb(15, 23, 42))',
-        }}
+        style={{ background: NAVY_SURFACE_BACKGROUND }}
       >
         <DialogHeader>
           <DialogTitle>Friends</DialogTitle>

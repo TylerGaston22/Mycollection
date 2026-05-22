@@ -6,6 +6,7 @@
 
 import { LucideIcon } from 'lucide-react';
 import { ThemeConfig } from "../../utils/themeConfig";
+import { NAVY_SURFACE_BACKGROUND } from "../../utils/surfaceBackgrounds";
 
 interface CategoryButtonProps {
   label: string;
@@ -16,11 +17,6 @@ interface CategoryButtonProps {
   onClick: () => void;
 }
 
-// Same navy gradient used by the gear dropdown and FriendsDialog so the
-// idle category buttons read as part of the site's surface palette.
-const IDLE_BACKGROUND =
-  'linear-gradient(to bottom right, rgb(2, 6, 23), rgb(23, 37, 84), rgb(15, 23, 42))';
-
 export function CategoryButton({ label, count, icon: Icon, isActive, currentTheme, onClick }: CategoryButtonProps) {
   let background: string;
   let className: string;
@@ -28,7 +24,7 @@ export function CategoryButton({ label, count, icon: Icon, isActive, currentThem
     background = currentTheme.accentColor;
     className = 'w-full flex items-center justify-between p-3 rounded-lg transition-all text-white shadow-lg';
   } else {
-    background = IDLE_BACKGROUND;
+    background = NAVY_SURFACE_BACKGROUND;
     className = 'w-full flex items-center justify-between p-3 rounded-lg transition-all text-white hover:brightness-125';
   }
 

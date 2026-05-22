@@ -21,6 +21,7 @@ import { CategoryCountRow } from "../navigation/CategoryCountRow";
 
 import { User as UserType, Item, CustomTab, CustomSection } from "../../types";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
+import { NAVY_SURFACE_BACKGROUND } from "../../utils/surfaceBackgrounds";
 import { useDataExportImport } from "../../hooks/useDataExportImport";
 
 interface ProfileDialogProps {
@@ -95,7 +96,10 @@ export function ProfileDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto dark-surface-dialog"
+        style={{ background: NAVY_SURFACE_BACKGROUND }}
+      >
         <DialogHeader>
           <DialogTitle>Profile</DialogTitle>
           <DialogDescription>

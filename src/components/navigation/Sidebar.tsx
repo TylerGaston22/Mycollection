@@ -16,6 +16,7 @@ import { accentGradientHoverHandlers } from "../../utils/accentHover";
 import { CategoryButton } from "./CategoryButton";
 import { SubCategoryNav } from "./SubCategoryNav";
 import { NotificationBadge } from "../ui/NotificationBadge";
+import { NAVY_SURFACE_BACKGROUND } from "../../utils/surfaceBackgrounds";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -139,7 +140,7 @@ export function Sidebar({
             title="Open profile"
             className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg cursor-pointer transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2"
             style={{
-              background: `linear-gradient(to bottom right, ${currentTheme.accentColor}, ${currentTheme.accentColor}cc)`,
+              background: NAVY_SURFACE_BACKGROUND,
               outlineColor: currentTheme.accentColor,
             }}
           >
@@ -173,7 +174,7 @@ export function Sidebar({
               align="end"
               className="text-white border-white/10 [&_[data-slot=dropdown-menu-item]]:focus:bg-white/10 [&_[data-slot=dropdown-menu-item]]:focus:text-white"
               style={{
-                background: 'linear-gradient(to bottom right, rgb(2, 6, 23), rgb(23, 37, 84), rgb(15, 23, 42))',
+                background: NAVY_SURFACE_BACKGROUND,
               }}
             >
               <DropdownMenuItem onClick={() => setTheme(isDark ? "light" : "dark")}>
