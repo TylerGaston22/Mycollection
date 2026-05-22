@@ -22,6 +22,37 @@ Cleared all 4 vulnerabilities (postcss XSS, ws memory disclosure, 5 vite dev-ser
 ### A. Refresh shouldn't flash through landing → sign-in → target
 When a signed-in user hits browser refresh, the app momentarily renders the landing page, then the sign-in page, then the page they were actually on. Should go straight from refresh → restored page (probably show a neutral loading state while `supabase.auth.getSession()` resolves, instead of defaulting to "logged-out landing" first). Likely fix is in `App.tsx` / `useAuth` initial-render branch — gate the landing/sign-in fallback on `auth.isReady` so unauthenticated UI only renders after we've confirmed there's no session.
 
+### F. Default new-item status to the user's current view
+When the user clicks **Add Item**, the status (e.g. Watched / Want to
+See) and the active sub-section currently default to whatever the form
+initialises with. They should default to **the user's currently
+selected category + sub-section** since that's the assumed bucket they
+mean to add to. User can still change it via the form before saving.
+- In `ItemFormDialog`, read `contentType` + `activeSection` from props
+  (already wired into App.tsx for navigation) and preselect them.
+- For `status`: if active section is "Watched" → preselect `watched`;
+  if "Want to See" → preselect `want-to-see`; "All" → preselect
+  whichever default we want (probably `want-to-see`).
+- Add a small visual cue ("Adding to: TV Shows › Want to See") in the
+  form header so the user knows the preselect happened and can
+  override it intentionally.
+
+### G. Choose sub-category when accepting a recommendation
+Today `useRecommendations.accept` materialises the snapshot into the
+recipient's collection with hardcoded `status: "want-to-see"` and no
+sub-section assignment. The recipient should be able to pick which
+sub-section it lands in (e.g. add to a custom "Date night" section, or
+mark it Watched immediately if they've already seen it).
+- In `RecommendationsTab`, replace the inline ✓ Accept button with an
+  "Add to my collection" flow that opens a small picker (status radio
+  + optional sub-section dropdown from the recipient's `customSections`).
+- Pass `customSections` + `addItem` from App.tsx into the
+  RecommendationsTab (currently only `recommendations` is passed) so
+  the picker has its options.
+- Default the picker to "Want to See" + no sub-section, so the
+  one-click "just add it" case stays fast — the user only has to
+  expand if they want to customise.
+
 ### E. Upload / change user profile picture
 Right now the sidebar + ProfileDialog avatars both render the generic
 User icon on the accent-color gradient — there's no way for a user to

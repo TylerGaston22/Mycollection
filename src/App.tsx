@@ -42,6 +42,7 @@ import { useDialogState } from "./hooks/useDialogState";
 import { useCollectionStats } from "./hooks/useCollectionStats";
 import { DEFAULT_CONTENT_TYPE } from "./constants";
 import { FriendsDialog, useFriends } from "./friends";
+import { useRecommendations } from "./recommendations";
 
 export default function App() {
   const { resolvedTheme } = useTheme();
@@ -52,6 +53,7 @@ export default function App() {
   const { customTabs, setCustomTabs, addCustomTab: addTab, removeTab, isLoading: tabsLoading } = useCustomTabs(auth.currentUserId, auth.isDemoUser);
   const { customSections, setCustomSections, addCustomSection: addSection, removeByContentType, isLoading: sectionsLoading } = useCustomSections(auth.currentUserId, auth.isDemoUser);
   const friends = useFriends(auth.currentUserId, auth.isDemoUser);
+  const recommendations = useRecommendations(auth.currentUserId, auth.isDemoUser, addItem);
 
   // After a successful Supabase sign-in the auth state flips to signed-in
   // before the data hooks have finished fetching. Keep the SignInPage mounted
@@ -168,7 +170,10 @@ export default function App() {
           onItemClick={setSelectedItem}
           onShareDialogOpen={() => dialogs.open('share')}
           getSectionContent={getItemsForSection}
-          pendingFriendRequestsCount={friends.incomingRequests.length}
+          pendingFriendRequestsCount={
+            friends.incomingRequests.length +
+            recommendations.incoming.filter((r) => r.status === "pending").length
+          }
         />
 
         <ItemFormDialog
@@ -231,6 +236,7 @@ export default function App() {
           open={dialogs.isOpen('friends')}
           onOpenChange={(v) => dialogs.setOpen('friends', v)}
           friends={friends}
+          recommendations={recommendations}
           isDemoUser={auth.isDemoUser}
         />
 
@@ -245,6 +251,9 @@ export default function App() {
           onUpdate={updateItem}
           customSections={customSections}
           currentTheme={currentTheme}
+          friends={friends.friends}
+          recommendations={recommendations}
+          isDemoUser={auth.isDemoUser}
         />
 
         <ShareDialog

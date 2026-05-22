@@ -21,6 +21,9 @@ import { ThemeConfig } from "../../utils/themeConfig";
 import { pluralize } from "../../utils/pluralize";
 import { Separator } from "../ui/separator";
 import { ItemFormDialog } from "./ItemFormDialog";
+import { RecommendButton } from "../../recommendations/RecommendButton";
+import type { FriendSummary } from "../../friends/client";
+import type { useRecommendations } from "../../recommendations/useRecommendations";
 
 interface MovieDetailDialogProps {
   item: Item | null;
@@ -29,6 +32,10 @@ interface MovieDetailDialogProps {
   onUpdate: (id: string, updates: Partial<Item>) => void;
   customSections?: CustomSection[];
   currentTheme?: ThemeConfig;
+  /** Friend list + recommendations hook so the dialog can offer "Recommend". */
+  friends?: FriendSummary[];
+  recommendations?: ReturnType<typeof useRecommendations>;
+  isDemoUser?: boolean;
 }
 
 export function ItemDetailDialog({
@@ -37,7 +44,10 @@ export function ItemDetailDialog({
   onOpenChange,
   onUpdate,
   customSections = [],
-  currentTheme
+  currentTheme,
+  friends,
+  recommendations,
+  isDemoUser,
 }: MovieDetailDialogProps) {
   const [isMovieEditDialogOpen, setIsMovieEditDialogOpen] = useState(false);
 
@@ -160,16 +170,26 @@ export function ItemDetailDialog({
                 {contentTypeHeaderIcon}
                 {item.title}
               </div>
-              <ThemePrimaryButton
-                variant="outline"
-                size="sm"
-                onClick={() => setIsMovieEditDialogOpen(true)}
-                currentTheme={currentTheme}
-                style={currentTheme ? { borderColor: currentTheme.accentColor } : undefined}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </ThemePrimaryButton>
+              <div className="flex items-center gap-2">
+                {friends && recommendations && (
+                  <RecommendButton
+                    item={item}
+                    friends={friends}
+                    recommendations={recommendations}
+                    isDemoUser={isDemoUser}
+                  />
+                )}
+                <ThemePrimaryButton
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsMovieEditDialogOpen(true)}
+                  currentTheme={currentTheme}
+                  style={currentTheme ? { borderColor: currentTheme.accentColor } : undefined}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </ThemePrimaryButton>
+              </div>
             </DialogTitle>
             <DialogDescription>
               View and manage details for this item.

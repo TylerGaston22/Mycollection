@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { Users, UserPlus, Inbox, Loader2 } from "lucide-react";
+import { Users, UserPlus, Inbox, Loader2, Share2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +23,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { NotificationBadge } from "../components/ui/NotificationBadge";
 import { searchUsersByUsername, type FriendSummary, type UserMatch } from "./client";
 import { NAVY_SURFACE_BACKGROUND } from "../utils/surfaceBackgrounds";
+import { RecommendationsTab } from "../recommendations/RecommendationsTab";
+import type { useRecommendations } from "../recommendations/useRecommendations";
 import type { useFriends } from "./useFriends";
 import { FriendListView } from "./FriendListView";
 import {
@@ -38,11 +40,18 @@ interface FriendsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   friends: ReturnType<typeof useFriends>;
+  recommendations: ReturnType<typeof useRecommendations>;
   /** Demo users can open the dialog but every action is gated to a friendly message. */
   isDemoUser: boolean;
 }
 
-export function FriendsDialog({ open, onOpenChange, friends, isDemoUser }: FriendsDialogProps) {
+export function FriendsDialog({
+  open,
+  onOpenChange,
+  friends,
+  recommendations,
+  isDemoUser,
+}: FriendsDialogProps) {
   const [viewingFriend, setViewingFriend] = useState<FriendSummary | null>(null);
 
   return (
@@ -62,7 +71,7 @@ export function FriendsDialog({ open, onOpenChange, friends, isDemoUser }: Frien
 
         {!isDemoUser && (
           <Tabs defaultValue="friends" className="w-full mt-2">
-            <TabsList className="grid w-full grid-cols-3 bg-white/10">
+            <TabsList className="grid w-full grid-cols-4 bg-white/10">
               <TabsTrigger
                 value="friends"
                 className={FRIEND_TAB_TRIGGER_CLASS}
@@ -77,6 +86,18 @@ export function FriendsDialog({ open, onOpenChange, friends, isDemoUser }: Frien
                 <Inbox className="h-4 w-4 mr-2" />
                 Requests
                 <NotificationBadge count={friends.incomingRequests.length} dot className="ml-2" />
+              </TabsTrigger>
+              <TabsTrigger
+                value="recommendations"
+                className={FRIEND_TAB_TRIGGER_CLASS}
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                Recs
+                <NotificationBadge
+                  count={recommendations.incoming.filter((r) => r.status === "pending").length}
+                  dot
+                  className="ml-2"
+                />
               </TabsTrigger>
               <TabsTrigger
                 value="find"
@@ -96,6 +117,10 @@ export function FriendsDialog({ open, onOpenChange, friends, isDemoUser }: Frien
 
             <TabsContent value="requests" className="mt-4">
               <RequestsTab friends={friends} />
+            </TabsContent>
+
+            <TabsContent value="recommendations" className="mt-4">
+              <RecommendationsTab recommendations={recommendations} />
             </TabsContent>
 
             <TabsContent value="find" className="mt-4">

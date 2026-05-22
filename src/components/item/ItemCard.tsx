@@ -115,7 +115,7 @@ export function ItemCard({ item, onUpdate, onDelete }: MovieCardProps) {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:text-white">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
