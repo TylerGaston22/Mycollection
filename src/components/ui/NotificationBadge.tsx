@@ -33,16 +33,18 @@ const DOT_CLASS = "w-2.5 h-2.5 rounded-full inline-block";
 const DOT_GLOW_STYLE = {
   backgroundColor: "#ffffff",
   boxShadow: [
-    "0 0 1px 1px rgba(255, 255, 255, 1)",
-    "0 0 2px 1px rgba(255, 250, 180, 1)",
-    "0 0 3px 2px rgba(255, 235, 100, 1)",
-    "0 0 5px 2px rgba(253, 224, 71, 1)",
-    "0 0 8px 3px rgba(250, 204, 21, 1)",
+    "0 0 1px 1px rgba(255, 255, 255, 1)", // hot white inner ring — tightest, brightest
+    "0 0 2px 1px rgba(255, 220, 180, 1)", // cream pale-orange halo just outside the core
+    "0 0 3px 2px rgba(253, 186, 116, 1)", // soft orange next layer outward
+    "0 0 5px 2px rgba(251, 146, 60, 1)",  // bright orange mid-radius
+    "0 0 8px 3px rgba(249, 115, 22, 1)",  // saturated outer orange — widest reach
   ].join(", "),
 };
 
 const FLOATING_POSITION_CLASS = "absolute pointer-events-none";
-const FLOATING_POSITION_STYLE = { bottom: "0px", right: "0px" };
+// bottom: higher px = UP into gear, negative = DOWN below gear
+// right:  higher px = LEFT into gear, negative = RIGHT outside gear
+const FLOATING_POSITION_STYLE = { bottom: "10px", right: "10px" };
 
 export function NotificationBadge({
   count,
