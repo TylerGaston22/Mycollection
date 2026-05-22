@@ -13,6 +13,7 @@
  * Returns null when count is 0 so callers can render it unconditionally.
  */
 
+import type { CSSProperties } from "react";
 import { cn } from "./utils";
 
 interface NotificationBadgeProps {
@@ -40,7 +41,8 @@ const DOT_GLOW_STYLE = {
   ].join(", "),
 };
 
-const FLOATING_POSITION_CLASS = "absolute -bottom-1.5 -right-1.5 pointer-events-none";
+const FLOATING_POSITION_CLASS = "absolute pointer-events-none";
+const FLOATING_POSITION_STYLE = { bottom: "-4px", right: "-4px" };
 
 export function NotificationBadge({
   count,
@@ -51,10 +53,14 @@ export function NotificationBadge({
   if (count <= 0) return null;
   const base = dot ? DOT_CLASS : COUNT_CLASS;
   const label = count > 99 ? "99+" : String(count);
+  const style: CSSProperties = {
+    ...(dot ? DOT_GLOW_STYLE : null),
+    ...(variant === "floating" ? FLOATING_POSITION_STYLE : null),
+  };
   return (
     <span
       className={cn(base, variant === "floating" && FLOATING_POSITION_CLASS, className)}
-      style={dot ? DOT_GLOW_STYLE : undefined}
+      style={Object.keys(style).length > 0 ? style : undefined}
       aria-label={`${count} pending`}
     >
       {dot ? null : label}
