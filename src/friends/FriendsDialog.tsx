@@ -8,7 +8,7 @@
  * one of their accepted friends.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Users, UserPlus, Inbox, Loader2 } from "lucide-react";
 import {
   Dialog,
@@ -250,6 +250,31 @@ function FindTab({ friends }: { friends: ReturnType<typeof useFriends> }) {
     if (error) return;
     setResults(data);
   };
+
+  // Live auto-search: debounce 300ms after the user stops typing, then
+  // run the same query. Stale-result guard via `cancelled` so an older
+  // in-flight request can't overwrite newer results if the user keeps
+  // typing. The manual Search button still works (same handler).
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed.length < 2) {
+      setResults([]);
+      return;
+    }
+    let cancelled = false;
+    setIsSearching(true);
+    const timer = setTimeout(async () => {
+      const { data, error } = await searchUsersByUsername(trimmed);
+      if (cancelled) return;
+      setIsSearching(false);
+      if (error) return;
+      setResults(data);
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query]);
 
   // Helper — flag users who already have a relationship with us so the
   // Add button can be disabled instead of producing a 400.
