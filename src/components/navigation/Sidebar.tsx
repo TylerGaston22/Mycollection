@@ -169,23 +169,31 @@ export function Sidebar({
                 <NotificationBadge count={pendingFriendRequestsCount} variant="floating" dot />
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent
+              align="end"
+              className="text-white border-white/10 [&_[data-slot=dropdown-menu-item]]:focus:bg-white/10 [&_[data-slot=dropdown-menu-item]]:focus:text-white"
+              style={{
+                background: 'linear-gradient(to bottom right, rgb(2, 6, 23), rgb(23, 37, 84), rgb(15, 23, 42))',
+              }}
+            >
               <DropdownMenuItem onClick={() => setTheme(isDark ? "light" : "dark")}>
-                {isDark ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
+                {isDark
+                  ? <Sun className="h-4 w-4 mr-2 text-yellow-400" />
+                  : <Moon className="h-4 w-4 mr-2 text-blue-300" />}
                 {isDark ? "Light Mode" : "Dark Mode"}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onFriendsDialogOpen}>
-                <Users className="h-4 w-4 mr-2" />
+                <Users className="h-4 w-4 mr-2 text-green-400" />
                 <span>Friends</span>
                 <NotificationBadge count={pendingFriendRequestsCount} dot className="ml-auto" />
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onSettingsDialogOpen}>
-                <SlidersHorizontal className="h-4 w-4 mr-2" />
+                <SlidersHorizontal className="h-4 w-4 mr-2 text-cyan-400" />
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="bg-white/10" />
               <DropdownMenuItem onClick={onLogout}>
-                <LogOut className="h-4 w-4 mr-2" />
+                <LogOut className="h-4 w-4 mr-2 text-red-400" />
                 Log Out
               </DropdownMenuItem>
             </DropdownMenuContent>
