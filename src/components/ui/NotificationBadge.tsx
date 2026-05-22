@@ -27,13 +27,20 @@ const COUNT_CLASS =
 
 const DOT_CLASS = "w-2.5 h-2.5 rounded-full inline-block";
 
+// Many tight shadow stops at full opacity stack additively for maximum
+// luminance without expanding the visual footprint past ~10px.
 const DOT_GLOW_STYLE = {
-  backgroundColor: "#fffbe6",
-  boxShadow:
-    "0 0 2px 1px rgba(255, 255, 200, 1), 0 0 4px 2px rgba(253, 224, 71, 1), 0 0 8px 3px rgba(250, 204, 21, 1)",
+  backgroundColor: "#ffffff",
+  boxShadow: [
+    "0 0 1px 1px rgba(255, 255, 255, 1)",
+    "0 0 2px 1px rgba(255, 250, 180, 1)",
+    "0 0 3px 2px rgba(255, 235, 100, 1)",
+    "0 0 5px 2px rgba(253, 224, 71, 1)",
+    "0 0 8px 3px rgba(250, 204, 21, 1)",
+  ].join(", "),
 };
 
-const FLOATING_POSITION_CLASS = "absolute -bottom-1 -right-1 pointer-events-none";
+const FLOATING_POSITION_CLASS = "absolute -bottom-1.5 -right-1.5 pointer-events-none";
 
 export function NotificationBadge({
   count,
