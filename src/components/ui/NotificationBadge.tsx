@@ -42,7 +42,7 @@ const DOT_GLOW_STYLE = {
 };
 
 const FLOATING_POSITION_CLASS = "absolute pointer-events-none";
-const FLOATING_POSITION_STYLE = { bottom: "-4px", right: "-4px" };
+const FLOATING_POSITION_STYLE = { bottom: "0px", right: "0px" };
 
 export function NotificationBadge({
   count,
