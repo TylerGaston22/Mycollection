@@ -7,7 +7,7 @@
  */
 
 import { Button } from "../ui/button";
-import { Plus, Film, Tv, UtensilsCrossed, MapPin, Settings, LogOut, Star, Moon, Sun, SlidersHorizontal, Users } from 'lucide-react';
+import { Plus, Film, Tv, UtensilsCrossed, MapPin, Settings, LogOut, Star, Moon, Sun, SlidersHorizontal, Users, User } from 'lucide-react';
 import { useTheme } from "next-themes";
 import { Item, CustomTab, CustomSection } from "../../types";
 import type { User as UserType } from "../../types";
@@ -140,11 +140,11 @@ export function Sidebar({
             title="Open profile"
             className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg cursor-pointer transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2"
             style={{
-              background: NAVY_SURFACE_BACKGROUND,
+              background: `linear-gradient(to bottom right, ${currentTheme.accentColor}, ${colorToRgba(currentTheme.accentColor, 0.8)})`,
               outlineColor: currentTheme.accentColor,
             }}
           >
-            {currentUser.name.charAt(0)}
+            <User className="h-5 w-5" />
           </button>
           <button
             onClick={onProfileDialogOpen}

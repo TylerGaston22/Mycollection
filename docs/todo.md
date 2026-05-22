@@ -22,6 +22,28 @@ Cleared all 4 vulnerabilities (postcss XSS, ws memory disclosure, 5 vite dev-ser
 ### A. Refresh shouldn't flash through landing → sign-in → target
 When a signed-in user hits browser refresh, the app momentarily renders the landing page, then the sign-in page, then the page they were actually on. Should go straight from refresh → restored page (probably show a neutral loading state while `supabase.auth.getSession()` resolves, instead of defaulting to "logged-out landing" first). Likely fix is in `App.tsx` / `useAuth` initial-render branch — gate the landing/sign-in fallback on `auth.isReady` so unauthenticated UI only renders after we've confirmed there's no session.
 
+### E. Upload / change user profile picture
+Right now the sidebar + ProfileDialog avatars both render the generic
+User icon on the accent-color gradient — there's no way for a user to
+upload their own. Build out:
+- A file input in ProfileDialog (Settings → Profile section) that lets
+  the user pick a local image (PNG / JPG, ≤ ~2 MB; show inline error
+  for oversized or wrong-type files).
+- Upload to a new Supabase Storage bucket (e.g. `avatars/`) using
+  `supabase.storage.from('avatars').upload(...)` keyed by user id.
+  Public-read RLS or signed URL — whichever fits.
+- Persist the resulting public URL onto `profiles.profile_image` (column
+  already in the User type as `profileImage`; add it to the schema if
+  not already present).
+- Render `AvatarImage` from that URL in BOTH the sidebar avatar button
+  and the ProfileDialog `<Avatar>` — fall back to the current User-icon
+  +accent-gradient when no image is set.
+- "Remove photo" button to revert to the default.
+- Image-source guardrails: extend `index.html` CSP `img-src` to include
+  the Supabase storage hostname (`*.supabase.co`).
+- Demo users: keep this disabled / use a fixed mock image, per the
+  isolate-demo rule.
+
 ### D. Wire up the Tailwind v4 Vite plugin (re-enable JIT)
 The current `src/styles/index.css` is the entire prebuilt Tailwind v4
 output — there's no `@tailwindcss/vite` plugin in `vite.config.ts`, no
