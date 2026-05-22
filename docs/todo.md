@@ -22,6 +22,16 @@ Cleared all 4 vulnerabilities (postcss XSS, ws memory disclosure, 5 vite dev-ser
 ### A. Refresh shouldn't flash through landing → sign-in → target
 When a signed-in user hits browser refresh, the app momentarily renders the landing page, then the sign-in page, then the page they were actually on. Should go straight from refresh → restored page (probably show a neutral loading state while `supabase.auth.getSession()` resolves, instead of defaulting to "logged-out landing" first). Likely fix is in `App.tsx` / `useAuth` initial-render branch — gate the landing/sign-in fallback on `auth.isReady` so unauthenticated UI only renders after we've confirmed there's no session.
 
+### C. Hover-over highlight pass for bars & links
+Polish pass on every clickable surface in the navigation / dialogs.
+Today most of them have either no hover state or just a faint
+`hover:brightness-125`. Audit: sidebar categories, sub-section items,
+custom-tab rows, gear-dropdown items, FriendsDialog tabs + rows, dialog
+buttons. Decide on a single hover language (e.g. subtle white-overlay
++ accent-coloured left border) and apply it consistently. Centralise
+the hover className in one shared constants file so every component
+picks up future tweaks automatically.
+
 ### B. Clean up orphan profile rows + prevent future leftovers
 Right now when an `auth.users` row is deleted, the matching `public.profiles` row can stay behind (no `on delete cascade` from profiles.id → auth.users.id). That means a re-signed-up "test" user can collide with an old "test" profile, and username searches can return ghosts. To fix:
 - Add `on delete cascade` to the `profiles_id_fkey` (drop + recreate the FK).

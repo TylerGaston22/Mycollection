@@ -26,6 +26,7 @@ import type { useFriends } from "./useFriends";
 import { FriendListView } from "./FriendListView";
 import {
   FRIEND_EMPTY_STATE_CLASS,
+  FRIEND_INPUT_CLASS,
   FRIEND_ROW_CLASS,
   FRIEND_ROW_NAME_CLASS,
   FRIEND_ROW_USERNAME_CLASS,
@@ -262,6 +263,7 @@ function FindTab({ friends }: { friends: ReturnType<typeof useFriends> }) {
     <div className="space-y-4">
       <div className="flex gap-2">
         <Input
+          className={FRIEND_INPUT_CLASS}
           placeholder="Search by username (at least 2 characters)"
           value={query}
           onChange={(event) => setQuery(event.target.value)}

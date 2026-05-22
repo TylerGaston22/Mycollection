@@ -18,3 +18,9 @@ export const FRIEND_EMPTY_STATE_CLASS =
 // in src/styles/index.css (Tailwind JIT isn't enabled in this project,
 // so `!`-modifier utilities can't be used).
 export const FRIEND_TAB_TRIGGER_CLASS = "friend-tab-trigger";
+
+// Text inputs inside the FriendsDialog (e.g. the Find tab search box):
+// translucent dark fill + white text + faded white placeholder so the
+// input is legible on the navy dialog surface. Also backed by a CSS
+// rule in src/styles/index.css.
+export const FRIEND_INPUT_CLASS = "friend-input";
