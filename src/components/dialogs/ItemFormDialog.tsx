@@ -28,6 +28,19 @@ import { sanitizeImageUrl } from "../../utils/sanitize";
 import { TmdbSearchableInput } from "../../tmdb";
 import { DEFAULT_CONTENT_TYPE, type ItemStatus } from "../../constants";
 
+/**
+ * When the user clicks "Add Item" from a specific sub-section, we
+ * preselect the matching status so the form mirrors the bucket they
+ * were viewing. Falls back to 'want-to-see' for 'all' / favorites /
+ * custom sections / undefined (more useful than 'watched' since most
+ * adds are things you haven't gotten to yet).
+ */
+function defaultStatusForActiveSection(activeSection: string | undefined): ItemStatus {
+  if (activeSection === 'watched') return 'watched';
+  if (activeSection === 'want-to-see') return 'want-to-see';
+  return 'want-to-see';
+}
+
 interface MovieFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -90,7 +103,8 @@ export function ItemFormDialog({
       setEpisodes(item.episodes?.toString() || '');
       setSelectedSections(item.sections || []);
     } else {
-      setTitle(''); setYear(''); setPosterUrl(''); setStatus('watched');
+      setTitle(''); setYear(''); setPosterUrl('');
+      setStatus(defaultStatusForActiveSection(activeSection));
       setNotes(''); setPlatform(''); setStudio(''); setGenre('');
       setSeasons(''); setEpisodes('');
 
@@ -160,7 +174,21 @@ export function ItemFormDialog({
   if (isEditingExistingItem) {
     dialogDescriptionText = 'Update the details of this item';
   } else {
-    dialogDescriptionText = `Add a new ${fieldConfig.displayLabel.toLowerCase()} to your collection`;
+    // Build a "Adding to: <Category> › <Section>" hint so the user knows
+    // the form was preseeded from their current view (and can override).
+    const customSectionName = customSections.find(
+      (s) => s.id === activeSection && s.contentType === itemContentType,
+    )?.name;
+    let sectionLabel: string | null = null;
+    if (customSectionName) sectionLabel = customSectionName;
+    else if (activeSection === 'watched') sectionLabel = getWatchedLabel(itemContentType);
+    else if (activeSection === 'want-to-see') sectionLabel = getWantToSeeLabel(itemContentType);
+    else if (activeSection === 'favorites') sectionLabel = 'Favorites';
+    else if (activeSection === 'all') sectionLabel = 'All';
+
+    dialogDescriptionText = sectionLabel
+      ? `Adding to: ${fieldConfig.displayLabel} › ${sectionLabel}`
+      : `Add a new ${fieldConfig.displayLabel.toLowerCase()} to your collection`;
   }
 
   let submitButtonLabel: string;

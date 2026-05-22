@@ -66,6 +66,18 @@ A running checklist of things to manually verify, plus known edge cases. Updated
 
 ---
 
+## ➕ Add Item — auto-default to active view (todo F)
+Navigate around the sidebar, then click **Add Item** and confirm the form
+matches what you were viewing.
+
+- [ ] **Movies → Watched** → Add Item → status radio is preselected to "Watched", description reads "Adding to: Movies › Watched".
+- [ ] **TV Shows → Want to See** → Add Item → status is "Want to See", description reads "Adding to: TV Shows › Want to See".
+- [ ] **Restaurants → All** → Add Item → status defaults to "Want to See", description reads "Adding to: Restaurants › All".
+- [ ] **Movies → Favorites** → Add Item → status defaults to "Want to See", description reads "Adding to: Movies › Favorites" (favourite flag itself is not auto-set — separate concern).
+- [ ] A custom section (e.g. "Date night" under Movies) → Add Item → description reads "Adding to: Movies › Date night" AND that section's checkbox is preselected lower in the form.
+- [ ] **Edit** an existing item → preselect logic should NOT fire — status reads from the item itself, no "Adding to:" breadcrumb.
+- [ ] Manually change the status radio after the auto-default and save → saved item uses the manually chosen status (auto-default is just an initial value, not a lock).
+
 ## 🎲 Dice picker
 - [ ] On a category with **0 items**: dice button is disabled (tooltip "Add some [type]s first").
 - [ ] On a category with **1 item**: re-roll inside the modal is disabled.
