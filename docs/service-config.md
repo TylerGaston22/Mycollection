@@ -20,8 +20,8 @@ Newest sections at the top. Update as we adopt new services.
 - **Node.js Version** — currently 24.x (latest LTS). Bump only when you need a new Node feature; older LTS (20.x) is also stable.
 
 ### Project → Domains
-- **Default domain** — Vercel gives you a free `*.vercel.app` subdomain (you have `mycollection-nine.vercel.app`). Always available, ugly URL.
-- **Custom domain** — buy one (via Vercel or any registrar like Namecheap / Cloudflare) and point it here. Requires DNS records that Vercel walks you through. Free SSL via Let's Encrypt is automatic.
+- **Default domain** — Vercel gives you a free `*.vercel.app` subdomain (you have `mycollection-nine.vercel.app`). Always available, ugly URL. Still works as a fallback after switching to a custom domain.
+- **Custom domain** — purchased `sidflicks.com` via Vercel; it auto-wires DNS, SSL provisions automatically. Primary domain for the live site.
 - **Preview deployments** — every PR / non-main branch push gets its own unique `*.vercel.app` URL automatically. Useful for review without touching production.
 
 ### Project → Environment Variables
@@ -75,8 +75,8 @@ Most of what's on this page only applies to **serverless functions** (Vercel's b
 - **Password requirements** — minimum length + character classes. Defaults are fine; tighten only if your threat model demands it.
 
 ### Authentication → URL Configuration
-- **Site URL** — the base URL Supabase uses when building auth callback links (password reset, email confirm, magic links). Must be your live production URL or those links break. Was `localhost:5173` during dev; now `https://mycollection-nine.vercel.app`. NO wildcards allowed.
-- **Redirect URLs** — allowlist of URLs Supabase is allowed to redirect to after auth. Supports wildcards (`https://yourdomain.com/**`). Add your production URL with `/**` so any path post-auth works. Add preview URLs (`https://*.vercel.app`) if you want previews to be testable. Without a matching entry, Supabase silently falls back to Site URL.
+- **Site URL** — the base URL Supabase uses when building auth callback links (password reset, email confirm, magic links). Must be your live production URL or those links break. Was `localhost:5173` during dev → `https://mycollection-nine.vercel.app` after first deploy → now `https://sidflicks.com` after the custom-domain swap. NO wildcards allowed.
+- **Redirect URLs** — allowlist of URLs Supabase is allowed to redirect to after auth. Supports wildcards (`https://yourdomain.com/**`). Current entries: `https://sidflicks.com/**` (primary) + `https://mycollection-nine.vercel.app/**` (kept as fallback). Add your production URL with `/**` so any path post-auth works. Without a matching entry, Supabase silently falls back to Site URL.
 
 ### Authentication → Rate Limits
 - Per-IP defaults are generous (hundreds of requests/hour). Tighten only if you're seeing signup spam or want to be paranoid. Loosen only if you have legitimate burst traffic.

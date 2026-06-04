@@ -159,7 +159,7 @@ Walk through Supabase dashboard → **Authentication** and confirm each setting 
 - **Database → Tables → Policies** — re-verify the RLS policies one more time before launch.
 
 ### 12. ~~Test the forgot-password / reset-password flow end-to-end~~ ✅ Done 2026-05-22
-Verified on the live Vercel deploy (`mycollection-nine.vercel.app`) after the Supabase Site URL was switched away from localhost. Full flow worked: Forgot password → email → click link → ResetPasswordPage → new password → sign in with new password.
+Verified twice on the live deploy after each Supabase Site URL swap (localhost → `mycollection-nine.vercel.app` → `sidflicks.com` once the custom domain landed). Full flow worked end-to-end: Forgot password → email → click link → ResetPasswordPage → new password → sign in with new password.
 
 ### 13. Pre-deploy readiness checklist (do before going live on Vercel)
 Bundle of things to confirm before flipping the switch:
