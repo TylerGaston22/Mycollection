@@ -305,7 +305,19 @@ export function ListView({ items, onUpdate, onDelete, onItemClick, isDarkMode, c
         </TableHeader>
         <TableBody>
           {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id} className="hover:bg-muted/50">
+            <TableRow
+              key={row.id}
+              className="hover:bg-muted/50 cursor-pointer"
+              onClick={(event) => {
+                // Whole row opens the detail dialog, but inner interactive
+                // elements (heart, "Netflix" quick-edit, kebab menu, etc.)
+                // should keep their own behaviour. closest() finds the
+                // nearest interactive ancestor — if the click hit one of
+                // those, skip the row handler.
+                if ((event.target as HTMLElement).closest('button, a, [role="menuitem"], input')) return;
+                onItemClick?.(row.original);
+              }}
+            >
               {row.getVisibleCells().map((cell) => (
                 <TableCell key={cell.id}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
