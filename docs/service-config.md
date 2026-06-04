@@ -35,6 +35,14 @@ Newest sections at the top. Update as we adopt new services.
 - Every build (success or fail) lists here with its commit hash, branch, build duration, and logs.
 - **Promote to Production** — manually mark any deployment as live. Useful for rollback: click an older successful deployment → Promote → live URL points back to it.
 
+### How deploys actually trigger
+- **Just push.** Vercel watches the GitHub repo and auto-builds + deploys within seconds of a `git push`. No manual step needed for normal code changes.
+- Push to **`main`** → builds and replaces the live production URL.
+- Push to any **other branch** (or open a PR) → builds a **preview deployment** at a unique `*.vercel.app` URL. Production stays untouched. Useful for trying changes safely.
+- If a build **fails**, the live URL stays on the last successful deploy — the site doesn't go down. Fix and push again.
+- **Manual Redeploy** (Deployments → three-dot menu on a build → Redeploy) — only needed when you change something *outside* the code, like an environment variable. The new value won't apply until you trigger a rebuild.
+- **Rollback** — same three-dot menu on an older successful build → Promote to Production. One-click revert if a bad build slips through.
+
 ### Project → Settings → Build & Deployment
 Most of what's on this page only applies to **serverless functions** (Vercel's backend lambdas). Pure static SPAs like this one don't use them, so:
 - **Fluid Compute** — irrelevant for static sites. Ignore.
