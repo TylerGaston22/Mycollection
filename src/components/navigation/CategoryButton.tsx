@@ -34,11 +34,11 @@ export function CategoryButton({ label, count, icon: Icon, isActive, currentThem
       style={{ background }}
       className={className}
     >
-      <div className="flex items-center gap-3">
-        <Icon className="h-5 w-5" />
-        <span>{label}</span>
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        <Icon className="h-5 w-5 shrink-0" />
+        <span className="whitespace-nowrap overflow-hidden text-ellipsis">{label}</span>
       </div>
-      <span className="text-sm">{count}</span>
+      <span className="shrink-0 ml-2">{count}</span>
     </button>
   );
 }

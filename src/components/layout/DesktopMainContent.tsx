@@ -94,7 +94,7 @@ export function DesktopMainContent({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-white mb-2">{currentCategoryHeadingTitle}</h1>
+              <h1 className="text-white mb-2 fluid-heading">{currentCategoryHeadingTitle}</h1>
               <p className="text-gray-400">{activeSectionDescriptionText}</p>
             </div>
             {itemsInActiveSection.length > 0 && (
@@ -120,6 +120,7 @@ export function DesktopMainContent({
             <ThemePrimaryButton
               onClick={onAddDialogOpen}
               currentTheme={currentTheme}
+              className="fluid-action-btn"
             >
               <Plus className="mr-1 h-4 w-4" />
               Add {addButtonLabel}
@@ -128,6 +129,7 @@ export function DesktopMainContent({
             <Button
               onClick={onAddSectionDialogOpen}
               variant="outline"
+              className="fluid-action-btn"
               style={{
                 borderColor: colorToRgba(currentTheme.accentColor, 0.5),
                 color: currentTheme.accentColor,

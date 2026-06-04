@@ -3667,6 +3667,18 @@ html {
   width: 18rem; /* overlay width below 640px */
   transform: translateX(-100%);
   transition: transform 200ms ease;
+  /* Fluid type + padding so category bar text shrinks with the
+     sidebar instead of overflowing into wrap-and-clip. Cascades to
+     every child unless a child overrides font-size explicitly. Lower
+     minimum (0.6rem ≈ 9.6px) so text can keep shrinking gracefully
+     and the count chip is never crowded out of its space. */
+  font-size: clamp(0.6rem, 1vw + 0.3rem, 0.95rem);
+}
+/* Tighter inner padding on category bars at narrow widths so the
+   count chip doesn't get squished against a wrapping label. */
+.sidebar-fluid button,
+.sidebar-fluid [role="button"] {
+  padding: clamp(0.45rem, 0.9vw, 0.75rem);
 }
 .sidebar-fluid[data-open="true"] {
   transform: translateX(0);
@@ -3679,6 +3691,20 @@ html {
      or wide row pushes the column past the viewport and the page gains
      a horizontal scrollbar that slides content under the fixed sidebar. */
   min-width: 0;
+}
+/* Fluid page heading (e.g. "Movies", "TV Shows") — scales smoothly
+   between a compact narrow-width size and a comfortable wide-screen
+   size. Applied via className="fluid-heading" on the h1. */
+.fluid-heading {
+  font-size: clamp(1.4rem, 3.5vw, 2.25rem);
+  line-height: 1.15;
+}
+/* Action buttons in the page header (Add Item, Add Subcategory, etc.)
+   shrink their padding + text size at narrow widths so they don't push
+   the title off-screen. */
+.fluid-action-btn {
+  padding: clamp(0.4rem, 0.8vw, 0.6rem) clamp(0.6rem, 1.2vw, 1rem);
+  font-size: clamp(0.75rem, 1.1vw, 0.95rem);
 }
 .hamburger-toggle,
 .sidebar-backdrop {
