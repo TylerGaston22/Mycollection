@@ -307,7 +307,7 @@ export function ListView({ items, onUpdate, onDelete, onItemClick, isDarkMode, c
           {table.getRowModel().rows.map((row) => (
             <TableRow
               key={row.id}
-              className="hover:bg-muted/50 cursor-pointer"
+              className="hover:bg-white/5 cursor-pointer"
               onClick={(event) => {
                 // Whole row opens the detail dialog, but inner interactive
                 // elements (heart, "Netflix" quick-edit, kebab menu, etc.)
