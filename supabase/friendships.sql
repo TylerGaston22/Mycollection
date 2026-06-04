@@ -22,8 +22,12 @@
 -- ============================================================
 
 -- 1. list_visibility column on profiles
+-- Default is 'friends' (current product policy: new accounts share by
+-- default, can toggle to private in Settings). Existing installs that
+-- predate this change should run supabase/default_visibility_to_friends.sql
+-- to flip the column default + backfill existing rows.
 alter table public.profiles
-  add column if not exists list_visibility text not null default 'private';
+  add column if not exists list_visibility text not null default 'friends';
 
 alter table public.profiles drop constraint if exists profiles_list_visibility_check;
 alter table public.profiles

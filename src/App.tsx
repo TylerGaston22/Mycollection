@@ -237,6 +237,7 @@ export default function App() {
           onOpenChange={(v) => dialogs.setOpen('friends', v)}
           friends={friends}
           recommendations={recommendations}
+          customSections={customSections}
           isDemoUser={auth.isDemoUser}
         />
 

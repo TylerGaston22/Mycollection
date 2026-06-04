@@ -26,6 +26,7 @@ import {
   type RecommendationRow,
 } from "./client";
 import type { Item } from "../types";
+import type { ItemStatus } from "../constants";
 
 export interface DecoratedRecommendation extends RecommendationRow {
   /** Other party's profile (sender for incoming, recipient for outgoing). */
@@ -38,9 +39,16 @@ interface UseRecommendationsState {
   isLoading: boolean;
 }
 
+export interface AcceptOptions {
+  /** Defaults to 'want-to-see'. */
+  status?: ItemStatus;
+  /** Custom section IDs to drop the item into. Defaults to none. */
+  sections?: string[];
+}
+
 interface UseRecommendationsActions {
   send: (args: { toUserId: string; item: Item; note?: string }) => Promise<boolean>;
-  accept: (recommendation: DecoratedRecommendation) => Promise<boolean>;
+  accept: (recommendation: DecoratedRecommendation, options?: AcceptOptions) => Promise<boolean>;
   dismiss: (recommendationId: string) => Promise<boolean>;
   remove: (recommendationId: string) => Promise<boolean>;
   refresh: () => Promise<void>;
@@ -135,10 +143,12 @@ export function useRecommendations(
   );
 
   const accept = useCallback(
-    async (recommendation: DecoratedRecommendation): Promise<boolean> => {
+    async (recommendation: DecoratedRecommendation, options?: AcceptOptions): Promise<boolean> => {
       const { error } = await markRecommendationStatus(recommendation.id, "added");
       if (handleSupabaseError("Couldn't accept recommendation", error)) return false;
-      // Materialise the snapshot into the recipient's collection.
+      // Materialise the snapshot into the recipient's collection, using the
+      // recipient's picker choices (status / custom sections) — falling back
+      // to sensible defaults so a one-click accept still works.
       if (addItemToCollection) {
         const s = recommendation.item_snapshot;
         addItemToCollection({
@@ -152,8 +162,9 @@ export function useRecommendations(
           seasons: s.seasons,
           episodes: s.episodes,
           notes: s.notes,
-          status: "want-to-see",
+          status: options?.status ?? "want-to-see",
           favorite: false,
+          sections: options?.sections && options.sections.length > 0 ? options.sections : undefined,
         });
       }
       toast.success("Added to your collection");

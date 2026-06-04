@@ -98,11 +98,10 @@ buttons. Decide on a single hover language (e.g. subtle white-overlay
 the hover className in one shared constants file so every component
 picks up future tweaks automatically.
 
-### B. Clean up orphan profile rows + prevent future leftovers
-Right now when an `auth.users` row is deleted, the matching `public.profiles` row can stay behind (no `on delete cascade` from profiles.id → auth.users.id). That means a re-signed-up "test" user can collide with an old "test" profile, and username searches can return ghosts. To fix:
-- Add `on delete cascade` to the `profiles_id_fkey` (drop + recreate the FK).
-- One-time cleanup: `delete from public.profiles where id not in (select id from auth.users);`
-- Verify the same cascade exists on `collection_items.user_id`, `custom_tabs.user_id`, `custom_sections.user_id`, `preferences.user_id`, `friendships.requester_id` / `addressee_id` (the friendships table already has it — confirm the rest).
+### B. ~~Clean up orphan profile rows + prevent future leftovers~~ ✅ Done 2026-05-22
+Shipped via [supabase/cleanup_orphan_profiles.sql](../supabase/cleanup_orphan_profiles.sql) — deletes orphan profiles and re-adds `profiles_id_fkey` with `on delete cascade`. The schema.sql declaration already had cascade, but `create table if not exists` is a no-op on existing tables so the live constraint was missing it. Auth user deletes from Supabase Auth now propagate to the profile row automatically.
+
+(Optional follow-up — not done yet: audit cascade behaviour on `collection_items.user_id`, `custom_tabs.user_id`, `custom_sections.user_id`, `preferences.user_id` the same way. Schema declarations have cascade; live constraints might not, depending on when each table was first created.)
 
 ### 3. ~~Check FormatGuideDialog's Pro Tip box in light mode~~ ✅ Done 2026-05-14
 Visually verified — `bg-accent` reads as distinct from the surrounding dialog in light mode.

@@ -25,6 +25,7 @@ import { searchUsersByUsername, type FriendSummary, type UserMatch } from "./cli
 import { NAVY_SURFACE_BACKGROUND } from "../utils/surfaceBackgrounds";
 import { RecommendationsTab } from "../recommendations/RecommendationsTab";
 import type { useRecommendations } from "../recommendations/useRecommendations";
+import type { CustomSection } from "../types";
 import type { useFriends } from "./useFriends";
 import { FriendListView } from "./FriendListView";
 import {
@@ -41,6 +42,8 @@ interface FriendsDialogProps {
   onOpenChange: (open: boolean) => void;
   friends: ReturnType<typeof useFriends>;
   recommendations: ReturnType<typeof useRecommendations>;
+  /** Recipient's custom sections — used by the per-row picker on incoming recs. */
+  customSections: CustomSection[];
   /** Demo users can open the dialog but every action is gated to a friendly message. */
   isDemoUser: boolean;
 }
@@ -50,6 +53,7 @@ export function FriendsDialog({
   onOpenChange,
   friends,
   recommendations,
+  customSections,
   isDemoUser,
 }: FriendsDialogProps) {
   const [viewingFriend, setViewingFriend] = useState<FriendSummary | null>(null);
@@ -120,7 +124,10 @@ export function FriendsDialog({
             </TabsContent>
 
             <TabsContent value="recommendations" className="mt-4">
-              <RecommendationsTab recommendations={recommendations} />
+              <RecommendationsTab
+                recommendations={recommendations}
+                customSections={customSections}
+              />
             </TabsContent>
 
             <TabsContent value="find" className="mt-4">

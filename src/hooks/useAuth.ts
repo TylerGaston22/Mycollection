@@ -109,7 +109,10 @@ export function useAuth() {
         profileImage: data.profile_image || undefined,
         email: displayEmail,
         joinDate: new Date(data.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-        listVisibility: (data.list_visibility === 'friends' ? 'friends' : 'private'),
+        // Default to 'friends' when the column is null/undefined to match
+        // the new DB default (existing pre-default-flip rows treated the
+        // same way as fresh signups).
+        listVisibility: (data.list_visibility === 'private' ? 'private' : 'friends'),
       };
     }
 
@@ -122,7 +125,7 @@ export function useAuth() {
       location: '',
       email: displayEmail,
       joinDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-      listVisibility: 'private',
+      listVisibility: 'friends',
     };
   };
 
