@@ -13,7 +13,9 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    outDir: 'build',
+    // Use Vite's default `dist/` so Vercel's Vite preset picks up the
+    // output without needing a custom "Output Directory" override.
+    outDir: 'dist',
   },
   server: {
     open: true,
