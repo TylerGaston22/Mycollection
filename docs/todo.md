@@ -68,25 +68,22 @@ upload their own. Build out:
 - Demo users: keep this disabled / use a fixed mock image, per the
   isolate-demo rule.
 
-### D. Wire up the Tailwind v4 Vite plugin (re-enable JIT)
-The current `src/styles/index.css` is the entire prebuilt Tailwind v4
-output — there's no `@tailwindcss/vite` plugin in `vite.config.ts`, no
-`tailwind.config.*`, and no `@import "tailwindcss"` directive. Writing
-a new utility class in JSX (e.g. `text-white!`, `text-white/50`,
-`placeholder:text-white/50`) doesn't generate any CSS, so anything
-that isn't already in the prebuilt sheet has to be backed by a custom
-rule in index.css (see `.friend-tab-trigger`, `.friend-input`). To fix:
-- `npm i -D @tailwindcss/vite tailwindcss`
-- Add `@import "tailwindcss";` at the top of `src/styles/index.css`
-  (replacing the long prebuilt block) and wire the plugin in
-  `vite.config.ts`.
-- Verify dark mode still works (the project uses `.dark` class — keep
-  the existing `:root` / `.dark` token blocks).
-- After upgrading, the `.friend-tab-trigger` and `.friend-input` custom
-  rules become collapsible into normal Tailwind utilities with `!`
-  modifiers. Optional cleanup.
-- Risk: any custom CSS layered on top of the prebuilt sheet needs
-  re-checking. Do this in its own session and smoke-test every dialog.
+### D. ~~Wire up the Tailwind v4 Vite plugin (re-enable JIT)~~ ✅ Done 2026-05-22
+Installed `@tailwindcss/vite` + `tailwindcss@^4.3.0`, added the plugin
+to `vite.config.ts`, and rewrote `src/styles/index.css` (3,725 → 323
+lines) with `@import "tailwindcss"`, a `@custom-variant dark` declaration
+matching shadcn's `.dark`-class convention, an `@theme inline` block
+mapping the `--background` / `--foreground` / etc. CSS vars to the
+Tailwind v4 colour namespace, and the existing `:root` / `.dark` token
+blocks (including slate/cyan dark-mode remaps).
+
+Existing custom rules (`.friend-tab-trigger`, `.friend-input`,
+`.sidebar-fluid` + family, `.fluid-heading`, `.fluid-action-btn`,
+`.dark-surface-dialog`) kept as-is — they could be inlined as Tailwind
+variants now that the JIT works, but that's an optional separate cleanup.
+
+Future utilities used in JSX (e.g. `text-white!`, `placeholder:text-white/50`,
+`lg:hidden`) now generate CSS automatically — no more silent failures.
 
 ### C. Hover-over highlight pass for bars & links
 Polish pass on every clickable surface in the navigation / dialogs.
