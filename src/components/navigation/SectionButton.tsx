@@ -32,7 +32,7 @@ export function SectionButton({ label, count, isActive, currentTheme, onClick }:
     <button
       onClick={onClick}
       style={{ backgroundColor, color: textColor }}
-      className={`w-full text-left px-3 py-2 rounded text-sm transition-all ${additionalClass}`}
+      className={`w-full text-left px-3 py-2 rounded text-sm transition-all cursor-pointer ${additionalClass}`}
     >
       {label} ({count})
     </button>

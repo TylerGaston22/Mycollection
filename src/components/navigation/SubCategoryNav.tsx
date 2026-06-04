@@ -42,7 +42,9 @@ export function SubCategoryNav({
   const customSectionsForCategory = customSections.filter((section) => section.contentType === contentType);
 
   return (
-    <div className="mt-2 ml-6 space-y-1">
+    // divide-y puts a thin separator between every sibling so each
+    // subcategory reads as its own row instead of blending into the next.
+    <div className="mt-2 ml-6 divide-y divide-black/40">
       <SectionButton
         label="All"
         count={allItems.length}
@@ -72,12 +74,6 @@ export function SubCategoryNav({
         onClick={() => onActiveSectionChange('favorites')}
       />
 
-      {customSectionsForCategory.length > 0 && (
-        <div className="py-1">
-          <div className="border-t border-slate-600/50"></div>
-        </div>
-      )}
-
       {customSectionsForCategory.map((section) => {
         const numberOfItemsInSection = allItems.filter((collectionItem) => collectionItem.sections?.includes(section.id)).length;
         return (
@@ -95,7 +91,7 @@ export function SubCategoryNav({
       <button
         onClick={() => onAddSectionDialogOpen()}
         style={{ color: colorToRgba(currentTheme.accentColor, 0.6) }}
-        className="w-full text-left px-3 py-2 rounded text-sm transition-all hover:bg-slate-700/50 flex items-center gap-2"
+        className="w-full text-left px-3 py-2 rounded text-sm transition-all hover:bg-slate-700/50 flex items-center gap-2 cursor-pointer"
         {...accentColorHoverHandlers(currentTheme, { restingOpacity: 0.6 })}
       >
         <Plus className="h-3 w-3" />

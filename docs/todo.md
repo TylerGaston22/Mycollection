@@ -85,6 +85,25 @@ variants now that the JIT works, but that's an optional separate cleanup.
 Future utilities used in JSX (e.g. `text-white!`, `placeholder:text-white/50`,
 `lg:hidden`) now generate CSS automatically — no more silent failures.
 
+### H. (Maybe later) Per-subcategory icons + user-pickable colors
+Sidebar subcategories (All, Watched, Want to See, Favorites, custom)
+are currently text-only with thin dividers between them. To make them
+more visually distinct without changing layout:
+- Built-in subcategories each get a fixed icon (Grid for All, Eye for
+  Watched/Visited, Bookmark for Want to See, Star for Favorites).
+- Custom subcategories get either a default folder icon, OR an icon
+  picker in the Add Subcategory dialog (same pattern Add Category
+  already uses for top-level tabs).
+- Optional further-out: let users pick a colour swatch per subcategory
+  so each row carries its own accent tint. Would need a new color
+  field on `custom_sections` in Supabase + matching UI in the Add
+  Subcategory dialog.
+- Apply icons/colors consistently in the main page chips/filters too,
+  not just the sidebar.
+
+Deferred per user — wanted dividers first; full customisation is
+"nice to have, not important" for now.
+
 ### C. Hover-over highlight pass for bars & links
 Polish pass on every clickable surface in the navigation / dialogs.
 Today most of them have either no hover state or just a faint

@@ -22,10 +22,10 @@ export function CategoryButton({ label, count, icon: Icon, isActive, currentThem
   let className: string;
   if (isActive) {
     background = currentTheme.accentColor;
-    className = 'w-full flex items-center justify-between p-3 rounded-lg transition-all text-white shadow-lg';
+    className = 'w-full flex items-center justify-between p-3 rounded-lg transition-all cursor-pointer text-white shadow-lg';
   } else {
     background = NAVY_SURFACE_BACKGROUND;
-    className = 'w-full flex items-center justify-between p-3 rounded-lg transition-all text-white hover:brightness-125';
+    className = 'w-full flex items-center justify-between p-3 rounded-lg transition-all cursor-pointer text-white hover:brightness-125';
   }
 
   return (
