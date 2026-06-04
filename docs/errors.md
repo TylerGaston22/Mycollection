@@ -1,0 +1,146 @@
+# Errors & gotchas log
+
+Running list of non-obvious bugs we ran into while building, with root cause + fix + lesson. Not a how-to or a runbook — just a reference so the same trap doesn't catch us twice. Newest at the top.
+
+---
+
+## Vercel deploy failed silently after "modules transformed"
+
+**Symptom:** Build log showed `✓ 1839 modules transformed.` and then "Deployment failed with error" — no obvious failure in vite output.
+
+**Root cause:** `vite.config.ts` had `build.outDir: 'build'`. Vercel's Vite preset looks for the default `dist/`. Vite succeeded, Vercel couldn't find the artifacts.
+
+**Fix:** Set `outDir: 'dist'` (or override Output Directory in Vercel settings to `build`).
+
+**Lesson:** Hosting providers have framework-default assumptions baked in. Match the convention or override it explicitly — don't quietly diverge from the default.
+
+---
+
+## Sidebar invisible at narrow viewport widths
+
+**Symptom:** After adding `lg:translate-x-0` for the responsive sidebar, the sidebar never showed up at any width — only the hamburger was visible.
+
+**Root cause:** Project shipped a static prebuilt `index.css` with no Tailwind JIT. `lg:translate-x-0` and `lg:hidden` weren't in the prebuilt sheet, so they were no-ops. Element fell back to the base `translate-x(-100%)` and never came back.
+
+**Fix:** Replaced the Tailwind responsive utilities with hand-written CSS rules inside `@media (min-width: ...)` blocks. Long term: wired up `@tailwindcss/vite` so the JIT generates whatever's in source (todo D).
+
+**Lesson:** Before reaching for a Tailwind utility, confirm the project has a working JIT pipeline. A prebuilt stylesheet is a frozen subset — new utilities silently fail.
+
+---
+
+## Notification dot landing at top-left instead of bottom-right
+
+**Symptom:** Set `absolute -bottom-1.5 -right-1.5` on a span. Rendered at top-left of the parent instead.
+
+**Root cause:** Same JIT issue. `-bottom-1.5` and `-right-1.5` weren't generated, so the absolute element fell back to defaults (top: 0, left: 0).
+
+**Fix:** Inline style `{ bottom: '0px', right: '0px' }` — guaranteed regardless of what utilities exist.
+
+**Lesson:** For exact positioning, inline style is more reliable than Tailwind utilities when you can't trust the JIT. Save utilities for things where defaults are sane.
+
+---
+
+## Tailwind arbitrary value with commas didn't generate
+
+**Symptom:** `shadow-[0_0_6px_2px_rgba(255,255,255,1)]` produced no CSS — the glow effect never rendered.
+
+**Root cause:** Tailwind's class scanner sometimes chokes on commas inside arbitrary values, especially in `rgba()`. The class was treated as malformed.
+
+**Fix:** Move the box-shadow to an inline `style={{ boxShadow: '...' }}`.
+
+**Lesson:** For complex CSS values with commas / spaces / nested functions, inline style is friendlier than Tailwind arbitrary syntax. Tailwind shines for short, well-known values.
+
+---
+
+## Active tab text wouldn't turn white
+
+**Symptom:** Set `className="text-white data-[state=active]:bg-white data-[state=active]:text-black"` on a TabsTrigger. The bg-white worked, text-black worked, but inactive `text-white` did nothing — text stayed dark.
+
+**Root cause:** Two issues combined:
+1. The shadcn TabsTrigger base class has `text-foreground` (and `dark:text-muted-foreground`) directly on the element. My `text-white` from the prop and the base class had equal specificity. `tailwind-merge` should pick the prop-supplied class, but the `dark:` variant cascade was beating both in dark mode.
+2. The `!`-modifier (`text-white!`) was Tailwind v4 syntax but the prebuilt CSS didn't generate it.
+
+**Fix:** Wrote a custom CSS class `.friend-tab-trigger` with `color: #ffffff !important` and data-state attribute selectors. Bypassed the whole utility-cascade mess.
+
+**Lesson:** When you find yourself fighting Tailwind utility specificity / variant chains, escape to a small custom CSS class. Cleaner to read, deterministic to apply. Also a sign the project's CSS pipeline needs an upgrade.
+
+---
+
+## Hover utility on a button did nothing
+
+**Symptom:** Added `NAV_HOVER_CLASS` (`hover:bg-white/10`) to subcategory rows. The "Add Subcategory" button lit up on hover, but the subcategory rows didn't.
+
+**Root cause:** SectionButton had `style={{ backgroundColor: 'transparent' }}` set inline for the inactive state. Inline styles win over Tailwind utilities on the same property (`background-color`). The hover utility was generating CSS but couldn't paint over the inline rule.
+
+**Fix:** Drop the inline `backgroundColor: 'transparent'` — transparent is the default anyway, no need to set it.
+
+**Lesson:** Inline styles override `hover:` (and all Tailwind utilities) for the same property. If hover isn't visible, check whether you're setting that property inline first.
+
+Related: for the sidebar's CategoryButton (which legitimately needs an inline navy gradient), the hover overlay can't paint either. Workaround: stack `hover:brightness-110` alongside `hover:bg-white/10` so at least one effect lifts the element regardless of background.
+
+---
+
+## "Username already taken" after deleting the user
+
+**Symptom:** Deleted a test account from Supabase Auth → tried to re-sign-up with the same username → got "username taken".
+
+**Root cause:** `public.profiles.id` had a foreign-key to `auth.users(id)` but **without** `on delete cascade`. The `schema.sql` definition included cascade in the `CREATE TABLE` clause, but `create table if not exists` is a no-op for existing tables — it doesn't amend the live constraint. So the original (cascade-less) FK from before the schema edit stayed in place. Deleting the auth user left the profile row orphaned, still holding the username.
+
+**Fix:** One-time cleanup query: `delete from public.profiles where id not in (select id from auth.users);`. Then drop and re-add the FK with explicit `on delete cascade`. Both shipped in `supabase/cleanup_orphan_profiles.sql`.
+
+**Lesson:** Editing a `CREATE TABLE IF NOT EXISTS` block in your schema doesn't change anything for tables that already exist. Constraints / defaults / column types need explicit `ALTER TABLE` migrations against the live database.
+
+---
+
+## Friend invite invisible to the recipient
+
+**Symptom:** Sender's account showed the invite as "Pending". Recipient's Friends → Requests tab showed nothing.
+
+**Root cause:** The `useFriends` hook fetched the friendship row (RLS on `friendships` allowed it for both parties) then called `fetchProfilesByIds` to decorate it with the sender's name. The `profiles` table only had a "Users can read their own profile" RLS policy. The recipient couldn't read the sender's profile, `fetchProfilesByIds` returned empty, and `decorate` silently dropped the row because there was no matching profile.
+
+**Fix:** Added a second RLS policy on `profiles`: "Users can read profiles of friendship counterparts" — allows reading any profile you share a friendship row with (any status, so pending requests resolve too).
+
+**Lesson:** RLS failures often manifest as **silent empty data**, not errors. When debugging "row exists in DB but UI shows nothing," check whether every join / decorate step in the data layer has RLS coverage. The fix is usually adding a permissive policy scoped to a relationship, not loosening RLS globally.
+
+---
+
+## Refresh flashed through Landing → SignIn → main app
+
+**Symptom:** Signed-in user hits browser refresh. Sees three pages in quick succession instead of going straight to their main view.
+
+**Root cause:** App.tsx branching order was:
+1. `showPasswordResetPage` → reset page
+2. `!isSignedIn || isHydratingUserData` → SignIn or Landing
+3. else → main app
+
+On mount, `isSignedIn=false` (default) → branch 2 → Landing. Session check completes, `isSignedIn=true`, but `isHydratingUserData=true` → still branch 2, now showing SignIn with a spinner. Data finishes loading → branch 3 (main). Three renders, three flashes.
+
+**Fix:** Added a leading `if (auth.isLoading) → <Spinner />` branch. While the initial `getSession()` is in flight, render a neutral spinner instead of falling through to "logged-out landing".
+
+**Lesson:** Boolean state that starts at `false` and asynchronously flips to `true` will render its false-branch first. If false-branch is a user-visible page (not a loading state), you get a flash. Always gate page-level fallbacks on a `isReady` / `isLoading` flag, not just the boolean itself.
+
+---
+
+## Wrapper div widened the dropdown trigger's bounding box
+
+**Symptom:** Notification dot positioned `-right-1` on a div wrapping the gear Button rendered far from the actual button — looked like it was floating in empty space.
+
+**Root cause:** Wrapped Button in `<div className="relative">` so the dot could anchor to it. The div defaulted to `display: block`, so it spanned the full width of its flex slot — wider than the button. `-right-1` measured from the div's right edge, not the button's.
+
+**Fix:** Use `inline-flex` on the wrapper so it shrink-wraps the button.
+
+**Lesson:** `position: relative` makes a div the anchor for absolute children, but doesn't change its sizing. If you want the anchor to match the visual element's box, the wrapper needs `inline-block` / `inline-flex` (or set its width explicitly).
+
+---
+
+## Horizontal scroll let content slide UNDER the fixed sidebar
+
+**Symptom:** Sidebar is `position: fixed`. Long item title forced a horizontal scrollbar. Scrolling right made the content slide under the sidebar — sidebar stayed put, content moved.
+
+**Root cause:** `position: fixed` elements don't move with horizontal page scroll (by design). If the body gains a horizontal scroll, the fixed sidebar is the only thing that *doesn't* scroll, so everything else slides under it.
+
+**Fix:** Two-part:
+1. `min-width: 0` on the flex main column so it can shrink below its content's intrinsic width.
+2. `overflow-x: hidden` on the body as a safety net for any child that resists shrinking.
+
+**Lesson:** Flex items default to `min-width: auto`, which means they refuse to shrink below their content. When you wrap a fixed sidebar + flex main column, always set `min-width: 0` on the main column. And put `overflow-x: hidden` on body to belt-and-braces against unexpected wide content.

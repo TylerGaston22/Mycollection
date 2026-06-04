@@ -158,13 +158,8 @@ Walk through Supabase dashboard → **Authentication** and confirm each setting 
 - **Allow new users to sign up** — verify it's ON (it is by default; would only turn off if you wanted to lock signups).
 - **Database → Tables → Policies** — re-verify the RLS policies one more time before launch.
 
-### 12. Test the forgot-password / reset-password flow end-to-end
-The reset flow is implemented but untested. To verify (recommend from the same machine running `npm run dev` since the reset link redirects to localhost):
-- Sign out → "Forgot password?" → enter your account email → "Send reset link"
-- Check inbox → click the link → confirm the ResetPasswordPage appears
-- Enter a new password (twice) → confirm you stay signed in with the new password
-- Sign out, sign back in with the new password → should work
-- (Negative case) On the Sign In page, click "Forgot password?" → enter a username (no @) → should toast "Password reset is not available" without sending anything
+### 12. ~~Test the forgot-password / reset-password flow end-to-end~~ ✅ Done 2026-05-22
+Verified on the live Vercel deploy (`mycollection-nine.vercel.app`) after the Supabase Site URL was switched away from localhost. Full flow worked: Forgot password → email → click link → ResetPasswordPage → new password → sign in with new password.
 
 ### 13. Pre-deploy readiness checklist (do before going live on Vercel)
 Bundle of things to confirm before flipping the switch:
