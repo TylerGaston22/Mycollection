@@ -19,8 +19,8 @@ Cleared all 4 vulnerabilities (postcss XSS, ws memory disclosure, 5 vite dev-ser
 
 ## 🟡 Worth a look soon
 
-### A. Refresh shouldn't flash through landing → sign-in → target
-When a signed-in user hits browser refresh, the app momentarily renders the landing page, then the sign-in page, then the page they were actually on. Should go straight from refresh → restored page (probably show a neutral loading state while `supabase.auth.getSession()` resolves, instead of defaulting to "logged-out landing" first). Likely fix is in `App.tsx` / `useAuth` initial-render branch — gate the landing/sign-in fallback on `auth.isReady` so unauthenticated UI only renders after we've confirmed there's no session.
+### A. ~~Refresh shouldn't flash through landing → sign-in → target~~ ✅ Done 2026-05-22
+App.tsx now renders a neutral centered spinner while `auth.isLoading` is true (initial `supabase.auth.getSession()` in flight). Once the session resolves, the existing branches take over — straight to main if signed in, Landing if not. No more Landing → SignIn flash on refresh.
 
 ### F. ~~Default new-item status to the user's current view~~ ✅ Done 2026-05-22
 `defaultStatusForActiveSection()` in `ItemFormDialog` preselects status

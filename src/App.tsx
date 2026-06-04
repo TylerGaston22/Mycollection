@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 import { useTheme } from "next-themes";
 import { SidebarLayout } from "./components/layout/SidebarLayout";
 import { LandingPage } from "./pages/LandingPage";
@@ -114,7 +115,18 @@ export default function App() {
   // When signed in but still hydrating, we keep SignInPage mounted with
   // externalLoading=true so its spinner stays visible during the transition.
   let mainPageContent;
-  if (auth.showPasswordResetPage) {
+  if (auth.isLoading) {
+    // Initial supabase.auth.getSession() in flight. We don't yet know if
+    // the user has a real session — render a neutral loading screen so
+    // we don't flash Landing → SignIn → Main on refresh of a signed-in
+    // user. (Falling through to the !isSignedIn branch here would render
+    // LandingPage for the brief window before the session resolves.)
+    mainPageContent = (
+      <div className="relative z-10 min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-white/70" />
+      </div>
+    );
+  } else if (auth.showPasswordResetPage) {
     // User just clicked the password-reset link from their email — force
     // the reset page on top until they pick a new password (or refresh).
     mainPageContent = (
