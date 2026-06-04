@@ -290,7 +290,7 @@ export function ListView({ items, onUpdate, onDelete, onItemClick, isDarkMode, c
   });
 
   return (
-    <div className="rounded-md border">
+    <div>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (

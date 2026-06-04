@@ -55,6 +55,10 @@ interface SidebarProps {
   onLogout: () => void;
   onTabDelete: (tab: CustomTab) => void;
   pendingFriendRequestsCount: number;
+  /** Whether the slide-out is open at narrow widths. Ignored at lg+ (sidebar always visible). */
+  isOpen?: boolean;
+  /** Called when the user picks an action that should auto-close the slide-out (narrow widths only). */
+  onClose?: () => void;
 }
 
 export function Sidebar({
@@ -81,6 +85,7 @@ export function Sidebar({
   onLogout,
   onTabDelete,
   pendingFriendRequestsCount,
+  isOpen = true,
 }: SidebarProps) {
   const { theme, setTheme } = useTheme();
   const isDark = theme === "dark";
@@ -123,9 +128,13 @@ export function Sidebar({
     { id: 'place', label: 'Places', count: placeCount, icon: MapPin },
   ];
 
+  // Slide-out behaviour for narrow screens. The .sidebar-fluid CSS rule
+  // (in index.css) reads data-open to translate the panel in/out below
+  // 1024px and forces it always-visible at 1024px+ via a media query.
   return (
     <div
-      className="w-72 backdrop-blur-sm border-r p-6 overflow-y-auto fixed h-screen"
+      data-open={isOpen}
+      className="sidebar-fluid backdrop-blur-sm border-r p-6 overflow-y-auto fixed h-screen z-40"
       style={{
         background: isDark ? 'var(--sidebar)' : currentTheme.sidebarGradient,
         borderRightColor: isDark ? 'var(--sidebar-border)' : `${currentTheme.accentColor}30`,

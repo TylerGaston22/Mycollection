@@ -412,6 +412,11 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
+    /* Hard stop on horizontal scroll: the fixed sidebar doesn't move
+       with horizontal page scroll, so any document-level horizontal
+       scroll lets content slide UNDER the sidebar. Vertical scroll is
+       unaffected. */
+    overflow-x: hidden;
   }
 
   :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) h1 {
@@ -3642,4 +3647,53 @@ html {
 }
 .friend-input::placeholder {
   color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ============================================================
+ * Responsive sidebar (Tailwind sm breakpoint = 640px)
+ * - Below 640px: sidebar is a slide-out overlay at a fixed 18rem
+ *   width, main content uses no left margin, hamburger visible.
+ * - 640px+: sidebar always visible in-flow at a fluid width that
+ *   scales with viewport (--sidebar-w via clamp). Main content
+ *   matches that width via the same variable so they stay in sync.
+ * Custom CSS rather than Tailwind `sm:*` utilities because this
+ * project's prebuilt index.css doesn't generate them. ============================================================ */
+:root {
+  /* Sidebar in-flow width — scales between 11rem (narrow desktop) and
+     18rem (wide desktop), tracking viewport at ~22vw in between. */
+  --sidebar-w: clamp(11rem, 22vw, 18rem);
+}
+.sidebar-fluid {
+  width: 18rem; /* overlay width below 640px */
+  transform: translateX(-100%);
+  transition: transform 200ms ease;
+}
+.sidebar-fluid[data-open="true"] {
+  transform: translateX(0);
+}
+.main-fluid {
+  margin-left: 0;
+  /* Flex items default to min-width: auto which respects content's
+     intrinsic width — overrides that so the column can actually shrink
+     below its content's natural width. Without this, a long item title
+     or wide row pushes the column past the viewport and the page gains
+     a horizontal scrollbar that slides content under the fixed sidebar. */
+  min-width: 0;
+}
+.hamburger-toggle,
+.sidebar-backdrop {
+  display: block;
+}
+@media (min-width: 640px) {
+  .sidebar-fluid {
+    width: var(--sidebar-w);
+    transform: translateX(0);
+  }
+  .main-fluid {
+    margin-left: var(--sidebar-w);
+  }
+  .hamburger-toggle,
+  .sidebar-backdrop {
+    display: none;
+  }
 }

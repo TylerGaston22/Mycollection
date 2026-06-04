@@ -6,6 +6,8 @@
  * can be styled independently.
  */
 
+import { useState } from "react";
+import { Menu } from "lucide-react";
 import { Item, CustomTab, CustomSection, User } from "../../types";
 import { ThemeConfig } from "../../utils/themeConfig";
 import { getCategoryDisplayName } from "../../utils/contentHelpers";
@@ -85,6 +87,11 @@ export function SidebarLayout({
   pendingFriendRequestsCount,
 }: SidebarLayoutProps) {
   const isMobile = useIsMobile();
+  // Slide-out state for narrow desktop widths (< lg breakpoint). The
+  // sidebar is always rendered; visibility flips via translate-x classes
+  // inside the Sidebar component itself. At lg+ a CSS override forces
+  // the sidebar visible regardless of this state.
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   if (isMobile) {
     return (
@@ -139,6 +146,28 @@ export function SidebarLayout({
 
   return (
     <div className="relative z-10 flex min-h-screen">
+      {/* Hamburger toggle — the .hamburger-toggle CSS rule (in index.css)
+          hides this at 1024px+ via a media query. */}
+      <button
+        type="button"
+        onClick={() => setIsSidebarOpen((v) => !v)}
+        aria-label="Toggle sidebar"
+        className="hamburger-toggle fixed top-4 left-4 z-50 p-2 rounded-md bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors"
+      >
+        <Menu className="h-5 w-5" />
+      </button>
+
+      {/* Backdrop dimmer — only when the slide-out is open. Auto-hidden
+          at 1024px+ by .sidebar-backdrop media query. */}
+      {isSidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close sidebar"
+          onClick={() => setIsSidebarOpen(false)}
+          className="sidebar-backdrop fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
+        />
+      )}
+
       <Sidebar
         currentUser={currentUser}
         items={items}
@@ -163,6 +192,8 @@ export function SidebarLayout({
         onLogout={onLogout}
         onTabDelete={onTabDelete}
         pendingFriendRequestsCount={pendingFriendRequestsCount}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
       <DesktopMainContent
