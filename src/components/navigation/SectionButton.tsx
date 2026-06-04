@@ -1,9 +1,11 @@
 /**
  * SectionButton – a single sub-section link inside SubCategoryNav.
- * Applies an accent-tinted background when active, or a transparent
- * hover state when inactive. Displays the section label and item count.
+ * Applies an accent-tinted background when active, or no inline
+ * background when inactive so NAV_HOVER_CLASS's hover overlay can
+ * actually show through (inline styles beat hover: utilities).
  */
 
+import type { CSSProperties } from "react";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
 import { NAV_HOVER_CLASS } from "../../utils/hoverStyles";
 
@@ -16,23 +18,26 @@ interface SectionButtonProps {
 }
 
 export function SectionButton({ label, count, isActive, currentTheme, onClick }: SectionButtonProps) {
-  let backgroundColor: string;
-  let textColor: string;
+  let style: CSSProperties;
   let additionalClass: string;
   if (isActive) {
-    backgroundColor = colorToRgba(currentTheme.accentColor, 0.2);
-    textColor = currentTheme.accentColor;
+    style = {
+      backgroundColor: colorToRgba(currentTheme.accentColor, 0.2),
+      color: currentTheme.accentColor,
+    };
     additionalClass = 'font-medium';
   } else {
-    backgroundColor = 'transparent';
-    textColor = 'rgba(255, 255, 255, 0.9)';
+    // No inline backgroundColor — leave it to CSS so the hover utility
+    // can paint white/10 over it. Text colour stays inline since it's
+    // theme-aware (slight white tint at rest, full white on hover).
+    style = { color: 'rgba(255, 255, 255, 0.9)' };
     additionalClass = `hover:text-white ${NAV_HOVER_CLASS}`;
   }
 
   return (
     <button
       onClick={onClick}
-      style={{ backgroundColor, color: textColor }}
+      style={style}
       className={`w-full text-left px-3 py-2 rounded text-sm transition-all cursor-pointer ${additionalClass}`}
     >
       {label} ({count})
