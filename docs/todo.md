@@ -30,21 +30,8 @@ checkbox preselect was already wired. Dialog description now reads
 the preselect intentionally. Verification checklist in
 [testing.md](./testing.md#-add-item--auto-default-to-active-view-todo-f).
 
-### G. Choose sub-category when accepting a recommendation
-Today `useRecommendations.accept` materialises the snapshot into the
-recipient's collection with hardcoded `status: "want-to-see"` and no
-sub-section assignment. The recipient should be able to pick which
-sub-section it lands in (e.g. add to a custom "Date night" section, or
-mark it Watched immediately if they've already seen it).
-- In `RecommendationsTab`, replace the inline ✓ Accept button with an
-  "Add to my collection" flow that opens a small picker (status radio
-  + optional sub-section dropdown from the recipient's `customSections`).
-- Pass `customSections` + `addItem` from App.tsx into the
-  RecommendationsTab (currently only `recommendations` is passed) so
-  the picker has its options.
-- Default the picker to "Want to See" + no sub-section, so the
-  one-click "just add it" case stays fast — the user only has to
-  expand if they want to customise.
+### G. ~~Choose sub-category when accepting a recommendation~~ ✅ Done 2026-05-22
+`useRecommendations.accept` now takes an `AcceptOptions` (`{ status, sections }`); RecommendationsTab renders an inline picker per pending row (status radio + section dropdown filtered to the item's content type). Defaults stay at `'want-to-see'` + no section so one-click accept still works.
 
 ### E. Upload / change user profile picture
 Right now the sidebar + ProfileDialog avatars both render the generic
@@ -104,15 +91,12 @@ more visually distinct without changing layout:
 Deferred per user — wanted dividers first; full customisation is
 "nice to have, not important" for now.
 
-### C. Hover-over highlight pass for bars & links
-Polish pass on every clickable surface in the navigation / dialogs.
-Today most of them have either no hover state or just a faint
-`hover:brightness-125`. Audit: sidebar categories, sub-section items,
-custom-tab rows, gear-dropdown items, FriendsDialog tabs + rows, dialog
-buttons. Decide on a single hover language (e.g. subtle white-overlay
-+ accent-coloured left border) and apply it consistently. Centralise
-the hover className in one shared constants file so every component
-picks up future tweaks automatically.
+### C. ~~Hover-over highlight pass for bars & links~~ ✅ Done 2026-05-22
+Single hover language now lives in `src/utils/hoverStyles.ts` exporting two constants:
+- `NAV_HOVER_CLASS = "hover:bg-white/10 transition-colors"` for nav items / menu rows / dialog rows (sidebar categories, sub-section items, "Add Category" / "Add Subcategory" buttons all use it).
+- `ROW_HOVER_CLASS = "hover:bg-white/5 transition-colors"` for denser table-row layouts (ListView).
+
+Replaced the previous mix (`hover:brightness-125`, `hover:bg-slate-700/50`, inline `hover:bg-white/5`) with these two constants. Future tweaks (intensity, transition speed, adding an accent left-border, etc.) happen in one file.
 
 ### B. ~~Clean up orphan profile rows + prevent future leftovers~~ ✅ Done 2026-05-22
 Shipped via [supabase/cleanup_orphan_profiles.sql](../supabase/cleanup_orphan_profiles.sql) — deletes orphan profiles and re-adds `profiles_id_fkey` with `on delete cascade`. The schema.sql declaration already had cascade, but `create table if not exists` is a no-op on existing tables so the live constraint was missing it. Auth user deletes from Supabase Auth now propagate to the profile row automatically.

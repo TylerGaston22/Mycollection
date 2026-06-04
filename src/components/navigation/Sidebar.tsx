@@ -17,6 +17,7 @@ import { CategoryButton } from "./CategoryButton";
 import { SubCategoryNav } from "./SubCategoryNav";
 import { NotificationBadge } from "../ui/NotificationBadge";
 import { NAVY_SURFACE_BACKGROUND } from "../../utils/surfaceBackgrounds";
+import { NAV_HOVER_CLASS } from "../../utils/hoverStyles";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -267,7 +268,7 @@ export function Sidebar({
         <Button
           onClick={onAddTabDialogOpen}
           variant="ghost"
-          className="w-full justify-start text-gray-400 hover:text-white hover:bg-slate-700/50"
+          className={`w-full justify-start text-gray-400 hover:text-white ${NAV_HOVER_CLASS}`}
         >
           <Plus className="h-4 w-4 mr-2" />
           Add Category

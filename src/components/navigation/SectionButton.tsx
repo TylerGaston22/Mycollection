@@ -5,6 +5,7 @@
  */
 
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
+import { NAV_HOVER_CLASS } from "../../utils/hoverStyles";
 
 interface SectionButtonProps {
   label: string;
@@ -25,7 +26,7 @@ export function SectionButton({ label, count, isActive, currentTheme, onClick }:
   } else {
     backgroundColor = 'transparent';
     textColor = 'rgba(255, 255, 255, 0.9)';
-    additionalClass = 'hover:text-white hover:bg-slate-700/50';
+    additionalClass = `hover:text-white ${NAV_HOVER_CLASS}`;
   }
 
   return (

@@ -16,6 +16,7 @@ import {
   SortingState,
 } from "@tanstack/react-table";
 import { Item } from "../../types";
+import { ROW_HOVER_CLASS } from "../../utils/hoverStyles";
 import {
   Table,
   TableBody,
@@ -307,7 +308,7 @@ export function ListView({ items, onUpdate, onDelete, onItemClick, isDarkMode, c
           {table.getRowModel().rows.map((row) => (
             <TableRow
               key={row.id}
-              className="hover:bg-white/5 cursor-pointer"
+              className={`${ROW_HOVER_CLASS} cursor-pointer`}
               onClick={(event) => {
                 // Whole row opens the detail dialog, but inner interactive
                 // elements (heart, "Netflix" quick-edit, kebab menu, etc.)

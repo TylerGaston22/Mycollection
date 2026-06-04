@@ -7,6 +7,7 @@
 import { LucideIcon } from 'lucide-react';
 import { ThemeConfig } from "../../utils/themeConfig";
 import { NAVY_SURFACE_BACKGROUND } from "../../utils/surfaceBackgrounds";
+import { NAV_HOVER_CLASS } from "../../utils/hoverStyles";
 
 interface CategoryButtonProps {
   label: string;
@@ -25,7 +26,7 @@ export function CategoryButton({ label, count, icon: Icon, isActive, currentThem
     className = 'w-full flex items-center justify-between p-3 rounded-lg transition-all cursor-pointer text-white shadow-lg';
   } else {
     background = NAVY_SURFACE_BACKGROUND;
-    className = 'w-full flex items-center justify-between p-3 rounded-lg transition-all cursor-pointer text-white hover:brightness-125';
+    className = `w-full flex items-center justify-between p-3 rounded-lg transition-all cursor-pointer text-white ${NAV_HOVER_CLASS}`;
   }
 
   return (
