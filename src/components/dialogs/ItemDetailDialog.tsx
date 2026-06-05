@@ -19,6 +19,7 @@ import { Tv, Film, ExternalLink, Edit } from 'lucide-react';
 import { Item, CustomSection } from "../../types";
 import { ThemeConfig } from "../../utils/themeConfig";
 import { pluralize } from "../../utils/pluralize";
+import { isMediaContentType } from "../../utils/contentHelpers";
 import { Separator } from "../ui/separator";
 import { ItemFormDialog } from "./ItemFormDialog";
 import { RecommendButton } from "../../recommendations/RecommendButton";
@@ -53,7 +54,11 @@ export function ItemDetailDialog({
 
   if (!item) return null;
 
-  const movieHasAdditionalDetails = item.platform || item.studio || item.genre || (item.type === 'tv-show' && (item.seasons || item.episodes)) || item.notes;
+  // Studio + Genre are media-only concepts — never surface them for
+  // restaurants / places / custom types, even if legacy data exists on
+  // those rows.
+  const isMediaItem = isMediaContentType(item.type);
+  const movieHasAdditionalDetails = item.platform || (isMediaItem && (item.studio || item.genre)) || (item.type === 'tv-show' && (item.seasons || item.episodes)) || item.notes;
 
   let contentTypeHeaderIcon = null;
   if (item.type === 'tv-show') {
@@ -93,8 +98,8 @@ export function ItemDetailDialog({
           </div>
         )}
 
-        {/* Studio */}
-        {item.studio && (
+        {/* Studio — media-only */}
+        {isMediaItem && item.studio && (
           <div className="space-y-2">
             <div className="text-muted-foreground">Studio</div>
             <div className="flex items-center gap-2">
@@ -105,8 +110,8 @@ export function ItemDetailDialog({
           </div>
         )}
 
-        {/* Genre/Type */}
-        {item.genre && (
+        {/* Genre/Type — media-only */}
+        {isMediaItem && item.genre && (
           <div className="space-y-2">
             <div className="text-muted-foreground">Genre/Type</div>
             <div className="flex items-center gap-2">

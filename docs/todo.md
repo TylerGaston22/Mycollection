@@ -33,15 +33,14 @@ the preselect intentionally. Verification checklist in
 ### G. ~~Choose sub-category when accepting a recommendation~~ ✅ Done 2026-05-22
 `useRecommendations.accept` now takes an `AcceptOptions` (`{ status, sections }`); RecommendationsTab renders an inline picker per pending row (status radio + section dropdown filtered to the item's content type). Defaults stay at `'want-to-see'` + no section so one-click accept still works.
 
-### I. Audit per-category fields/columns end-to-end
-After scoping the ListView columns to each content type (see commit
-todo-J), verify the same scoping holds everywhere a field is read or
-written: ItemFormDialog, ItemDetailDialog, ItemCard, QuickEditDialog,
-TmdbSearchableInput, CSV import/export. Right now `platform` is reused
-for "Where to Watch" (movies/TV), "Cuisine Type" (restaurants), and
-"Location" (places) — confirm the form/detail labels still relabel
-that field per type and the UI doesn't expose any media-only field
-to non-media categories.
+### I. ~~Audit per-category fields/columns end-to-end~~ ✅ Done 2026-05-22
+Verified every field-surface against `isMediaContentType` / `getContentTypeFieldConfig`:
+- **ItemFormDialog** — already gated Genre, Studio, Seasons, Episodes behind `isMovieOrTvShow`. Platform label relabels per type. No change needed.
+- **ItemDetailDialog** — was rendering Studio + Genre blocks whenever the values existed, regardless of content type. Now both gated behind `isMediaContentType(item.type)` so legacy non-media data doesn't leak into the UI. Platform heading already relabelled per type.
+- **ItemCard** (grid view) — doesn't render those fields at all. Clean.
+- **QuickEditDialog** — fixed in the same pass as the ListView (popup title / label / placeholder for platform now resolve per content type).
+- **TmdbSearchableInput** — already gated on `isMediaContentType`, never shows for non-media.
+- **CSV import/export** — intentionally left writing all standard columns regardless of type; a CSV file can mix types and per-row scoping happens at display, not transport. Empty cells for absent fields is standard.
 
 ### J. Add Category button is broken
 Clicking "Add Category" in the sidebar should let the user create a
