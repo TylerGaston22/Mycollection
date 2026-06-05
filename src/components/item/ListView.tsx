@@ -1,9 +1,12 @@
 /**
  * ListView – sortable table view for collection items.
- * Built on TanStack React Table with sortable columns for favourite,
- * title, platform, genre, status, and rating. Clicking a cell opens
- * either a QuickEditDialog (platform/genre/notes) or the full
- * ItemFormDialog (via the actions menu).
+ * Built on TanStack React Table. The actual column definitions live in
+ * ./listViewColumns.tsx; this component is the table shell + the two
+ * dialog state machines (full Edit + QuickEdit).
+ *
+ * Clicking a row (outside an interactive cell) opens the item detail
+ * dialog via onItemClick. Clicking a cell opens either the QuickEdit
+ * (platform / genre / notes) or the full Edit dialog (via the kebab).
  */
 
 import { useState } from "react";
@@ -12,35 +15,16 @@ import {
   getCoreRowModel,
   getSortedRowModel,
   flexRender,
-  createColumnHelper,
   SortingState,
 } from "@tanstack/react-table";
+import type { CSSProperties } from "react";
 import { Item } from "../../types";
 import { ROW_HOVER_CLASS } from "../../utils/hoverStyles";
 import { getContentTypeFieldConfig, isMediaContentType } from "../../utils/contentHelpers";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table";
-import { Heart, MoreVertical, Trash2, Edit, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
-import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "../ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { ItemFormDialog } from "../dialogs/ItemFormDialog";
 import { QuickEditDialog } from "../dialogs/QuickEditDialog";
-import { StarRating } from "./StarRating";
-import { StatusBadge } from "./StatusBadge";
-import { StatusToggleMenuContent } from "./StatusToggleMenuContent";
+import { buildListViewColumns, type QuickEditField } from "./listViewColumns";
 import { useItemActions } from "../../hooks/useItemActions";
 import { ThemeConfig } from "../../utils/themeConfig";
 
@@ -57,243 +41,61 @@ interface ListViewProps {
   currentTheme?: ThemeConfig;
 }
 
-const columnHelper = createColumnHelper<Item>();
-
-export function ListView({ items, contentType, onUpdate, onDelete, onItemClick, isDarkMode, currentTheme }: ListViewProps) {
+export function ListView({
+  items,
+  contentType,
+  onUpdate,
+  onDelete,
+  onItemClick,
+  isDarkMode = false,
+  currentTheme,
+}: ListViewProps) {
   const isMedia = isMediaContentType(contentType);
   const platformLabel = getContentTypeFieldConfig(contentType).platformFieldLabel;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [movieBeingEdited, setMovieBeingEdited] = useState<Item | null>(null);
   const [movieBeingQuickEdited, setMovieBeingQuickEdited] = useState<Item | null>(null);
-  const [fieldBeingQuickEdited, setFieldBeingQuickEdited] = useState<'platform' | 'genre' | 'notes' | null>(null);
+  const [fieldBeingQuickEdited, setFieldBeingQuickEdited] = useState<QuickEditField | null>(null);
 
   const { toggleFavorite, toggleStatus, setRating } = useItemActions(onUpdate);
 
-  let textColor = '';
-  if (isDarkMode) {
-    textColor = 'text-page-fg';
-  }
-
-  let headerHover = 'hover:text-foreground';
-  let headerHoverStyle: React.CSSProperties = {};
+  // Header colour / hover behaviour varies by mode.
+  const titleTextColor = isDarkMode ? "text-page-fg" : "";
+  let headerHoverClass = "hover:text-foreground";
+  let headerHoverStyle: CSSProperties = {};
   if (isDarkMode && currentTheme) {
-    headerHover = '';
+    headerHoverClass = "";
     headerHoverStyle = { color: currentTheme.accentColor };
   } else if (isDarkMode) {
-    headerHover = 'hover:text-orange-300';
+    headerHoverClass = "hover:text-orange-300";
   }
 
-  const SortHeader = ({ label, isSorted }: { label: string; isSorted: false | 'asc' | 'desc' }) => {
-    let sortIcon;
-    if (isSorted === 'asc') {
-      sortIcon = <ArrowUp className="h-3 w-3 ml-1" />;
-    } else if (isSorted === 'desc') {
-      sortIcon = <ArrowDown className="h-3 w-3 ml-1" />;
-    } else {
-      sortIcon = <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
-    }
-    return (
-      <span
-        className={`flex items-center transition-colors ${headerHover}`}
-        onMouseEnter={(e) => {
-          if (headerHoverStyle.color) {
-            e.currentTarget.style.color = headerHoverStyle.color as string;
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (headerHoverStyle.color) {
-            e.currentTarget.style.color = '';
-          }
-        }}
-      >
-        {label}{sortIcon}
-      </span>
-    );
+  const handleOpenQuickEdit = (item: Item, field: QuickEditField) => {
+    setMovieBeingQuickEdited(item);
+    setFieldBeingQuickEdited(field);
   };
 
-  // -- Column definitions for TanStack React Table --
-  // Genre column is dropped for non-media types (restaurants / places /
-  // custom) since the concept doesn't apply there. The platform column
-  // stays but its header relabels via platformLabel above.
-  const allColumns = [
-    columnHelper.accessor('favorite', {
-      header: ({ column }) => (
-        <button onClick={column.getToggleSortingHandler()}>
-          <SortHeader label="Fav" isSorted={column.getIsSorted()} />
-        </button>
-      ),
-      cell: ({ row }) => {
-        let heartClass = 'text-page-fg stroke-page-fg stroke-2';
-        if (row.original.favorite) {
-          heartClass = 'fill-red-500 text-red-500';
-        }
-        return (
-          <button onClick={() => toggleFavorite(row.original)} className="hover:scale-110 transition-transform">
-            <Heart className={`h-5 w-5 ${heartClass}`} />
-          </button>
-        );
-      },
-      // Sort favourites to the top: favourited items get -1, others get 1
-      sortingFn: (a, b) => {
-        if (a.original.favorite === b.original.favorite) return 0;
-        if (a.original.favorite) return -1;
-        return 1;
-      },
-    }),
-    columnHelper.accessor('title', {
-      header: ({ column }) => (
-        <button onClick={column.getToggleSortingHandler()}>
-          <SortHeader label="Title" isSorted={column.getIsSorted()} />
-        </button>
-      ),
-      cell: ({ row }) => (
-        <button
-          onClick={() => onItemClick?.(row.original)}
-          // Right-click also opens the detail dialog
-          onContextMenu={(e) => { e.preventDefault(); onItemClick?.(row.original); }}
-          className={`hover:opacity-70 transition-opacity cursor-pointer text-left ${textColor}`}
-        >
-          {row.original.title}
-        </button>
-      ),
-    }),
-    columnHelper.accessor('platform', {
-      header: ({ column }) => (
-        <button onClick={column.getToggleSortingHandler()}>
-          <SortHeader label={platformLabel} isSorted={column.getIsSorted()} />
-        </button>
-      ),
-      cell: ({ row }) => {
-        const item = row.original;
-        let platformContent;
-        if (item.platform) {
-          let badgeClass = 'cursor-pointer';
-          if (isDarkMode) {
-            badgeClass += ' text-page-fg border-page-border';
-          }
-          platformContent = <Badge variant="outline" className={badgeClass}>{item.platform}</Badge>;
-        } else {
-          let emptyClass = 'cursor-pointer text-muted-foreground';
-          if (isDarkMode) {
-            emptyClass = 'cursor-pointer text-page-fg-muted';
-          }
-          platformContent = <span className={emptyClass}>-</span>;
-        }
-        return (
-          <button onClick={() => { setMovieBeingQuickEdited(item); setFieldBeingQuickEdited('platform'); }} className="hover:opacity-70 transition-opacity">
-            {platformContent}
-          </button>
-        );
-      },
-    }),
-    columnHelper.accessor('genre', {
-      header: ({ column }) => (
-        <button onClick={column.getToggleSortingHandler()}>
-          <SortHeader label="Genre" isSorted={column.getIsSorted()} />
-        </button>
-      ),
-      cell: ({ row }) => {
-        const item = row.original;
-        let genreContent;
-        if (item.genre) {
-          let badgeClass = 'cursor-pointer';
-          if (isDarkMode) {
-            badgeClass += ' text-page-fg bg-page-surface';
-          }
-          genreContent = <Badge variant="secondary" className={badgeClass}>{item.genre}</Badge>;
-        } else {
-          let emptyClass = 'cursor-pointer text-muted-foreground';
-          if (isDarkMode) {
-            emptyClass = 'cursor-pointer text-page-fg-muted';
-          }
-          genreContent = <span className={emptyClass}>-</span>;
-        }
-        return (
-          <button onClick={() => { setMovieBeingQuickEdited(item); setFieldBeingQuickEdited('genre'); }} className="hover:opacity-70 transition-opacity">
-            {genreContent}
-          </button>
-        );
-      },
-    }),
-    columnHelper.accessor('status', {
-      header: ({ column }) => (
-        <button onClick={column.getToggleSortingHandler()}>
-          <SortHeader label="Status" isSorted={column.getIsSorted()} />
-        </button>
-      ),
-      cell: ({ row }) => {
-        const item = row.original;
-        let badgeClass = 'cursor-pointer';
-        if (isDarkMode) {
-          badgeClass += ' text-page-fg border-page-border bg-transparent';
-        }
-        return (
-          <button onClick={() => toggleStatus(item)} className="hover:opacity-80 transition-opacity">
-            <StatusBadge status={item.status} contentType={item.type} className={badgeClass} />
-          </button>
-        );
-      },
-    }),
-    columnHelper.accessor('rating', {
-      header: ({ column }) => (
-        <button onClick={column.getToggleSortingHandler()}>
-          <SortHeader label="Rating" isSorted={column.getIsSorted()} />
-        </button>
-      ),
-      cell: ({ row }) => {
-        const item = row.original;
-        // Only display star rating for items with 'watched' status
-        if (item.status !== 'watched') return null;
-        return <StarRating item={item} onRate={setRating} />;
-      },
-      // Descending sort: higher ratings first, unrated (nullish) treated as 0
-      sortingFn: (a, b) => (b.original.rating ?? 0) - (a.original.rating ?? 0),
-    }),
-    columnHelper.accessor('notes', {
-      header: 'Notes',
-      enableSorting: false,
-      cell: ({ row }) => (
-        <button onClick={() => { setMovieBeingQuickEdited(row.original); setFieldBeingQuickEdited('notes'); }} className="hover:opacity-70 transition-opacity w-full text-left max-w-[300px] block">
-          <p className="truncate text-page-fg-muted cursor-pointer">{row.original.notes || '-'}</p>
-        </button>
-      ),
-    }),
-    columnHelper.display({
-      id: 'actions',
-      enableSorting: false,
-      cell: ({ row }) => {
-        const item = row.original;
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-page-fg hover:text-page-fg">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={(e: React.MouseEvent) => { e.stopPropagation(); setMovieBeingEdited(item); }}>
-                <Edit className="mr-2 h-4 w-4" />Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e: React.MouseEvent) => { e.stopPropagation(); toggleStatus(item); }}>
-                <StatusToggleMenuContent currentStatus={item.status} contentType={item.type} />
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={(e: React.MouseEvent) => { e.stopPropagation(); onDelete(item.id); }}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-    }),
-  ];
+  const allColumns = buildListViewColumns({
+    isMedia,
+    platformLabel,
+    isDarkMode,
+    headerHoverClass,
+    headerHoverStyle,
+    titleTextColor,
+    toggleFavorite,
+    toggleStatus,
+    setRating,
+    onItemClick,
+    onOpenQuickEdit: handleOpenQuickEdit,
+    onOpenEdit: setMovieBeingEdited,
+    onDelete,
+  });
 
+  // Genre column is dropped for non-media types (restaurants / places /
+  // custom) since the concept doesn't apply there.
   const columns = isMedia
     ? allColumns
-    : allColumns.filter((col: { accessorKey?: string }) => col.accessorKey !== 'genre');
+    : allColumns.filter((col: { accessorKey?: string }) => col.accessorKey !== "genre");
 
   const table = useReactTable({
     data: items,
@@ -311,7 +113,7 @@ export function ListView({ items, contentType, onUpdate, onDelete, onItemClick, 
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id} className={textColor}>
+                <TableHead key={header.id} className={titleTextColor}>
                   {flexRender(header.column.columnDef.header, header.getContext())}
                 </TableHead>
               ))}
@@ -326,8 +128,7 @@ export function ListView({ items, contentType, onUpdate, onDelete, onItemClick, 
               onClick={(event) => {
                 // Whole row opens the detail dialog, but inner interactive
                 // elements (heart, "Netflix" quick-edit, kebab menu, etc.)
-                // should keep their own behaviour. closest() finds the
-                // nearest interactive ancestor — if the click hit one of
+                // should keep their own behaviour. If the click hit one of
                 // those, skip the row handler.
                 if ((event.target as HTMLElement).closest('button, a, [role="menuitem"], input')) return;
                 onItemClick?.(row.original);
@@ -346,7 +147,9 @@ export function ListView({ items, contentType, onUpdate, onDelete, onItemClick, 
       <ItemFormDialog
         item={movieBeingEdited}
         open={!!movieBeingEdited}
-        onOpenChange={(isOpen: boolean) => { if (!isOpen) setMovieBeingEdited(null); }}
+        onOpenChange={(isOpen: boolean) => {
+          if (!isOpen) setMovieBeingEdited(null);
+        }}
         onUpdate={onUpdate}
       />
 
@@ -354,7 +157,10 @@ export function ListView({ items, contentType, onUpdate, onDelete, onItemClick, 
         item={movieBeingQuickEdited}
         field={fieldBeingQuickEdited}
         onSave={(movieId, field, value) => onUpdate(movieId, { [field]: value })}
-        onClose={() => { setMovieBeingQuickEdited(null); setFieldBeingQuickEdited(null); }}
+        onClose={() => {
+          setMovieBeingQuickEdited(null);
+          setFieldBeingQuickEdited(null);
+        }}
       />
     </div>
   );
