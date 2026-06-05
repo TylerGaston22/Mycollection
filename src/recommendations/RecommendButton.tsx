@@ -7,10 +7,10 @@
  * drop it in without duplicating the open-state plumbing.
  */
 
-import { useState } from "react";
 import { Share2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { RecommendDialog } from "./RecommendDialog";
+import { useToggle } from "../hooks/useToggle";
 import type { Item } from "../types";
 import type { FriendSummary } from "../friends/client";
 import type { useRecommendations } from "./useRecommendations";
@@ -32,7 +32,7 @@ export function RecommendButton({
   size = "sm",
   isDemoUser,
 }: RecommendButtonProps) {
-  const [open, setOpen] = useState(false);
+  const dialog = useToggle();
 
   // Demo users have no Supabase identity, so recommendations are inert.
   if (isDemoUser) return null;
@@ -44,15 +44,15 @@ export function RecommendButton({
         type="button"
         variant={variant}
         size={size}
-        onClick={() => setOpen(true)}
+        onClick={dialog.on}
         title="Recommend to a friend"
       >
         <Share2 className="h-4 w-4 mr-2" />
         Recommend
       </Button>
       <RecommendDialog
-        open={open}
-        onOpenChange={setOpen}
+        open={dialog.value}
+        onOpenChange={dialog.set}
         item={item}
         friends={friends}
         recommendations={recommendations}

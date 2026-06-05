@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { supabase } from '../lib/supabase';
 import { mockUsers, DEMO_USER_ID, DEMO_CREDENTIALS } from '../demo';
-import { isSyntheticEmail, isValidEmailFormat, resolveSignInEmail, usernameToSyntheticEmail, validateUsername } from '../auth';
+import { isSyntheticEmail, isValidEmailFormat, loadProfile, resolveSignInEmail, usernameToSyntheticEmail, validateUsername } from '../auth';
 import { handleSupabaseError } from '../utils/toastError';
 import { User } from '../types';
 
@@ -78,56 +78,6 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Load or create a profile row for a Supabase user
-  const loadProfile = async (userId: string, email: string): Promise<User> => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    // PGRST116 = "no rows" — expected when the trigger hasn't fired yet;
-    // fall through to the synthesized fallback profile silently.
-    if (error && error.code !== 'PGRST116') {
-      toast.error('Failed to load profile', { description: error.message });
-    }
-
-    // Synthetic emails are an implementation detail — don't expose them in
-    // the displayed profile. For username-only users we surface no email
-    // and let the name/username carry their identity.
-    const isSynthetic = isSyntheticEmail(email);
-    const displayEmail = isSynthetic ? '' : email;
-    const localPart = email.split('@')[0];
-
-    if (data) {
-      return {
-        id: data.id,
-        name: data.name || localPart,
-        username: data.username || localPart,
-        bio: data.bio || '',
-        location: data.location || '',
-        profileImage: data.profile_image || undefined,
-        email: displayEmail,
-        joinDate: new Date(data.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-        // Default to 'friends' when the column is null/undefined to match
-        // the new DB default (existing pre-default-flip rows treated the
-        // same way as fresh signups).
-        listVisibility: (data.list_visibility === 'private' ? 'private' : 'friends'),
-      };
-    }
-
-    // Fallback if profile doesn't exist yet (trigger may not have fired)
-    return {
-      id: userId,
-      name: localPart,
-      username: localPart,
-      bio: '',
-      location: '',
-      email: displayEmail,
-      joinDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-      listVisibility: 'friends',
-    };
-  };
 
   const handleSignIn = async (emailOrUsername: string, password: string) => {
     // Demo account shortcut

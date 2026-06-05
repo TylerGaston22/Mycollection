@@ -25,6 +25,7 @@ import {
   sendRecommendation,
   type RecommendationRow,
 } from "./client";
+import { collectOtherPartyIds, decorateRecommendation } from "./decorate";
 import type { Item } from "../types";
 import type { ItemStatus } from "../constants";
 
@@ -89,24 +90,15 @@ export function useRecommendations(
       return;
     }
 
-    const otherIds = Array.from(
-      new Set(
-        rows.map((row) =>
-          row.from_user_id === currentUserId ? row.to_user_id : row.from_user_id,
-        ),
-      ),
-    );
+    const otherIds = collectOtherPartyIds(rows, currentUserId);
     const { data: profiles, error: profilesError } = await fetchProfilesByIds(otherIds);
     if (handleSupabaseError("Failed to load recommender profiles", profilesError)) {
       setState({ ...EMPTY_STATE, isLoading: false });
       return;
     }
     const profilesById = new Map(profiles.map((p) => [p.id, p]));
-
-    const decorate = (row: RecommendationRow): DecoratedRecommendation => {
-      const otherId = row.from_user_id === currentUserId ? row.to_user_id : row.from_user_id;
-      return { ...row, otherParty: profilesById.get(otherId) ?? null };
-    };
+    const decorate = (row: RecommendationRow) =>
+      decorateRecommendation(row, currentUserId, profilesById);
 
     setState({
       incoming: rows

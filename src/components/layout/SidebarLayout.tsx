@@ -6,8 +6,8 @@
  * can be styled independently.
  */
 
-import { useState } from "react";
 import { Menu } from "lucide-react";
+import { useToggle } from "../../hooks/useToggle";
 import { Item, CustomTab, CustomSection, User } from "../../types";
 import { ThemeConfig } from "../../utils/themeConfig";
 import { getCategoryDisplayName } from "../../utils/contentHelpers";
@@ -95,7 +95,7 @@ export function SidebarLayout({
   // sidebar is always rendered; visibility flips via translate-x classes
   // inside the Sidebar component itself. At lg+ a CSS override forces
   // the sidebar visible regardless of this state.
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const sidebar = useToggle(false);
 
   if (isMobile) {
     return (
@@ -154,7 +154,7 @@ export function SidebarLayout({
           hides this at 1024px+ via a media query. */}
       <button
         type="button"
-        onClick={() => setIsSidebarOpen((v) => !v)}
+        onClick={sidebar.toggle}
         aria-label="Toggle sidebar"
         className="hamburger-toggle fixed top-4 left-4 z-50 p-2 rounded-md bg-page-surface backdrop-blur-sm text-page-fg hover:bg-page-surface-hover transition-colors"
       >
@@ -163,11 +163,11 @@ export function SidebarLayout({
 
       {/* Backdrop dimmer — only when the slide-out is open. Auto-hidden
           at 1024px+ by .sidebar-backdrop media query. */}
-      {isSidebarOpen && (
+      {sidebar.value && (
         <button
           type="button"
           aria-label="Close sidebar"
-          onClick={() => setIsSidebarOpen(false)}
+          onClick={sidebar.off}
           className="sidebar-backdrop fixed inset-0 z-30 backdrop-blur-sm"
           style={{ backgroundColor: 'var(--page-backdrop)' }}
         />
@@ -199,8 +199,8 @@ export function SidebarLayout({
         onLogout={onLogout}
         onTabDelete={onTabDelete}
         pendingFriendRequestsCount={pendingFriendRequestsCount}
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
+        isOpen={sidebar.value}
+        onClose={sidebar.off}
       />
 
       <DesktopMainContent

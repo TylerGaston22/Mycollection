@@ -13,6 +13,7 @@
  */
 
 import { useState } from "react";
+import { useToggle } from "../hooks/useToggle";
 import { Dices } from "lucide-react";
 import {
   Dialog,
@@ -38,7 +39,7 @@ interface DicePickerProps {
 }
 
 export function DicePicker({ items, contentType, currentTheme, onOpenItem }: DicePickerProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const dialog = useToggle();
   const [pickedItem, setPickedItem] = useState<Item | null>(null);
 
   const fieldConfig = getContentTypeFieldConfig(contentType);
@@ -53,13 +54,13 @@ export function DicePicker({ items, contentType, currentTheme, onOpenItem }: Dic
   const handleOpenPicker = () => {
     if (!hasSomethingToPick) return;
     handleRoll();
-    setIsOpen(true);
+    dialog.on();
   };
 
   const handleOpenItem = () => {
     if (!pickedItem) return;
     onOpenItem(pickedItem);
-    setIsOpen(false);
+    dialog.off();
   };
 
   const poster = pickedItem ? sanitizeImageUrl(pickedItem.posterUrl) : undefined;
@@ -95,7 +96,7 @@ export function DicePicker({ items, contentType, currentTheme, onOpenItem }: Dic
         <Dices className="h-4 w-4" />
       </Button>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={dialog.value} onOpenChange={dialog.set}>
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
             <DialogTitle>How about this {fieldConfig.displayLabel.toLowerCase()}?</DialogTitle>
