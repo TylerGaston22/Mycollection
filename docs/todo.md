@@ -42,18 +42,15 @@ Verified every field-surface against `isMediaContentType` / `getContentTypeField
 - **TmdbSearchableInput** — already gated on `isMediaContentType`, never shows for non-media.
 - **CSV import/export** — intentionally left writing all standard columns regardless of type; a CSV file can mix types and per-row scoping happens at display, not transport. Empty cells for absent fields is standard.
 
-### K. Modularity refactor pass
-Audit done 2026-05-22. Codebase is structurally sound (feature folders
-properly barrelled, errors centralised, demo isolation clean) but a
-handful of files have grown big enough to mix concerns. Targets in
-recommended order:
+### K. ~~Modularity refactor pass~~ ✅ K1–K5 done 2026-05-22 / K6 deferred
+Audit findings + recommended order in commit history (search for "Modularity refactor K1–K3" and "K4 + K5").
 
-- K1. **useToggle hook** — single shared hook replaces ~6 `useState(false) + manual toggle` patterns (FriendsDialog, SignInPage, SettingsDialog, DicePicker, etc.). Small.
-- K2. **Extract decorateRecommendation** — pull the inner decorate function out of `useRecommendations` (203 lines) into a pure util in `src/recommendations/`. Small.
-- K3. **Extract loadProfile from useAuth** — useAuth is 418 lines doing session check + profile load + sign-in/up + email/password changes. Pull profile loading into a standalone helper so the rest reads cleanly. Medium.
-- K4. **Split FriendsDialog tabs** — FriendsDialog is 382 lines because the three tab sub-components live inside it. Extract FriendsTab/RequestsTab/FindTab into their own files. Medium.
-- K5. **Extract ListView column definitions** — column configs to `listViewColumns.ts` so they're testable/shareable. Medium.
-- K6. **Split ItemFormDialog** — 365 lines doing add/edit, TMDB integration, custom sections. Split into orchestrator + field sections + a `useItemForm` hook. Large.
+- ~~K1. useToggle hook~~ ✅ — `src/hooks/useToggle.ts`, adopted in PasswordInput, SidebarLayout, RecommendButton, DicePicker.
+- ~~K2. Extract decorateRecommendation~~ ✅ — `src/recommendations/decorate.ts` (pure helpers).
+- ~~K3. Extract loadProfile from useAuth~~ ✅ — `src/auth/loadProfile.ts` (useAuth: 418 → 368 lines).
+- ~~K4. Split FriendsDialog tabs~~ ✅ — `src/friends/{FriendsTab,RequestsTab,FindTab,LoadingRow}.tsx` (FriendsDialog: 382 → 130 lines).
+- ~~K5. Extract ListView column definitions~~ ✅ — `src/components/item/{listViewColumns,SortHeader}.tsx` (ListView: 361 → 167 lines).
+- **K6. Split ItemFormDialog — DEFERRED.** The form (365 lines, doing add/edit + TMDB autofill + custom-section preselect + status preselect) works today. Splitting it carries regression risk for no functional gain right now. Pick this up naturally when we tackle todo J (Add Category broken) since that requires touching form internals anyway.
 
 Explicitly NOT doing:
 - Flex / Row primitive component for repeated `flex items-center justify-between` strings — Tailwind class repetition is fine; abstracting it costs more than it saves.
