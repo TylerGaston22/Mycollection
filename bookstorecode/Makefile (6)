@@ -1,0 +1,5 @@
+ground,slow,1
+air,fast,1000
+usps,medium,7
+pigeon,slow,2
+drone,medium,13

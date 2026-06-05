@@ -1,0 +1,217 @@
+<?php
+// -------------------------------------------------------------------------
+// File name: showOrder.php
+// Author:    Sydney and Tyler
+// Date:      4/22/26
+// Class:     CS 445
+// Assignment: BookstoreDB PHP Front End
+// Purpose:   Presentation page — full detail for one past order. Shows
+//            timestamp and shipping method. Each item shows cover, ISBN,
+//            title, edition, authors, retail price, qty, and line total
+//            (pre-discount). Shows subtotal, discount + savings, shipping
+//            cost, and final total. Each book links to showOneBook.php.
+// -------------------------------------------------------------------------
+
+require_once('connDB.php');
+require_once('basicErrorHandling.php');
+require_once('authHelper.php');
+require_once('getOneOrder.php');
+
+$vUID    = (int)$_SESSION['userID'];
+$vSaleID = filter_input(INPUT_GET, 'saleID', FILTER_VALIDATE_INT);
+
+if (!$vSaleID) {
+    header('Location: showAllOrders.php');
+    exit;
+}
+
+$vOrder = array();
+$vItems = array();
+
+try {
+    $vDbh   = db_connect();
+    $vOrder = getOneOrder($vDbh, $vSaleID, $vUID);
+    if (!empty($vOrder)) {
+        $vItems = getOrderItems($vDbh, $vSaleID);
+    }
+    db_close($vDbh);
+} catch (PDOException $e) {
+    error_log('showOrder failed: ' . $e->getMessage());
+}
+
+if (empty($vOrder)) {
+    header('Location: showAllOrders.php');
+    exit;
+}
+
+// -------------------------------------------------------------------------
+// Calculate subtotal and savings
+// -------------------------------------------------------------------------
+$vSubtotal = 0.0;
+foreach ($vItems as $vItem) {
+    $vSubtotal += (float)($vItem['LineTotal'] ?? 0);
+}
+
+$vTotal        = (float)($vOrder['TotalCost']    ?? 0);
+$vShippingCost = (float)($vOrder['ShippingCost'] ?? 0);
+$vSavings      = $vSubtotal - ($vTotal - $vShippingCost);
+if ($vSavings < 0) {
+    $vSavings = 0.0;
+}
+
+$vTsFormatted = date(
+    'M j, Y g:i a', strtotime($vOrder['TimeStamp'] ?? ''));
+
+require_once('header.php');
+?>
+
+<a class="back-link" href="showAllOrders.php">
+    &larr; Back to orders
+</a>
+
+<div style="margin-bottom:1.5rem;">
+    <h1 style="font-size:2rem;">
+        Order #<?php echo $vSaleID; ?>
+    </h1>
+    <p style="color:var(--muted-fg);font-size:0.85rem;margin-top:4px;">
+        Placed <?php echo htmlspecialchars($vTsFormatted); ?>
+        &middot;
+        Shipping: <?php echo htmlspecialchars(
+            $vOrder['ShippingName'] ?? ''); ?>
+    </p>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 280px;gap:2rem;">
+
+    <!-- Order items -->
+    <div>
+        <?php foreach ($vItems as $vItem):
+            $vBookID    = (int)$vItem['BookID'];
+            $vEditionID = (int)$vItem['EditionID'];
+            $vISBN      = htmlspecialchars($vItem['ISBN']        ?? '');
+            $vTitle     = htmlspecialchars($vItem['Title']       ?? '');
+            $vEdition   = htmlspecialchars($vItem['EditionName'] ?? '');
+            $vAuthors   = htmlspecialchars($vItem['Authors']     ?? '');
+            $vCover     = htmlspecialchars(
+                $vItem['CoverImageURL'] ?? '');
+            $vPrice     = (float)($vItem['RetailPrice'] ?? 0);
+            $vQty       = (int)($vItem['Quantity'] ?? 0);
+            $vLine      = (float)($vItem['LineTotal'] ?? 0);
+            $vDetailUrl = 'showOneBook.php?bookID=' . $vBookID
+                        . '&editionID=' . $vEditionID;
+        ?>
+            <div class="card"
+                 style="display:grid;
+                        grid-template-columns:70px 1fr auto;
+                        align-items:center;gap:1rem;
+                        padding:1rem;margin-bottom:10px;">
+
+                <!-- Cover -->
+                <div style="aspect-ratio:2/3;width:70px;
+                            border-radius:calc(var(--radius)-2px);
+                            background:var(--secondary);
+                            display:grid;place-items:center;
+                            overflow:hidden;">
+                    <?php if ($vCover !== ''): ?>
+                        <img src="<?php echo $vCover; ?>"
+                             alt="Cover"
+                             style="width:100%;height:100%;
+                                    object-fit:cover;">
+                    <?php else: ?>
+                        <span style="font-family:'Instrument Serif',
+                                     serif;font-size:0.6rem;
+                                     text-align:center;
+                                     color:var(--muted-fg);
+                                     padding:4px;">
+                            <?php echo $vTitle; ?>
+                        </span>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Details -->
+                <div>
+                    <p style="font-family:monospace;font-size:0.75rem;
+                               color:var(--muted-fg);">
+                        <?php echo $vISBN; ?>
+                    </p>
+                    <a href="<?php echo $vDetailUrl; ?>"
+                       style="font-family:'Instrument Serif',serif;
+                              font-size:1.3rem;line-height:1.2;
+                              color:inherit;">
+                        <?php echo $vTitle; ?>
+                    </a>
+                    <p style="font-size:0.82rem;color:var(--muted-fg);">
+                        <?php echo $vAuthors; ?>
+                        &middot; <?php echo $vEdition; ?>
+                    </p>
+                    <p style="font-size:0.82rem;margin-top:4px;">
+                        $<?php echo number_format($vPrice, 2); ?>
+                        &times; <?php echo $vQty; ?>
+                    </p>
+                </div>
+
+                <!-- Line total -->
+                <div style="font-weight:500;">
+                    $<?php echo number_format($vLine, 2); ?>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- Summary sidebar -->
+    <aside>
+        <div class="card" style="padding:1.25rem;">
+            <h2 style="font-size:1.5rem;margin-bottom:1rem;">Summary</h2>
+            <div style="font-size:0.85rem;">
+                <div style="display:flex;justify-content:space-between;
+                            padding:4px 0;">
+                    <span style="color:var(--muted-fg);">Subtotal</span>
+                    <span>$<?php echo number_format(
+                        $vSubtotal, 2); ?></span>
+                </div>
+                <div style="display:flex;justify-content:space-between;
+                            padding:4px 0;">
+                    <span style="color:var(--muted-fg);">
+                        <?php echo htmlspecialchars(
+                            $vOrder['DiscountName'] ?? 'None'); ?>
+                    </span>
+                    <span>
+                        <?php if ($vSavings > 0):?>
+                            &minus;$<?php echo number_format(
+                                $vSavings, 2); ?>
+                        <?php else: ?>
+                            &mdash;
+                        <?php endif; ?>
+                    </span>
+                </div>
+                <div style="display:flex;justify-content:space-between;
+                            padding:4px 0;">
+                    <span style="color:var(--muted-fg);">You saved</span>
+                    <span>$<?php echo number_format($vSavings, 2); ?></span>
+                </div>
+                <div style="display:flex;justify-content:space-between;
+                            padding:4px 0;">
+                    <span style="color:var(--muted-fg);">
+                        Shipping
+                        (<?php echo htmlspecialchars(
+                            $vOrder['ShippingName'] ?? ''); ?>)
+                    </span>
+                    <span>$<?php echo number_format(
+                        $vShippingCost, 2); ?></span>
+                </div>
+                <div style="display:flex;justify-content:space-between;
+                            padding:4px 0;
+                            border-top:1px solid var(--border);
+                            padding-top:10px;margin-top:6px;
+                            font-weight:500;font-size:0.95rem;">
+                    <span>Total</span>
+                    <span>$<?php echo number_format($vTotal, 2); ?></span>
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+</main>
+</body>
+</html>

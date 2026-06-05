@@ -1,0 +1,39 @@
+<?php
+  // Author: 	    Sydney and Tyler
+  // File: 		  	insertShipping.php
+  // Date:		    April 19, 2026
+  // Class:		    CS 445	
+  // Project: 	  BookstoreDB
+  // Description: insert shipping methods from reading a file
+
+require_once __DIR__ . "/connDB.php";
+
+$conn = db_connect();
+
+if ($argc < 2) {
+	exit ("Error: missing file\n");
+}
+
+if (($handle = fopen($argv[1], "r")) !== FALSE) {
+	while (($data = fgetcsv($handle, 1000, ",", escape:"\\")) !== FALSE) {
+
+		if (count($data) < 3) {
+			continue;
+		}
+
+		$sqlString = "CALL addShipping (:name, :speed, :cost)";
+
+		$sth = $conn->prepare($sqlString);
+
+		$sth->bindValue(":name", $data[0]);
+		$sth->bindValue(":speed", $data[1]);
+		$sth->bindValue(":cost", $data[2]);
+
+		$sth->execute();
+	}
+	fclose($handle);
+}
+
+db_close($conn);
+
+?>

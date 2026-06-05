@@ -1,0 +1,23 @@
+<?php
+// -------------------------------------------------------------------------
+// File name: connMongo.php
+// Author:    Sydney and Tyler
+// Date:      4/19/26
+// Class:     CS 445
+// Assignment: BookstoreDB
+// Purpose:   Helper file. Defines mongo_connect() which reads the MongoDB
+//            connection string from the [mongodb] section of db.ini and
+//            returns an open MongoDB\Client. Required by every script
+//            that talks to the books_Team5 database.
+// -------------------------------------------------------------------------
+
+function mongo_connect()
+{
+	$config = parse_ini_file(__DIR__ . "/../db.ini", true);
+	$connStr = $config['mongodb']['mongodb'];
+	$client = new MongoDB\Client($connStr);
+
+	return $client;
+}
+
+?>

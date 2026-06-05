@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>170</x>
+      <y>100</y>
+      <w>100</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>Entity
+--
+_PrimaryKey_
+attribute
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>

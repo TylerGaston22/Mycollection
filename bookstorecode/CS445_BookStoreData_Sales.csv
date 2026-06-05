@@ -1,0 +1,38 @@
+<?php
+  // Author: 	    Sydney and Tyler
+  // File: 		  	insertAuthors.php
+  // Date:		    April 19, 2026
+  // Class:		    CS 445	
+  // Project: 	  BookstoreDB
+  // Description: insert authors for books from reading a file
+
+require_once("connDB.php");
+
+$conn = db_connect();
+
+if ($argc < 2) {
+	exit("Error: missing file\n");
+}
+
+if (($handle = fopen($argv[1], "r")) !== FALSE) {
+	while (($data = fgetcsv($handle, 1000, ",", escape: "\\")) !== FALSE) {
+
+		$title = $data[0];
+
+		for ($i = 1; $i < count($data); $i += 2) {
+			if ($data[$i] !== "" && $data[$i + 1] !== "") {
+				$sqlString = "CALL addWrittenBy(:fname, :lname, :title)";
+				$sth = $conn->prepare($sqlString);
+				$sth->bindValue(":fname", $data[$i]);
+				$sth->bindValue(":lname", $data[$i + 1]);
+				$sth->bindValue(":title", $title);
+				$sth->execute();
+			}
+		}
+	}
+	fclose($handle);
+}
+
+db_close($conn);
+
+?>

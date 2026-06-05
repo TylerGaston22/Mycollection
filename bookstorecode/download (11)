@@ -1,0 +1,129 @@
+<?php
+// -------------------------------------------------------------------------
+// File name: showAllOrders.php
+// Author:    Sydney and Tyler
+// Date:      4/22/26
+// Class:     CS 445
+// Assignment: BookstoreDB PHP Front End
+// Purpose:   Presentation page — list all past orders for the logged-in
+//            user, newest first. Shows timestamp, total qty, shipping,
+//            discount, and total cost. Each row links to showOrder.php.
+// -------------------------------------------------------------------------
+
+require_once('connDB.php');
+require_once('basicErrorHandling.php');
+require_once('authHelper.php');
+require_once('getAllOrders.php');
+
+$vUID    = (int)$_SESSION['userID'];
+$vOrders = array();
+
+try {
+    $vDbh    = db_connect();
+    $vOrders = getUserOrders($vDbh, $vUID);
+    db_close($vDbh);
+} catch (PDOException $e) {
+    error_log('showAllOrders failed: ' . $e->getMessage());
+}
+
+require_once('header.php');
+?>
+
+<div class="section-header">
+    <h1>My Orders</h1>
+</div>
+
+<?php if (empty($vOrders)): ?>
+    <div class="card empty-state">
+        You have not placed any orders yet.
+        <a href="showAllBooks.php"
+           style="color:var(--primary);text-decoration:underline;
+                  margin-left:4px;">
+            Browse books
+        </a>
+    </div>
+<?php else: ?>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+        <?php foreach ($vOrders as $vO):
+            $vSaleID   = (int)$vO['SaleID'];
+            $vTs       = htmlspecialchars($vO['TimeStamp'] ?? '');
+            $vTsFormatted = date('M j, Y g:i a', strtotime($vTs));
+            $vQty      = (int)($vO['TotalQty'] ?? 0);
+            $vShipping = htmlspecialchars($vO['ShippingName'] ?? '');
+            $vDiscount = htmlspecialchars($vO['DiscountName'] ?? 'None');
+            $vTotal    = (float)($vO['TotalCost'] ?? 0);
+        ?>
+            <a href="showOrder.php?saleID=<?php echo $vSaleID; ?>"
+               style="text-decoration:none;color:inherit;">
+                <div class="card"
+                     style="display:grid;
+                            grid-template-columns:repeat(5,1fr);
+                            gap:1rem;padding:1.1rem 1.25rem;
+                            cursor:pointer;
+                            transition:border-color 0.15s;"
+                     onmouseover="this.style.borderColor=
+                         'hsl(28,19%,55%)'"
+                     onmouseout="this.style.borderColor=''">
+                    <div>
+                        <p style="font-size:0.7rem;
+                                  text-transform:uppercase;
+                                  letter-spacing:0.06em;
+                                  color:var(--muted-fg);
+                                  margin-bottom:3px;">Date</p>
+                        <p style="font-weight:500;font-size:0.9rem;">
+                            <?php echo $vTsFormatted; ?>
+                        </p>
+                        <p style="font-size:0.72rem;
+                                  color:var(--muted-fg);">
+                            #<?php echo $vSaleID; ?>
+                        </p>
+                    </div>
+                    <div>
+                        <p style="font-size:0.7rem;
+                                  text-transform:uppercase;
+                                  letter-spacing:0.06em;
+                                  color:var(--muted-fg);
+                                  margin-bottom:3px;">Books</p>
+                        <p style="font-weight:500;">
+                            <?php echo $vQty; ?>
+                        </p>
+                    </div>
+                    <div>
+                        <p style="font-size:0.7rem;
+                                  text-transform:uppercase;
+                                  letter-spacing:0.06em;
+                                  color:var(--muted-fg);
+                                  margin-bottom:3px;">Shipping</p>
+                        <p style="font-weight:500;">
+                            <?php echo $vShipping; ?>
+                        </p>
+                    </div>
+                    <div>
+                        <p style="font-size:0.7rem;
+                                  text-transform:uppercase;
+                                  letter-spacing:0.06em;
+                                  color:var(--muted-fg);
+                                  margin-bottom:3px;">Discount</p>
+                        <p style="font-weight:500;">
+                            <?php echo $vDiscount; ?>
+                        </p>
+                    </div>
+                    <div style="text-align:right;">
+                        <p style="font-size:0.7rem;
+                                  text-transform:uppercase;
+                                  letter-spacing:0.06em;
+                                  color:var(--muted-fg);
+                                  margin-bottom:3px;">Total</p>
+                        <p style="font-weight:500;">
+                            $<?php echo number_format($vTotal, 2); ?>
+                        </p>
+                    </div>
+                </div>
+            </a>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<?php
+  // Author: 	    Sydney and Tyler
+  // File: 		  	insertCarts.php
+  // Date:		    April 19, 2026
+  // Class:		    CS 445	
+  // Project: 	  BookstoreDB
+  // Description: insert carts from reading a file
+
+require_once("connDB.php");
+
+$conn = db_connect();
+
+if ($argc < 2) {
+	exit("Error: missing file\n");
+}
+
+if (($handle = fopen($argv[1], "r")) !== FALSE) {
+
+	/* skip header */
+	fgetcsv($handle, 1000, ",", escape: "\\");
+
+	while (($data = fgetcsv($handle, 1000, ",", escape: "\\")) !== FALSE) {
+
+		$fName = $data[0];
+		$lName = $data[1];
+		$discountName = $data[2];
+
+		if (trim($discountName) === "") {
+			$discountName = null;
+		}
+
+		$sqlString = "CALL addCartDiscount(:fname, :lname, :discountName)";
+		$sth = $conn->prepare($sqlString);
+		$sth->bindValue(":fname", $fName);
+		$sth->bindValue(":lname", $lName);
+		$sth->bindValue(":discountName", $discountName);
+		$sth->execute();
+		$sth->closeCursor();
+
+		for ($i = 3; $i < count($data); $i += 3) {
+			if (isset($data[$i], $data[$i + 1], $data[$i + 2]) &&
+				$data[$i] !== "" && $data[$i + 1] !== "" && $data[$i + 2] !== "") {
+
+				$sqlString = "CALL addCartItem(:fname, :lname, :title, :editionName, :quantity)";
+				$sth = $conn->prepare($sqlString);
+				$sth->bindValue(":fname", $fName);
+				$sth->bindValue(":lname", $lName);
+				$sth->bindValue(":title", $data[$i]);
+				$sth->bindValue(":editionName", $data[$i + 1]);
+				$sth->bindValue(":quantity", $data[$i + 2]);
+				$sth->execute();
+				$sth->closeCursor();
+			}
+		}
+	}
+	fclose($handle);
+}
+
+db_close($conn);
+
+?>

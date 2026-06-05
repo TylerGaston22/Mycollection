@@ -1,0 +1,59 @@
+<?php
+  // Author: 	    Sydney and Tyler
+  // File: 		  	insertDiscount.php
+  // Date:		    April 19, 2026
+  // Class:		    CS 445	
+  // Project: 	  BookstoreDB
+  // Description: insert discounts from reading a file
+
+require_once __DIR__ . "/connDB.php";
+
+$conn = db_connect();
+
+if ($argc < 2) {
+	exit ("Error: missing file\n");
+}
+
+if (($handle = fopen($argv[1], "r")) !== FALSE) {
+	while (($data = fgetcsv($handle, 1000, ",", escape:"\\")) !== FALSE) {
+
+		$percentageAmount = null;
+		$dollarAmount = null;
+		$startDate = null;
+		$endDate = null;
+
+		if (isset($data[1]) && $data[1] !== "") {
+			$percentageAmount = $data[1];
+		}
+
+		if (isset($data[2]) && $data[2] !== "") {
+			$dollarAmount = $data[2];
+		}
+
+		if (isset($data[3]) && $data[3] !== "" && $data[3] !== "0") {
+			$startDate = $data[3];
+		}
+
+		if (isset($data[4]) && $data[4] !== "" && $data[4] !== "0") {
+			$endDate = $data[4];
+		}
+
+		$sqlString = "CALL addDiscount (:name, :startDate, :endDate,
+			:dollarAmount, :percentAmount)";
+
+		$sth = $conn->prepare($sqlString);
+
+		$sth->bindValue(":name", $data[0]);
+		$sth->bindValue(":startDate", $startDate);
+		$sth->bindValue(":endDate", $endDate);
+		$sth->bindValue(":dollarAmount", $dollarAmount);
+		$sth->bindValue(":percentAmount", $percentageAmount);
+
+		$sth->execute();
+	}
+	fclose($handle);
+}
+
+db_close($conn);
+
+?>

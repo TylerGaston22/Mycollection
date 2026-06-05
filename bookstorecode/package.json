@@ -1,0 +1,286 @@
+<?php
+// -------------------------------------------------------------------------
+// File name: showAllBooks.php
+// Author:    Sydney and Tyler
+// Date:      4/20/26
+// Class:     CS 445
+// Assignment: BookstoreDB PHP Front End
+// Purpose:   Presentation page — list four book editions at a time with
+//            optional title search (partial match) or author dropdown
+//            filter. Pagination buttons go to First 4, Back 4, Forward 4,
+//            and Last 4 rows. Each title links to showOneBook.php.
+//
+//            All database work lives in the query file getAllBooks.php
+//            per the A5 requirement to separate query and presentation
+//            files. This file reads GET params, calls the query functions,
+//            and renders the result.
+// -------------------------------------------------------------------------
+
+require_once('connDB.php');
+require_once('basicErrorHandling.php');
+// Session guard — redirects to index.html if not logged in.
+// Pattern: authHelper.php from cs445_php_web.pdf (slide 42).
+require_once('authHelper.php');
+require_once('getAllBooks.php');
+
+// -------------------------------------------------------------------------
+// Search mode — title search and author filter are mutually exclusive.
+// Title takes priority if both GET params are somehow present.
+// -------------------------------------------------------------------------
+$vSearchMode  = 'none'; // 'none', 'title', or 'author'
+$vSearchTitle = '';
+$vAuthorID    = 0;
+
+$vRawTitle    = filter_input(INPUT_GET, 'q',        FILTER_DEFAULT);
+$vRawAuthor   = filter_input(INPUT_GET, 'authorID', FILTER_VALIDATE_INT);
+
+if ($vRawTitle !== null && $vRawTitle !== false && trim($vRawTitle) !== '') {
+    $vSearchMode  = 'title';
+    $vSearchTitle = trim($vRawTitle);
+} elseif ($vRawAuthor !== null && $vRawAuthor !== false && $vRawAuthor > 0) {
+    $vSearchMode = 'author';
+    $vAuthorID   = (int)$vRawAuthor;
+}
+
+// -------------------------------------------------------------------------
+// Pagination inputs
+// -------------------------------------------------------------------------
+$vPageSize = 4;
+
+$vStart = filter_input(INPUT_GET, 'start', FILTER_VALIDATE_INT);
+if ($vStart === false || $vStart === null || $vStart < 0) {
+    $vStart = 0;
+}
+
+// -------------------------------------------------------------------------
+// Data: open connection, call query functions, close connection
+// -------------------------------------------------------------------------
+$vBooks   = array();
+$vAuthors = array();
+$vTotal   = 0;
+
+try {
+    $vDbh = db_connect();
+
+    // Always load the author list for the dropdown.
+    $vAuthors = getAllAuthors($vDbh);
+
+    if ($vSearchMode === 'title') {
+        $vTotal = countBooksByTitle($vDbh, $vSearchTitle);
+        $vBooks = searchBooksByTitle($vDbh, $vSearchTitle, $vStart, $vPageSize);
+    } elseif ($vSearchMode === 'author') {
+        $vTotal = countBooksByAuthor($vDbh, $vAuthorID);
+        $vBooks = searchBooksByAuthor($vDbh, $vAuthorID, $vStart, $vPageSize);
+    } else {
+        $vTotal = countAllBookEditions($vDbh);
+        $vBooks = getAllBooks($vDbh, $vStart, $vPageSize);
+    }
+
+    db_close($vDbh);
+} catch (PDOException $e) {
+    error_log('showAllBooks failed: ' . $e->getMessage());
+}
+
+// Clamp start in case the user bookmarked a URL past the end of the data.
+if ($vTotal > 0 && $vStart >= $vTotal) {
+    $vStart = max(0, $vTotal - $vPageSize);
+}
+
+// -------------------------------------------------------------------------
+// Pagination math
+// -------------------------------------------------------------------------
+$vLastStart = 0;
+if ($vTotal > $vPageSize) {
+    $vRemainder = $vTotal % $vPageSize;
+    $vLastStart = ($vRemainder === 0)
+        ? $vTotal - $vPageSize
+        : $vTotal - $vRemainder;
+}
+
+$vPrevStart = max(0, $vStart - $vPageSize);
+$vNextStart = min($vLastStart, $vStart + $vPageSize);
+$vAtFirst   = ($vStart <= 0);
+$vAtLast    = ($vStart >= $vLastStart);
+
+// Search params carried through pagination links so filters persist across
+// page turns.
+$vSearchQS = '';
+if ($vSearchMode === 'title') {
+    $vSearchQS = '&amp;q=' . urlencode($vSearchTitle);
+} elseif ($vSearchMode === 'author') {
+    $vSearchQS = '&amp;authorID=' . $vAuthorID;
+}
+
+require_once('header.php');
+?>
+
+<div class="section-header">
+    <h1>All Books</h1>
+    <p>Browse the catalog. Each book links to its detail page.</p>
+</div>
+
+<form class="search-grid" method="GET" action="showAllBooks.php">
+    <div>
+        <label for="inp-title">Search by title</label>
+        <input id="inp-title"
+               name="q"
+               type="search"
+               placeholder="Partial title…"
+               value="<?php echo htmlspecialchars($vSearchTitle); ?>"
+               <?php if ($vSearchMode === 'author') echo 'disabled'; ?>>
+    </div>
+    <div>
+        <label for="inp-author">Filter by author</label>
+        <select id="inp-author" name="authorID">
+            <option value="0">All authors</option>
+            <?php foreach ($vAuthors as $vA): ?>
+                <option value="<?php echo (int)$vA['AuthorID']; ?>"
+                    <?php if ($vSearchMode === 'author'
+                               && (int)$vA['AuthorID'] === $vAuthorID)
+                               echo 'selected'; ?>>
+                    <?php echo htmlspecialchars($vA['AuthorName']); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div style="display:flex;gap:0.5rem;align-items:flex-end;">
+        <button class="btn btn-primary btn-sm" type="submit">Search</button>
+        <?php if ($vSearchMode !== 'none'): ?>
+            <a class="btn btn-sm" href="showAllBooks.php">Clear</a>
+        <?php endif; ?>
+    </div>
+</form>
+
+<?php if (empty($vBooks)): ?>
+    <div class="card empty-state">No books found.</div>
+<?php else: ?>
+    <div class="book-list">
+    <?php foreach ($vBooks as $vBook): ?>
+        <?php
+            $vBookID    = (int)$vBook['BookID'];
+            $vEditionID = (int)$vBook['EditionID'];
+            $vISBN      = htmlspecialchars($vBook['ISBN']         ?? '');
+            $vTitle     = htmlspecialchars($vBook['Title']        ?? '');
+            $vEdition   = htmlspecialchars($vBook['EditionName']  ?? '');
+            $vBookAuthors = htmlspecialchars($vBook['Authors']    ?? '');
+            $vCover     = htmlspecialchars($vBook['CoverImageURL'] ?? '');
+            $vQty       = (int)($vBook['Quantity'] ?? 0);
+            $vPrice     = '$' . number_format(
+                              (float)($vBook['RetailPrice'] ?? 0), 2);
+            $vLink      = 'showOneBook.php?bookID=' . $vBookID
+                          . '&amp;editionID=' . $vEditionID;
+        ?>
+        <a class="card book-row" href="<?php echo $vLink; ?>"
+           style="display:grid;
+                  grid-template-columns:56px 1fr auto;
+                  align-items:center;gap:1rem;
+                  padding:1rem 1.25rem;
+                  text-decoration:none;color:inherit;
+                  transition:border-color 0.15s,background 0.15s;"
+           onmouseover="this.style.borderColor='hsl(28,19%,55%)';
+                        this.style.background='hsl(33,35%,98%)'"
+           onmouseout="this.style.borderColor='';
+                       this.style.background=''">
+
+            <!-- Cover thumbnail -->
+            <div style="aspect-ratio:2/3;width:56px;
+                        border-radius:calc(var(--radius) - 2px);
+                        background:var(--secondary);
+                        overflow:hidden;
+                        display:grid;place-items:center;
+                        flex-shrink:0;">
+                <?php if ($vCover !== ''): ?>
+                    <img src="<?php echo $vCover; ?>"
+                         alt="Cover"
+                         style="width:100%;height:100%;object-fit:cover;">
+                <?php else: ?>
+                    <span style="font-family:'Instrument Serif',serif;
+                                 font-size:0.5rem;text-align:center;
+                                 color:var(--muted-fg);padding:3px;">
+                        <?php echo $vTitle; ?>
+                    </span>
+                <?php endif; ?>
+            </div>
+
+            <!-- Title, author, ISBN -->
+            <div>
+                <h3 style="font-size:1.4rem;line-height:1.2;">
+                    <?php echo $vTitle; ?>
+                </h3>
+                <p style="font-size:0.85rem;color:var(--muted-fg);
+                          margin-top:2px;">
+                    <?php echo $vBookAuthors; ?>
+                    &middot; <?php echo $vEdition; ?>
+                </p>
+                <p style="font-family:monospace;font-size:0.72rem;
+                          color:var(--muted-fg);margin-top:4px;">
+                    ISBN <?php echo $vISBN; ?>
+                </p>
+            </div>
+
+            <!-- Price + stock -->
+            <div style="text-align:right;">
+                <div style="font-size:1.1rem;font-weight:500;">
+                    <?php echo $vPrice; ?>
+                </div>
+                <div style="font-size:0.75rem;color:var(--muted-fg);">
+                    <?php echo $vQty; ?> in stock
+                </div>
+            </div>
+        </a>
+    <?php endforeach; ?>
+    </div>
+
+    <div class="pagination">
+        <span class="page-info">
+            Showing
+            <?php echo ($vStart + 1) . '&ndash;'
+                . min($vStart + $vPageSize, $vTotal) . ' of ' . $vTotal; ?>
+        </span>
+        <?php
+            $vDisabledStyle = 'pointer-events:none; opacity:0.45;';
+            $vChevronLeft   = '<svg viewBox="0 0 24 24" width="14" height="14" '
+                            . 'fill="none" stroke="currentColor" stroke-width="2">'
+                            . '<polyline points="15 18 9 12 15 6"/></svg>';
+            $vChevronRight  = '<svg viewBox="0 0 24 24" width="14" height="14" '
+                            . 'fill="none" stroke="currentColor" stroke-width="2">'
+                            . '<polyline points="9 18 15 12 9 6"/></svg>';
+            $vDoubleLeft    = '<svg viewBox="0 0 24 24" width="14" height="14" '
+                            . 'fill="none" stroke="currentColor" stroke-width="2">'
+                            . '<polyline points="11 17 6 12 11 7"/>'
+                            . '<polyline points="18 17 13 12 18 7"/></svg>';
+            $vDoubleRight   = '<svg viewBox="0 0 24 24" width="14" height="14" '
+                            . 'fill="none" stroke="currentColor" stroke-width="2">'
+                            . '<polyline points="13 17 18 12 13 7"/>'
+                            . '<polyline points="6 17 11 12 6 7"/></svg>';
+        ?>
+        <a class="btn btn-sm"
+           href="?start=0<?php echo $vSearchQS; ?>"
+           <?php if ($vAtFirst) echo 'aria-disabled="true" style="'
+               . $vDisabledStyle . '"'; ?>>
+            <?php echo $vDoubleLeft; ?> First 4
+        </a>
+        <a class="btn btn-sm"
+           href="?start=<?php echo $vPrevStart . $vSearchQS; ?>"
+           <?php if ($vAtFirst) echo 'aria-disabled="true" style="'
+               . $vDisabledStyle . '"'; ?>>
+            <?php echo $vChevronLeft; ?> Back 4
+        </a>
+        <a class="btn btn-sm"
+           href="?start=<?php echo $vNextStart . $vSearchQS; ?>"
+           <?php if ($vAtLast) echo 'aria-disabled="true" style="'
+               . $vDisabledStyle . '"'; ?>>
+            Forward 4 <?php echo $vChevronRight; ?>
+        </a>
+        <a class="btn btn-sm"
+           href="?start=<?php echo $vLastStart . $vSearchQS; ?>"
+           <?php if ($vAtLast) echo 'aria-disabled="true" style="'
+               . $vDisabledStyle . '"'; ?>>
+            Last 4 <?php echo $vDoubleRight; ?>
+        </a>
+    </div>
+<?php endif; ?>
+
+</main>
+</body>
+</html>

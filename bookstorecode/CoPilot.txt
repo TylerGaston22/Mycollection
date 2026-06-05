@@ -1,0 +1,5 @@
+.dbclient/*
+.dbclient/*.jar
+**/*.ini
+**/*.zip
+**/vendor/

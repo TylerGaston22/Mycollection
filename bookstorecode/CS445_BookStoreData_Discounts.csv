@@ -1,0 +1,44 @@
+
+<?php
+  // Author: 	    Sydney and Tyler
+  // File: 		  	insertUsers.php
+  // Date:		    April 19, 2026
+  // Class:		    CS 445	
+  // Project: 	  BookstoreDB
+  // Description: insert customers and users from reading a file
+
+require_once __DIR__ . "/connDB.php";
+
+$conn = db_connect();
+
+if ($argc < 2) {
+	exit ("Error: missing file\n");
+}
+
+if (($handle = fopen($argv[1], "r")) !== FALSE) {
+	while (($data = fgetcsv($handle, 1000, ",", escape:"\\")) !== FALSE) {
+
+		$salt = bin2hex(random_bytes(16));
+		$password = password_hash($data[3].$salt, PASSWORD_DEFAULT);
+
+		$sqlString = "CALL addCustomer (:fname, :lname, :username, :hashedPassword,
+			:salt, :joinDate, :email)";
+
+		$sth = $conn->prepare($sqlString);
+
+		$sth->bindValue(":fname", $data[0]);
+		$sth->bindValue(":lname", $data[1]);
+		$sth->bindValue(":username", $data[2]);
+		$sth->bindValue(":hashedPassword", $password);
+		$sth->bindValue(":salt", $salt);
+		$sth->bindValue(":joinDate", $data[4]);
+		$sth->bindValue(":email", $data[5]);
+
+		$sth->execute();
+	}
+	fclose($handle);
+}
+
+db_close($conn);
+
+?>

@@ -1,0 +1,77 @@
+<?php
+  // Author: 	    Sydney and Tyler
+  // File: 		  	insertSales.php
+  // Date:		    April 19, 2026
+  // Class:		    CS 445	
+  // Project: 	  BookstoreDB
+  // Description: insert sales from reading a file
+
+require_once("connDB.php");
+
+$conn = db_connect();
+
+if ($argc < 2) {
+	exit("Error: missing file\n");
+}
+
+if (($handle = fopen($argv[1], "r")) !== FALSE) {
+
+	/* skip header */
+	fgetcsv($handle, 1000, ",", escape: "\\");
+
+	while (($data = fgetcsv($handle, 1000, ",", escape: "\\")) !== FALSE) {
+
+		$fName = $data[0];
+		$lName = $data[1];
+		$discountName = $data[2];
+		$saleDate = $data[3];
+		$saleTime = $data[4];
+		$shippingName = $data[5];
+
+		if (trim($discountName) === "") {
+			$discountName = null;
+		}
+
+		$sqlString = "CALL addSale(:fname, :lname, :discountName, :saleDate, :saleTime, :shippingName, @saleID)";
+		$sth = $conn->prepare($sqlString);
+		$sth->bindValue(":fname", $fName);
+		$sth->bindValue(":lname", $lName);
+		$sth->bindValue(":discountName", $discountName);
+		$sth->bindValue(":saleDate", $saleDate);
+		$sth->bindValue(":saleTime", $saleTime);
+		$sth->bindValue(":shippingName", $shippingName);
+		$sth->execute();
+		$sth->closeCursor();
+
+		$sth = $conn->query("SELECT @saleID AS SaleID");
+		$saleRow = $sth->fetch(PDO::FETCH_ASSOC);
+		$saleID = $saleRow["SaleID"];
+		$sth->closeCursor();
+
+		for ($i = 6; $i < count($data); $i += 3) {
+			if (
+				isset($data[$i], $data[$i + 1], $data[$i + 2]) &&
+				$data[$i] !== "" && $data[$i + 1] !== "" && $data[$i + 2] !== ""
+			) {
+
+				$sqlString = "CALL addSaleItem(:saleID, :title, :editionName, :quantity)";
+				$sth = $conn->prepare($sqlString);
+				$sth->bindValue(":saleID", $saleID);
+				$sth->bindValue(":title", $data[$i]);
+				$sth->bindValue(":editionName", $data[$i + 1]);
+				$sth->bindValue(":quantity", $data[$i + 2]);
+				$sth->execute();
+				$sth->closeCursor();
+			}
+		}
+
+		$sqlString = "CALL updateSaleTotal(:saleID)";
+		$sth = $conn->prepare($sqlString);
+		$sth->bindValue(":saleID", $saleID);
+		$sth->execute();
+		$sth->closeCursor();
+	}
+	fclose($handle);
+}
+
+db_close($conn);
