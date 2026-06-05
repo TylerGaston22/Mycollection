@@ -6,7 +6,7 @@
  * mounted here so they share a single source of truth for data.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useTheme } from "next-themes";
 import { SidebarLayout } from "./components/layout/SidebarLayout";
@@ -41,6 +41,7 @@ import { useCustomTabs, useCustomSections } from "./hooks/useCollections";
 import { usePreferences } from "./hooks/usePreferences";
 import { useDialogState } from "./hooks/useDialogState";
 import { useCollectionStats } from "./hooks/useCollectionStats";
+import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { DEFAULT_CONTENT_TYPE } from "./constants";
 import { FriendsDialog, useFriends } from "./friends";
 import { useRecommendations } from "./recommendations";
@@ -66,15 +67,24 @@ export default function App() {
   const dialogs = useDialogState();
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
-  const [contentType, setContentType] = useState<string>(DEFAULT_CONTENT_TYPE);
-  const [activeSection, setActiveSection] = useState<string>('all');
+  // Selected category + section persist to localStorage so a refresh
+  // restores the user's last view instead of dumping them on the default.
+  const [contentType, setContentType] = useLocalStorageState('contentType', DEFAULT_CONTENT_TYPE);
+  const [activeSection, setActiveSection] = useLocalStorageState('activeSection', 'all');
+  const [expandedCategory, setExpandedCategory] = useLocalStorageState('expandedCategory', DEFAULT_CONTENT_TYPE);
   const [tabToDelete, setTabToDelete] = useState<CustomTab | null>(null);
-  const [expandedCategory, setExpandedCategory] = useState<string>(DEFAULT_CONTENT_TYPE);
 
-  // Reset to "all" section when content type changes
+  // Reset to "all" section when content type changes — but NOT on the
+  // initial mount, since the persisted activeSection from localStorage
+  // should win on refresh. Skip the very first effect run.
+  const didMountRef = useRef(false);
   useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
     setActiveSection('all');
-  }, [contentType]);
+  }, [contentType, setActiveSection]);
 
   // Cross-cutting handlers
   const handleAddCustomTab = async (tab: Omit<CustomTab, 'id'>) => {
@@ -124,12 +134,21 @@ export default function App() {
   // also reach Radix overlays — DropdownMenu, Dialog, Popover — which portal to
   // document.body, outside the React root. Without this the gear menu and
   // dialogs would keep the default (navy) surface even in Bookstore mode.
+  //
+  // Mirror the value into localStorage so main.tsx can re-apply it
+  // synchronously on the next page load — that's what prevents the default-
+  // theme flash that used to show before Supabase preferences finished loading.
   useEffect(() => {
     const root = document.documentElement;
     if (isBookstoreActive) {
       root.setAttribute('data-surface', 'bookstore');
     } else {
       root.removeAttribute('data-surface');
+    }
+    try {
+      localStorage.setItem('surfaceTheme', isBookstoreActive ? 'bookstore' : 'default');
+    } catch {
+      // localStorage disabled — accept the next-load flash, app still works.
     }
   }, [isBookstoreActive]);
 
@@ -140,12 +159,14 @@ export default function App() {
   // When signed in but still hydrating, we keep SignInPage mounted with
   // externalLoading=true so its spinner stays visible during the transition.
   let mainPageContent;
-  if (auth.isLoading) {
-    // Initial supabase.auth.getSession() in flight. We don't yet know if
-    // the user has a real session — render a neutral loading screen so
-    // we don't flash Landing → SignIn → Main on refresh of a signed-in
-    // user. (Falling through to the !isSignedIn branch here would render
-    // LandingPage for the brief window before the session resolves.)
+  if (auth.isLoading || isHydratingUserData) {
+    // Two situations covered:
+    //  - auth.isLoading: initial supabase.auth.getSession() in flight; we
+    //    don't yet know if there's a session.
+    //  - isHydratingUserData: signed in, but the data hooks (items, tabs,
+    //    sections, prefs) are still fetching for the first time.
+    // Render a neutral spinner in BOTH so a signed-in user refreshing
+    // never sees the Landing or SignIn page flash through.
     mainPageContent = (
       <div className="relative z-10 min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-page-fg-subtle" />
@@ -157,15 +178,14 @@ export default function App() {
     mainPageContent = (
       <ResetPasswordPage onChangePassword={auth.handleChangePassword} />
     );
-  } else if (!auth.isSignedIn || isHydratingUserData) {
-    if (auth.showSignInPage || isHydratingUserData) {
+  } else if (!auth.isSignedIn) {
+    if (auth.showSignInPage) {
       mainPageContent = (
         <SignInPage
           onSignIn={auth.handleSignIn}
           onSignUp={auth.handleSignUp}
           onForgotPassword={auth.handleResetPasswordRequest}
           onBack={auth.handleBackToLanding}
-          externalLoading={isHydratingUserData}
         />
       );
     } else {
@@ -339,11 +359,18 @@ export default function App() {
     );
   }
 
+  // Skip decorative overlays while auth/data is still resolving. Otherwise
+  // they paint with the *default* theme (preferences haven't loaded yet),
+  // causing a purple flash for users whose actual theme is Bookstore. The
+  // bg-background token underneath is already theme-aware via the
+  // data-surface attribute we set synchronously in main.tsx.
+  const showDecorativeOverlays = !auth.isLoading && !isHydratingUserData;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Light-mode-only decorative background: Ghibli image + theme gradient.
           In dark mode, we let bg-background show through for a flat, clean look. */}
-      {!isDark && !isBookstoreActive && (
+      {showDecorativeOverlays && !isDark && !isBookstoreActive && (
         <>
           <div
             className="fixed inset-0 z-0"
@@ -365,7 +392,7 @@ export default function App() {
 
       {/* Bookstore is a true light surface: paint a flat cream gradient that
           wins regardless of the next-themes light/dark state. */}
-      {isBookstoreActive && (
+      {showDecorativeOverlays && isBookstoreActive && (
         <div
           className="fixed inset-0 z-0"
           style={{ background: currentTheme.backgroundGradient }}

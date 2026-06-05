@@ -4,6 +4,39 @@ Running list of non-obvious bugs we ran into while building, with root cause + f
 
 ---
 
+## Refresh dumped me on Movies + flashed sign-in + flashed default theme
+
+**Symptom:** Three separate annoyances all from one browser refresh:
+1. Selected a category (e.g. TV Shows) → refresh → landed back on Movies instead.
+2. Briefly saw the sign-in page (default colours) before the main app rendered.
+3. Even after fix #2, briefly saw a purple Ghibli background before the user's actual Bookstore theme painted.
+
+**Root causes (three different layers):**
+
+1. **No persistence on UI state.** `contentType` / `activeSection` / `expandedCategory` were declared as `useState(DEFAULT)` — re-initialised to the hardcoded default on every mount. localStorage wasn't being touched at all.
+
+2. **Hydration window fell into the sign-in branch.** App.tsx's auth gating had `if (!auth.isSignedIn || isHydratingUserData) → SignInPage`. The `isHydratingUserData` half of that OR meant a signed-in user whose data was still loading still got SignInPage (with `externalLoading=true` for the spinner). Functionally a loading state but visually it rendered the entire sign-in form.
+
+3. **Decorative overlays painted with stale theme data.** The Ghibli + gradient overlays in App.tsx render based on `isBookstoreActive` / `currentTheme.backgroundGradient`, both derived from `usePreferences`. Preferences initialise to defaults and only update after the Supabase fetch returns — so during the spinner phase the user's actual theme wasn't known yet and the default (purple Ghibli) overlay painted briefly even for Bookstore users.
+
+**Fixes (one per layer):**
+
+1. New `useLocalStorageState` hook (a thin `useState` wrapper that reads on init and writes on change). App.tsx swapped the three `useState` calls for it. Also had to gate the "reset activeSection to 'all' on contentType change" effect with a `didMount` ref so the initial mount doesn't clobber the persisted activeSection.
+
+2. App.tsx loading gating restructured: `if (auth.isLoading || isHydratingUserData) → spinner` instead of letting hydration fall into the sign-in branch. The SignInPage now only renders when the user actually needs to sign in (no spinner mode on it any more).
+
+3. Two-part theme cache:
+   - App.tsx mirrors `surfaceTheme` ('bookstore' / 'default') into localStorage on every change.
+   - main.tsx reads that cache **synchronously** before React mounts, setting `data-surface="bookstore"` on `<html>` if needed. CSS variables flip to cream **before** the first paint.
+   - Plus a guard in App.tsx render: `if (auth.isLoading || isHydratingUserData) → don't paint the decorative overlays at all`. The `bg-background` token underneath is already theme-aware via `data-surface`, so the spinner sits on the correct flat colour.
+
+**Lesson:**
+- **Persist anything the user picked from the UI that should survive a refresh.** `useState` defaults are fine for ephemeral UI state, but anything they actively chose (category, section, theme toggle) deserves localStorage at minimum.
+- **Loading states should be neutral.** When you're "between" two real pages, render a spinner, not one of the pages with a loading prop bolted on. Mixed-purpose components (page-that-pretends-to-be-a-loader) leak visual artifacts.
+- **For first-paint state, the synchronous path matters.** Anything that controls page colours / layout has to apply before React's first render. localStorage reads in `main.tsx` (or even an inline `<script>` in `index.html`) are free and bulletproof; waiting for a React effect or a Supabase fetch is too slow — you get a flash.
+
+---
+
 ## Vercel deploy failed silently after "modules transformed"
 
 **Symptom:** Build log showed `✓ 1839 modules transformed.` and then "Deployment failed with error" — no obvious failure in vite output.
