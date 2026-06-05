@@ -17,6 +17,7 @@ import {
 } from "@tanstack/react-table";
 import { Item } from "../../types";
 import { ROW_HOVER_CLASS } from "../../utils/hoverStyles";
+import { getContentTypeFieldConfig, isMediaContentType } from "../../utils/contentHelpers";
 import {
   Table,
   TableBody,
@@ -45,6 +46,10 @@ import { ThemeConfig } from "../../utils/themeConfig";
 
 interface ListViewProps {
   items: Item[];
+  /** Active content type. Drives per-type column scoping — non-media
+   *  types (restaurants / places / custom) drop the Genre column and
+   *  relabel the platform header. */
+  contentType: string;
   onUpdate: (id: string, updates: Partial<Item>) => void;
   onDelete: (id: string) => void;
   onItemClick?: (item: Item) => void;
@@ -54,7 +59,9 @@ interface ListViewProps {
 
 const columnHelper = createColumnHelper<Item>();
 
-export function ListView({ items, onUpdate, onDelete, onItemClick, isDarkMode, currentTheme }: ListViewProps) {
+export function ListView({ items, contentType, onUpdate, onDelete, onItemClick, isDarkMode, currentTheme }: ListViewProps) {
+  const isMedia = isMediaContentType(contentType);
+  const platformLabel = getContentTypeFieldConfig(contentType).platformFieldLabel;
   const [sorting, setSorting] = useState<SortingState>([]);
   const [movieBeingEdited, setMovieBeingEdited] = useState<Item | null>(null);
   const [movieBeingQuickEdited, setMovieBeingQuickEdited] = useState<Item | null>(null);
@@ -105,7 +112,10 @@ export function ListView({ items, onUpdate, onDelete, onItemClick, isDarkMode, c
   };
 
   // -- Column definitions for TanStack React Table --
-  const columns = [
+  // Genre column is dropped for non-media types (restaurants / places /
+  // custom) since the concept doesn't apply there. The platform column
+  // stays but its header relabels via platformLabel above.
+  const allColumns = [
     columnHelper.accessor('favorite', {
       header: ({ column }) => (
         <button onClick={column.getToggleSortingHandler()}>
@@ -150,7 +160,7 @@ export function ListView({ items, onUpdate, onDelete, onItemClick, isDarkMode, c
     columnHelper.accessor('platform', {
       header: ({ column }) => (
         <button onClick={column.getToggleSortingHandler()}>
-          <SortHeader label="Where to Watch" isSorted={column.getIsSorted()} />
+          <SortHeader label={platformLabel} isSorted={column.getIsSorted()} />
         </button>
       ),
       cell: ({ row }) => {
@@ -280,6 +290,10 @@ export function ListView({ items, onUpdate, onDelete, onItemClick, isDarkMode, c
       },
     }),
   ];
+
+  const columns = isMedia
+    ? allColumns
+    : allColumns.filter((col: { accessorKey?: string }) => col.accessorKey !== 'genre');
 
   const table = useReactTable({
     data: items,

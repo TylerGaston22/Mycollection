@@ -79,6 +79,7 @@ export function DesktopMainContent({
     mainContentAreaDisplay = (
       <ListView
         items={itemsInActiveSection}
+        contentType={contentType}
         onUpdate={onItemUpdate}
         onDelete={onItemDelete}
         onItemClick={onItemClick}

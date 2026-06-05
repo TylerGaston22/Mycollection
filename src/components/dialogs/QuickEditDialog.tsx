@@ -17,6 +17,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { Item } from "../../types";
+import { getContentTypeFieldConfig } from "../../utils/contentHelpers";
 
 interface QuickEditDialogProps {
   item: Item | null;
@@ -25,8 +26,7 @@ interface QuickEditDialogProps {
   onClose: () => void;
 }
 
-const FIELD_CONFIG = {
-  platform: { title: 'Edit Where to Watch', label: 'Platform', placeholder: 'e.g., Netflix, Hulu, Disney+' },
+const STATIC_FIELD_CONFIG = {
   genre: { title: 'Edit Genre', label: 'Genre', placeholder: 'e.g., Action, Comedy, Drama' },
   notes: { title: 'Edit Notes', label: 'Notes', placeholder: '' },
 };
@@ -47,7 +47,19 @@ export function QuickEditDialog({ item, field, onSave, onClose }: QuickEditDialo
 
   if (!item || !field) return null;
 
-  const config = FIELD_CONFIG[field];
+  // Platform's labels depend on the item's content type (Where to Watch /
+  // Cuisine Type / Location / Additional Info); the others are fixed.
+  let config: { title: string; label: string; placeholder: string };
+  if (field === 'platform') {
+    const fieldConfig = getContentTypeFieldConfig(item.type);
+    config = {
+      title: `Edit ${fieldConfig.platformFieldLabel}`,
+      label: fieldConfig.platformFieldLabel,
+      placeholder: fieldConfig.platformFieldPlaceholder,
+    };
+  } else {
+    config = STATIC_FIELD_CONFIG[field];
+  }
 
   const handleSave = () => {
     // Pass undefined instead of empty string so the field is cleared in the data model

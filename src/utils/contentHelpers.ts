@@ -105,17 +105,22 @@ export function getContentTypeFieldConfig(contentType: string): ContentTypeField
     imageUrlLabel = 'Photo URL';
   }
 
+  // The `platform` column is reused per content type with a different
+  // human-readable label. Keep these in sync with ItemDetailDialog's
+  // per-type heading text + the ListView column header.
   let platformFieldLabel: string;
-  if (isMovieOrTvShowType) {
-    platformFieldLabel = 'Where to Watch';
-  } else {
-    platformFieldLabel = 'Additional Info';
-  }
-
   let platformFieldPlaceholder: string;
   if (isMovieOrTvShowType) {
+    platformFieldLabel = 'Where to Watch';
     platformFieldPlaceholder = 'Netflix, Disney+, Hulu, etc.';
+  } else if (contentType === 'restaurant') {
+    platformFieldLabel = 'Cuisine Type';
+    platformFieldPlaceholder = 'Italian, Thai, Mexican, etc.';
+  } else if (contentType === 'place') {
+    platformFieldLabel = 'Location';
+    platformFieldPlaceholder = 'City / neighbourhood';
   } else {
+    platformFieldLabel = 'Additional Info';
     platformFieldPlaceholder = 'Additional details...';
   }
 

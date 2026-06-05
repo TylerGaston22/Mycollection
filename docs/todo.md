@@ -33,6 +33,35 @@ the preselect intentionally. Verification checklist in
 ### G. ~~Choose sub-category when accepting a recommendation~~ ✅ Done 2026-05-22
 `useRecommendations.accept` now takes an `AcceptOptions` (`{ status, sections }`); RecommendationsTab renders an inline picker per pending row (status radio + section dropdown filtered to the item's content type). Defaults stay at `'want-to-see'` + no section so one-click accept still works.
 
+### I. Audit per-category fields/columns end-to-end
+After scoping the ListView columns to each content type (see commit
+todo-J), verify the same scoping holds everywhere a field is read or
+written: ItemFormDialog, ItemDetailDialog, ItemCard, QuickEditDialog,
+TmdbSearchableInput, CSV import/export. Right now `platform` is reused
+for "Where to Watch" (movies/TV), "Cuisine Type" (restaurants), and
+"Location" (places) — confirm the form/detail labels still relabel
+that field per type and the UI doesn't expose any media-only field
+to non-media categories.
+
+### J. Add Category button is broken
+Clicking "Add Category" in the sidebar should let the user create a
+new top-level category (a custom tab) but it currently doesn't work
+end-to-end. Investigate: confirm the dialog opens, the addCustomTab
+flow saves to Supabase via useCustomTabs, and the new tab appears in
+the sidebar. Likely a wiring bug or an RLS gap on custom_tabs.
+
+Connected: there's no way today for the user to pick which columns/
+fields their new custom category supports. Movies/TV/Restaurants/
+Places each have a fixed schema baked into `contentHelpers.ts`
+(getContentTypeFieldConfig + isMediaContentType). Two paths:
+- (a) Custom categories inherit a sensible default field set (title,
+  year, posterUrl, notes, status, favourite) and don't expose
+  media-only fields like platform/genre.
+- (b) Add a column picker to the Add Category dialog so the user
+  toggles which fields show in the list view + form. Bigger UI; needs
+  a custom_tabs.fields jsonb column.
+Decide between (a)/(b) when we tackle this.
+
 ### E. Upload / change user profile picture
 Right now the sidebar + ProfileDialog avatars both render the generic
 User icon on the accent-color gradient — there's no way for a user to
