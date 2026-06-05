@@ -45,7 +45,7 @@ export function SubCategoryNav({
   return (
     // divide-y puts a thin separator between every sibling so each
     // subcategory reads as its own row instead of blending into the next.
-    <div className="mt-2 ml-6 divide-y divide-black/40">
+    <div className="mt-2 ml-6 divide-y divide-page-divider">
       <SectionButton
         label="All"
         count={allItems.length}

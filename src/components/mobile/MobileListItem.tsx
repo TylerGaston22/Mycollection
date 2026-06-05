@@ -36,7 +36,7 @@ export function MobileListItem({ item, onUpdate, onClick }: MobileListItemProps)
     );
   } else {
     thumbnail = (
-      <div className="w-20 h-28 rounded bg-slate-700 flex items-center justify-center shadow-sm">
+      <div className="w-20 h-28 rounded bg-page-surface flex items-center justify-center shadow-sm">
         <img src={ERROR_IMG} alt="" className="w-8 h-8 opacity-40" />
       </div>
     );
@@ -52,22 +52,22 @@ export function MobileListItem({ item, onUpdate, onClick }: MobileListItemProps)
       </div>
 
       <div className="flex-1 min-w-0 pt-1">
-        <h3 className="text-white font-semibold text-base leading-snug line-clamp-2">
+        <h3 className="text-page-fg font-semibold text-base leading-snug line-clamp-2">
           {item.title}
         </h3>
         {item.year && (
-          <p className="text-gray-400 text-sm mt-0.5">{item.year}</p>
+          <p className="text-page-fg-muted text-sm mt-0.5">{item.year}</p>
         )}
 
         {item.status === 'watched' && (
           <div className="mt-2 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-            <span className="text-gray-400 text-xs">Rate this:</span>
+            <span className="text-page-fg-muted text-xs">Rate this:</span>
             <StarRating item={item} onRate={setRating} />
           </div>
         )}
 
         {item.notes && (
-          <p className="text-gray-500 text-xs mt-1.5 line-clamp-1">{item.notes}</p>
+          <p className="text-page-fg-faint text-xs mt-1.5 line-clamp-1">{item.notes}</p>
         )}
       </div>
     </button>

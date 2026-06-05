@@ -7,7 +7,7 @@
  */
 
 import { Button } from "../ui/button";
-import { Plus, Film, Tv, UtensilsCrossed, MapPin, Settings, LogOut, Star, Moon, Sun, SlidersHorizontal, Users, User } from 'lucide-react';
+import { Plus, Film, Tv, UtensilsCrossed, MapPin, Settings, LogOut, Star, Moon, Sun, SlidersHorizontal, Users, User, BookOpen } from 'lucide-react';
 import { useTheme } from "next-themes";
 import { Item, CustomTab, CustomSection } from "../../types";
 import type { User as UserType } from "../../types";
@@ -16,7 +16,7 @@ import { accentGradientHoverHandlers } from "../../utils/accentHover";
 import { CategoryButton } from "./CategoryButton";
 import { SubCategoryNav } from "./SubCategoryNav";
 import { NotificationBadge } from "../ui/NotificationBadge";
-import { NAVY_SURFACE_BACKGROUND } from "../../utils/surfaceBackgrounds";
+import { SURFACE_BACKGROUND } from "../../utils/surfaceBackgrounds";
 import { NAV_HOVER_CLASS } from "../../utils/hoverStyles";
 import {
   ContextMenu,
@@ -45,6 +45,10 @@ interface SidebarProps {
   restaurantCount: number;
   placeCount: number;
   currentTheme: ThemeConfig;
+  /** Whether the app-wide Bookstore light theme is currently active. */
+  isBookstoreActive: boolean;
+  /** Toggle the Bookstore theme on/off from the profile dropdown. */
+  onToggleBookstore: () => void;
   onContentTypeChange: (type: string) => void;
   onActiveSectionChange: (section: string) => void;
   onExpandedCategoryChange: (category: string) => void;
@@ -75,6 +79,8 @@ export function Sidebar({
   restaurantCount,
   placeCount,
   currentTheme,
+  isBookstoreActive,
+  onToggleBookstore,
   onContentTypeChange,
   onActiveSectionChange,
   onExpandedCategoryChange,
@@ -137,8 +143,14 @@ export function Sidebar({
       data-open={isOpen}
       className="sidebar-fluid backdrop-blur-sm border-r p-6 overflow-y-auto fixed h-screen z-40"
       style={{
-        background: isDark ? 'var(--sidebar)' : currentTheme.sidebarGradient,
-        borderRightColor: isDark ? 'var(--sidebar-border)' : `${currentTheme.accentColor}30`,
+        // Bookstore is a light surface that must win even when next-themes is
+        // dark, so it takes precedence over the isDark dark-sidebar branch.
+        background: isBookstoreActive
+          ? currentTheme.sidebarGradient
+          : (isDark ? 'var(--sidebar)' : currentTheme.sidebarGradient),
+        borderRightColor: isBookstoreActive
+          ? 'var(--page-divider)'
+          : (isDark ? 'var(--sidebar-border)' : colorToRgba(currentTheme.accentColor, 0.19)),
       }}
     >
       {/* User Profile Section */}
@@ -148,7 +160,7 @@ export function Sidebar({
             onClick={onProfileDialogOpen}
             aria-label="Open profile"
             title="Open profile"
-            className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg cursor-pointer transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="w-10 h-10 rounded-full flex items-center justify-center text-page-on-accent shadow-lg cursor-pointer transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2"
             style={{
               background: `linear-gradient(to bottom right, ${currentTheme.accentColor}, ${colorToRgba(currentTheme.accentColor, 0.8)})`,
               outlineColor: currentTheme.accentColor,
@@ -160,8 +172,8 @@ export function Sidebar({
             onClick={onProfileDialogOpen}
             className="flex-1 text-left cursor-pointer"
           >
-            <div className="text-white text-sm font-medium">{currentUser.name}</div>
-            <div className="text-purple-300 text-xs">Signed in</div>
+            <div className="text-page-fg text-sm font-medium">{currentUser.name}</div>
+            <div className="text-page-signin text-xs">Signed in</div>
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -171,7 +183,7 @@ export function Sidebar({
                   size="sm"
                   style={{
                     background: `linear-gradient(to right, ${colorToRgba(currentTheme.accentColor, 0)} 0%, ${colorToRgba(currentTheme.accentColor, 0)} 100%)`,
-                    color: 'white',
+                    color: 'var(--page-fg)',
                   }}
                   {...accentGradientHoverHandlers(currentTheme)}
                 >
@@ -184,7 +196,7 @@ export function Sidebar({
               align="end"
               className="text-white border-white/10 [&_[data-slot=dropdown-menu-item]]:focus:bg-white/10 [&_[data-slot=dropdown-menu-item]]:focus:text-white"
               style={{
-                background: NAVY_SURFACE_BACKGROUND,
+                background: SURFACE_BACKGROUND,
               }}
             >
               <DropdownMenuItem onClick={() => setTheme(isDark ? "light" : "dark")}>
@@ -192,6 +204,10 @@ export function Sidebar({
                   ? <Sun className="h-4 w-4 mr-2 text-yellow-400" />
                   : <Moon className="h-4 w-4 mr-2 text-blue-300" />}
                 {isDark ? "Light Mode" : "Dark Mode"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onToggleBookstore}>
+                <BookOpen className="h-4 w-4 mr-2 text-amber-400" />
+                {isBookstoreActive ? "Default Theme" : "Bookstore Theme"}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onFriendsDialogOpen}>
                 <Users className="h-4 w-4 mr-2 text-green-400" />
@@ -268,7 +284,7 @@ export function Sidebar({
         <Button
           onClick={onAddTabDialogOpen}
           variant="ghost"
-          className={`w-full justify-start text-gray-400 hover:text-white ${NAV_HOVER_CLASS}`}
+          className={`w-full justify-start text-page-fg-muted hover:text-page-fg ${NAV_HOVER_CLASS}`}
         >
           <Plus className="h-4 w-4 mr-2" />
           Add Category

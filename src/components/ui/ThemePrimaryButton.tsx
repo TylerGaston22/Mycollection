@@ -3,7 +3,7 @@
  * dialog submit, etc.). Wraps Button so the repeated
  *
  *   <Button style={{ backgroundColor: currentTheme.accentColor }}
- *           className="text-white hover:opacity-90">
+ *           className="text-page-on-accent hover:opacity-90">
  *
  * pattern lives in one place. `currentTheme` is optional: when omitted the
  * component falls back to a plain default Button, so callers that don't
@@ -33,7 +33,7 @@ export function ThemePrimaryButton({
     <Button
       // Caller-supplied inline style wins if it sets the same property.
       style={{ ...themeStyle, ...style }}
-      className={cn(currentTheme && "text-white hover:opacity-90", className)}
+      className={cn(currentTheme && "text-page-on-accent hover:opacity-90", className)}
       {...buttonProps}
     />
   );

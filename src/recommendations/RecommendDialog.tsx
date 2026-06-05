@@ -24,7 +24,7 @@ import {
   FRIEND_ROW_NAME_CLASS,
   FRIEND_ROW_USERNAME_CLASS,
 } from "../friends/styles";
-import { NAVY_SURFACE_BACKGROUND } from "../utils/surfaceBackgrounds";
+import { SURFACE_BACKGROUND } from "../utils/surfaceBackgrounds";
 import type { Item } from "../types";
 import type { FriendSummary } from "../friends/client";
 import type { useRecommendations } from "./useRecommendations";
@@ -73,7 +73,7 @@ export function RecommendDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="sm:max-w-[480px] max-h-[85vh] overflow-y-auto text-white border-white/10 [&_[data-slot=dialog-description]]:text-white/70"
-        style={{ background: NAVY_SURFACE_BACKGROUND }}
+        style={{ background: SURFACE_BACKGROUND }}
       >
         <DialogHeader>
           <DialogTitle>Recommend to a friend</DialogTitle>

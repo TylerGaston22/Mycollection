@@ -55,10 +55,10 @@ export function MobileSectionNav({
         {sections.map((section) => {
           const isActive = activeSection === section.id;
 
-          let chipBackground = 'rgba(51, 65, 85, 0.5)';
-          let chipColor = 'rgba(209, 213, 219, 0.8)';
+          let chipBackground = 'var(--page-surface)';
+          let chipColor = 'var(--page-fg-subtle)';
           let chipBorder = '1px solid transparent';
-          let countBackground = 'rgba(255,255,255,0.1)';
+          let countBackground = 'var(--page-surface)';
 
           if (isActive) {
             chipBackground = colorToRgba(currentTheme.accentColor, 0.2);
@@ -93,7 +93,7 @@ export function MobileSectionNav({
           className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-sm whitespace-nowrap transition-all"
           style={{
             color: colorToRgba(currentTheme.accentColor, 0.5),
-            border: '1px dashed rgba(156, 163, 175, 0.3)',
+            border: '1px dashed var(--page-divider)',
           }}
         >
           <Plus className="h-3.5 w-3.5" />

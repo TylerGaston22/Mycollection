@@ -6,7 +6,7 @@
 
 import { LucideIcon } from 'lucide-react';
 import { ThemeConfig } from "../../utils/themeConfig";
-import { NAVY_SURFACE_BACKGROUND } from "../../utils/surfaceBackgrounds";
+import { SURFACE_BACKGROUND } from "../../utils/surfaceBackgrounds";
 import { NAV_HOVER_CLASS } from "../../utils/hoverStyles";
 
 interface CategoryButtonProps {
@@ -22,10 +22,15 @@ export function CategoryButton({ label, count, icon: Icon, isActive, currentThem
   let background: string;
   let className: string;
   if (isActive) {
+    // Active sits on the accent colour. text-page-on-accent = white on the
+    // dark themes' bright accents, cream on the Bookstore brown accent.
     background = currentTheme.accentColor;
-    className = 'w-full flex items-center justify-between p-3 rounded-lg transition-all cursor-pointer text-white shadow-lg';
+    className = 'w-full flex items-center justify-between p-3 rounded-lg transition-all cursor-pointer text-page-on-accent shadow-lg';
   } else {
-    background = NAVY_SURFACE_BACKGROUND;
+    // Inactive uses the raised SURFACE_BACKGROUND, which stays dark in every
+    // theme (navy on dark themes, warm espresso brown under Bookstore), so its
+    // label stays white and readable.
+    background = SURFACE_BACKGROUND;
     className = `w-full flex items-center justify-between p-3 rounded-lg transition-all cursor-pointer text-white ${NAV_HOVER_CLASS}`;
   }
 

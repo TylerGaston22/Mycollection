@@ -70,6 +70,17 @@ export const colorThemes: Record<string, ThemeConfig> = {
     backgroundGradient: 'linear-gradient(to bottom right, rgb(3, 7, 18), rgb(55, 48, 163), rgb(88, 28, 135))',
     accentColor: 'rgb(167, 139, 250)' // violet-400 - bright lavender
   },
+  // Warm, LIGHT theme from the bookstorecode palette. Unlike the other
+  // (dark) themes, its gradients are cream/beige so the sidebar and page read
+  // as a light surface; the page-chrome text flips to dark-brown via the
+  // [data-surface="bookstore"] token override in index.css.
+  bookstore: {
+    id: 'bookstore',
+    name: 'Bookstore',
+    sidebarGradient: 'linear-gradient(to bottom, hsl(36, 33%, 95%), hsl(33, 35%, 92%), hsl(32, 30%, 90%))',
+    backgroundGradient: 'linear-gradient(to bottom right, hsl(36, 33%, 97%), hsl(33, 35%, 94%), hsl(36, 30%, 92%))',
+    accentColor: 'hsl(28, 32%, 38%)' // warm brown (bookstorecode primary) — drives active buttons, headings, avatar; pair with cream --page-on-accent text
+  },
 };
 
 export function getTheme(themeId: string): ThemeConfig {
@@ -89,6 +100,12 @@ export function colorToRgba(color: string, opacity: number): string {
     if (rgbNumberValues && rgbNumberValues.length === 3) {
       return `rgba(${rgbNumberValues[0]}, ${rgbNumberValues[1]}, ${rgbNumberValues[2]}, ${opacity})`;
     }
+  }
+  // If hsl format (e.g. the Bookstore theme accent) → convert to hsla so the
+  // opacity is actually applied rather than silently dropped by the fallback.
+  if (color.startsWith('hsl(')) {
+    const hslInnerValues = color.slice(4, -1).trim();
+    return `hsla(${hslInnerValues}, ${opacity})`;
   }
   // If hex format
   if (color.startsWith('#')) {

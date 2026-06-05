@@ -36,7 +36,7 @@ export function accentColorHoverHandlers(
     onMouseEnter: (event) => {
       event.currentTarget.style.color = theme.accentColor;
       if (options.withBackground) {
-        event.currentTarget.style.backgroundColor = "rgba(51, 65, 85, 0.5)";
+        event.currentTarget.style.backgroundColor = "var(--page-surface)";
       }
     },
     onMouseLeave: (event) => {
@@ -50,8 +50,9 @@ export function accentColorHoverHandlers(
 
 /**
  * Variant used by the sidebar action buttons: fade a subtle accent-color
- * gradient on hover, restore transparent/white on leave. Keeps text white
- * by default (these buttons live on a dark sidebar).
+ * gradient on hover, restore transparent on leave. The resting text colour
+ * is the page-foreground token (white on dark sidebars, dark-brown on the
+ * Bookstore light sidebar).
  */
 export function accentGradientHoverHandlers(theme: ThemeConfig): {
   onMouseEnter: (event: React.MouseEvent<HTMLElement>) => void;
@@ -67,7 +68,7 @@ export function accentGradientHoverHandlers(theme: ThemeConfig): {
     },
     onMouseLeave: (event) => {
       event.currentTarget.style.background = "transparent";
-      event.currentTarget.style.color = "white";
+      event.currentTarget.style.color = "var(--page-fg)";
     },
   };
 }

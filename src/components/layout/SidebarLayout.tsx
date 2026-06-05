@@ -33,6 +33,8 @@ interface SidebarLayoutProps {
   restaurantCount: number;
   placeCount: number;
   currentTheme: ThemeConfig;
+  isBookstoreActive: boolean;
+  onToggleBookstore: () => void;
   onContentTypeChange: (type: string) => void;
   onActiveSectionChange: (section: string) => void;
   onExpandedCategoryChange: (category: string) => void;
@@ -67,6 +69,8 @@ export function SidebarLayout({
   restaurantCount,
   placeCount,
   currentTheme,
+  isBookstoreActive,
+  onToggleBookstore,
   onContentTypeChange,
   onActiveSectionChange,
   onExpandedCategoryChange,
@@ -152,7 +156,7 @@ export function SidebarLayout({
         type="button"
         onClick={() => setIsSidebarOpen((v) => !v)}
         aria-label="Toggle sidebar"
-        className="hamburger-toggle fixed top-4 left-4 z-50 p-2 rounded-md bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors"
+        className="hamburger-toggle fixed top-4 left-4 z-50 p-2 rounded-md bg-page-surface backdrop-blur-sm text-page-fg hover:bg-page-surface-hover transition-colors"
       >
         <Menu className="h-5 w-5" />
       </button>
@@ -164,7 +168,8 @@ export function SidebarLayout({
           type="button"
           aria-label="Close sidebar"
           onClick={() => setIsSidebarOpen(false)}
-          className="sidebar-backdrop fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
+          className="sidebar-backdrop fixed inset-0 z-30 backdrop-blur-sm"
+          style={{ backgroundColor: 'var(--page-backdrop)' }}
         />
       )}
 
@@ -181,6 +186,8 @@ export function SidebarLayout({
         restaurantCount={restaurantCount}
         placeCount={placeCount}
         currentTheme={currentTheme}
+        isBookstoreActive={isBookstoreActive}
+        onToggleBookstore={onToggleBookstore}
         onContentTypeChange={onContentTypeChange}
         onActiveSectionChange={onActiveSectionChange}
         onExpandedCategoryChange={onExpandedCategoryChange}

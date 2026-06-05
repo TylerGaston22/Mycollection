@@ -16,6 +16,11 @@ const DEFAULT_BACKGROUND_COLORS = {
   'tv-show': 'current',
   restaurant: 'current',
   place: 'current',
+  // App-wide surface override, independent of the per-content-type themes
+  // above. 'default' = use the per-category theme; 'bookstore' = force the
+  // light Bookstore theme everywhere (incl. custom tabs). Stored as a sibling
+  // key in the same JSONB blob, so no schema change is needed.
+  surfaceTheme: 'default',
 };
 
 export function usePreferences(currentUserId: string, isDemoUser: boolean) {
@@ -50,7 +55,12 @@ export function usePreferences(currentUserId: string, isDemoUser: boolean) {
     }
 
     if (data) {
-      setBackgroundColors(data.background_colors as typeof DEFAULT_BACKGROUND_COLORS);
+      // Merge over defaults so rows saved before a key existed (e.g.
+      // surfaceTheme) still deserialise with every field present.
+      setBackgroundColors({
+        ...DEFAULT_BACKGROUND_COLORS,
+        ...(data.background_colors as typeof DEFAULT_BACKGROUND_COLORS),
+      });
     } else {
       setBackgroundColors(DEFAULT_BACKGROUND_COLORS);
     }

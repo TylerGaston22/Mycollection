@@ -64,7 +64,7 @@ export function ListView({ items, onUpdate, onDelete, onItemClick, isDarkMode, c
 
   let textColor = '';
   if (isDarkMode) {
-    textColor = 'text-white';
+    textColor = 'text-page-fg';
   }
 
   let headerHover = 'hover:text-foreground';
@@ -113,7 +113,7 @@ export function ListView({ items, onUpdate, onDelete, onItemClick, isDarkMode, c
         </button>
       ),
       cell: ({ row }) => {
-        let heartClass = 'text-white stroke-white stroke-2';
+        let heartClass = 'text-page-fg stroke-page-fg stroke-2';
         if (row.original.favorite) {
           heartClass = 'fill-red-500 text-red-500';
         }
@@ -159,13 +159,13 @@ export function ListView({ items, onUpdate, onDelete, onItemClick, isDarkMode, c
         if (item.platform) {
           let badgeClass = 'cursor-pointer';
           if (isDarkMode) {
-            badgeClass += ' text-white border-white/30';
+            badgeClass += ' text-page-fg border-page-border';
           }
           platformContent = <Badge variant="outline" className={badgeClass}>{item.platform}</Badge>;
         } else {
           let emptyClass = 'cursor-pointer text-muted-foreground';
           if (isDarkMode) {
-            emptyClass = 'cursor-pointer text-gray-400';
+            emptyClass = 'cursor-pointer text-page-fg-muted';
           }
           platformContent = <span className={emptyClass}>-</span>;
         }
@@ -188,13 +188,13 @@ export function ListView({ items, onUpdate, onDelete, onItemClick, isDarkMode, c
         if (item.genre) {
           let badgeClass = 'cursor-pointer';
           if (isDarkMode) {
-            badgeClass += ' text-white bg-white/10';
+            badgeClass += ' text-page-fg bg-page-surface';
           }
           genreContent = <Badge variant="secondary" className={badgeClass}>{item.genre}</Badge>;
         } else {
           let emptyClass = 'cursor-pointer text-muted-foreground';
           if (isDarkMode) {
-            emptyClass = 'cursor-pointer text-gray-400';
+            emptyClass = 'cursor-pointer text-page-fg-muted';
           }
           genreContent = <span className={emptyClass}>-</span>;
         }
@@ -215,7 +215,7 @@ export function ListView({ items, onUpdate, onDelete, onItemClick, isDarkMode, c
         const item = row.original;
         let badgeClass = 'cursor-pointer';
         if (isDarkMode) {
-          badgeClass += ' text-white border-white/30 bg-transparent';
+          badgeClass += ' text-page-fg border-page-border bg-transparent';
         }
         return (
           <button onClick={() => toggleStatus(item)} className="hover:opacity-80 transition-opacity">
@@ -244,7 +244,7 @@ export function ListView({ items, onUpdate, onDelete, onItemClick, isDarkMode, c
       enableSorting: false,
       cell: ({ row }) => (
         <button onClick={() => { setMovieBeingQuickEdited(row.original); setFieldBeingQuickEdited('notes'); }} className="hover:opacity-70 transition-opacity w-full text-left max-w-[300px] block">
-          <p className="truncate text-muted-foreground cursor-pointer">{row.original.notes || '-'}</p>
+          <p className="truncate text-page-fg-muted cursor-pointer">{row.original.notes || '-'}</p>
         </button>
       ),
     }),
@@ -256,7 +256,7 @@ export function ListView({ items, onUpdate, onDelete, onItemClick, isDarkMode, c
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:text-white">
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-page-fg hover:text-page-fg">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>

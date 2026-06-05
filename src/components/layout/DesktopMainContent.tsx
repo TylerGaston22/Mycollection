@@ -63,7 +63,7 @@ export function DesktopMainContent({
   if (itemsInActiveSection.length === 0) {
     mainContentAreaDisplay = (
       <div className="text-center py-16">
-        <p className="text-gray-400 mb-4">{emptyStateMessageText}</p>
+        <p className="text-page-fg-muted mb-4">{emptyStateMessageText}</p>
         {activeSection === 'all' && (
           <ThemePrimaryButton
             onClick={onAddDialogOpen}
@@ -94,8 +94,8 @@ export function DesktopMainContent({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-white mb-2 fluid-heading">{currentCategoryHeadingTitle}</h1>
-              <p className="text-gray-400">{activeSectionDescriptionText}</p>
+              <h1 className="text-page-fg mb-2 fluid-heading">{currentCategoryHeadingTitle}</h1>
+              <p className="text-page-fg-muted">{activeSectionDescriptionText}</p>
             </div>
             {itemsInActiveSection.length > 0 && (
               <Button

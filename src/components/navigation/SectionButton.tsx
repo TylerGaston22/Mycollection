@@ -28,10 +28,10 @@ export function SectionButton({ label, count, isActive, currentTheme, onClick }:
     additionalClass = 'font-medium';
   } else {
     // No inline backgroundColor — leave it to CSS so the hover utility
-    // can paint white/10 over it. Text colour stays inline since it's
-    // theme-aware (slight white tint at rest, full white on hover).
-    style = { color: 'rgba(255, 255, 255, 0.9)' };
-    additionalClass = `hover:text-white ${NAV_HOVER_CLASS}`;
+    // can paint the page-surface overlay over it. Text uses the page-fg
+    // tokens so it reads on both the dark sidebars and the cream Bookstore one.
+    style = { color: 'var(--page-fg-subtle)' };
+    additionalClass = `hover:text-page-fg ${NAV_HOVER_CLASS}`;
   }
 
   return (

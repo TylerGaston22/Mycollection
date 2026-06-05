@@ -45,16 +45,16 @@ export function MobileHeader({
         </button>
 
         {/* Centre: title */}
-        <h1 className="text-white text-lg font-semibold absolute left-1/2 -translate-x-1/2">
+        <h1 className="text-page-fg text-lg font-semibold absolute left-1/2 -translate-x-1/2">
           {categoryTitle}
         </h1>
 
         {/* Right: profile avatar */}
         <button
           onClick={onProfileDialogOpen}
-          className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-medium shadow"
+          className="w-9 h-9 rounded-full flex items-center justify-center text-page-on-accent text-sm font-medium shadow"
           style={{
-            background: `linear-gradient(to bottom right, ${currentTheme.accentColor}, ${currentTheme.accentColor}cc)`,
+            background: `linear-gradient(to bottom right, ${currentTheme.accentColor}, ${colorToRgba(currentTheme.accentColor, 0.8)})`,
           }}
         >
           {currentUser.name.charAt(0)}

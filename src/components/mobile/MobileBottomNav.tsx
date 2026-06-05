@@ -70,7 +70,7 @@ export function MobileBottomNav({
           const isActive = contentType === tab.id;
           const Icon = tab.icon;
 
-          let tabColor = 'rgba(156, 163, 175, 0.7)';
+          let tabColor = 'var(--page-fg-muted)';
           let tabBackground = 'transparent';
           if (isActive) {
             tabColor = currentTheme.accentColor;
@@ -94,7 +94,7 @@ export function MobileBottomNav({
         <button
           onClick={onAddTabDialogOpen}
           className="flex flex-col items-center justify-center gap-0.5 py-2 flex-1 min-w-0"
-          style={{ color: 'rgba(156, 163, 175, 0.5)' }}
+          style={{ color: 'var(--page-fg-faint)' }}
         >
           <Plus className="h-5 w-5" />
           <span className="text-[10px] font-medium">Add</span>

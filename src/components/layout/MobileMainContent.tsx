@@ -54,7 +54,7 @@ export function MobileMainContent({
   if (itemsInActiveSection.length === 0) {
     mainContentAreaDisplay = (
       <div className="text-center py-16">
-        <p className="text-gray-400 mb-4">{emptyStateMessageText}</p>
+        <p className="text-page-fg-muted mb-4">{emptyStateMessageText}</p>
         {activeSection === 'all' && (
           <ThemePrimaryButton
             onClick={onAddDialogOpen}
@@ -89,18 +89,18 @@ export function MobileMainContent({
           <div key={section.id}>
             <div
               className="flex items-center justify-between px-4 py-2 border-y"
-              style={{ borderColor: 'rgba(255,255,255,0.15)', backgroundColor: 'rgba(255,255,255,0.03)' }}
+              style={{ borderColor: 'var(--page-divider)', backgroundColor: 'var(--page-surface-subtle)' }}
             >
-              <h2 className="text-white/70 text-xs font-semibold uppercase tracking-wider">
+              <h2 className="text-page-fg-subtle text-xs font-semibold uppercase tracking-wider">
                 {section.label}
               </h2>
-              <span className="text-white/40 text-xs">
+              <span className="text-page-fg-faint text-xs">
                 {section.items.length} {section.items.length === 1 ? singularTypeName : pluralTypeName}
               </span>
             </div>
             <div>
               {section.items.map((item) => (
-                <div key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+                <div key={item.id} style={{ borderBottom: '1px solid var(--page-divider)' }}>
                   <MobileListItem
                     item={item}
                     onUpdate={onItemUpdate}
@@ -117,7 +117,7 @@ export function MobileMainContent({
     mainContentAreaDisplay = (
       <div>
         {itemsInActiveSection.map((item) => (
-          <div key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.12)' }}>
+          <div key={item.id} style={{ borderBottom: '1px solid var(--page-divider)' }}>
             <MobileListItem
               item={item}
               onUpdate={onItemUpdate}

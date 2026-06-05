@@ -46,6 +46,26 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* Page-chrome tokens — the persistent dark-page layout (sidebar, main, nav,
+   * list, mobile chrome). Defaults (in :root) match the historical hardcoded
+   * dark-page values; the [data-surface="bookstore"] block overrides them to a
+   * light cream palette. Mapping here generates text-page-fg, bg-page-surface,
+   * border-page-divider, etc. so components never hardcode a color. */
+  --color-page-fg: var(--page-fg);
+  --color-page-fg-muted: var(--page-fg-muted);
+  --color-page-fg-subtle: var(--page-fg-subtle);
+  --color-page-fg-faint: var(--page-fg-faint);
+  --color-page-divider: var(--page-divider);
+  --color-page-surface: var(--page-surface);
+  --color-page-surface-hover: var(--page-surface-hover);
+  --color-page-surface-subtle: var(--page-surface-subtle);
+  --color-page-border: var(--page-border);
+  --color-page-signin: var(--page-signin-fg);
+  /* Text/icon colour for elements sitting ON the accent colour (active
+   * category button, primary buttons, avatar). White on the dark themes'
+   * bright accents; cream on the Bookstore brown accent. */
+  --color-page-on-accent: var(--page-on-accent);
 }
 
 :root {
@@ -92,6 +112,27 @@
   /* Sidebar in-flow width — scales between 11rem (narrow desktop) and
      18rem (wide desktop), tracking viewport at ~22vw in between. */
   --sidebar-w: clamp(11rem, 22vw, 18rem);
+
+  /* Page-chrome defaults = the historical dark-page colours. Keeping these
+     here (not hardcoded per component) means every existing theme renders
+     identically, and a single override block can repaint the whole chrome. */
+  --page-fg: #fff;                          /* was text-white */
+  --page-fg-muted: rgb(156, 163, 175);      /* was text-gray-400 */
+  --page-fg-subtle: rgba(255, 255, 255, 0.7);   /* was text-white/70, rgba(…,.9) */
+  --page-fg-faint: rgba(255, 255, 255, 0.4);    /* was text-white/40 */
+  --page-divider: rgba(255, 255, 255, 0.12);    /* was rgba(255,255,255,.12/.15), divide-black/40 */
+  --page-surface: rgba(255, 255, 255, 0.1);     /* was bg-white/10, inactive nav chip */
+  --page-surface-hover: rgba(255, 255, 255, 0.2);
+  --page-surface-subtle: rgba(255, 255, 255, 0.03);
+  --page-border: rgba(255, 255, 255, 0.3);      /* was border-white/30 */
+  --page-backdrop: rgba(0, 0, 0, 0.4);          /* was bg-black/40 */
+  --page-signin-fg: rgb(216, 180, 254);         /* was text-purple-300 ("Signed in") */
+  --page-on-accent: #ffffff;                    /* text on the accent colour */
+
+  /* Raised surface behind inactive nav chips, dropdowns, and some dialogs.
+   * Default is the navy gradient (was the NAVY_SURFACE_BACKGROUND constant);
+   * a single token means one override repaints every such surface. */
+  --surface-bg: linear-gradient(to bottom right, rgb(2, 6, 23), rgb(23, 37, 84), rgb(15, 23, 42));
 }
 
 .dark {
@@ -154,6 +195,28 @@
   --color-cyan-800: hsl(210 100% 32%);
   --color-cyan-900: hsl(210 100% 24%);
   --color-cyan-950: hsl(210 100% 16%);
+}
+
+/* Bookstore — a TRUE light surface (warm cream + dark-brown text), derived
+ * from the bookstorecode palette. Overrides ONLY the page-chrome tokens; the
+ * shadcn --background/--foreground set stays owned by next-themes light/dark.
+ * This is the single source of truth for the cream palette. */
+[data-surface="bookstore"] {
+  --page-fg: hsl(28, 18%, 18%);             /* dark-brown text */
+  --page-fg-muted: hsl(28, 12%, 40%);
+  --page-fg-subtle: hsl(28, 15%, 30%);
+  --page-fg-faint: hsl(28, 12%, 50%);
+  --page-divider: hsl(32, 22%, 86%);        /* tan border */
+  --page-surface: hsl(33, 35%, 92%);        /* light-beige */
+  --page-surface-hover: hsl(33, 30%, 87%);
+  --page-surface-subtle: hsl(36, 33%, 95%); /* near cream */
+  --page-border: hsl(32, 22%, 80%);
+  --page-backdrop: rgba(40, 30, 20, 0.3);
+  --page-signin-fg: hsl(28, 19%, 38%);      /* brown primary */
+  --page-on-accent: hsl(36, 33%, 95%);      /* cream text on the brown accent */
+  /* Raised surfaces stay dark, but warm espresso-brown instead of navy, so
+   * their existing light text/icons still read while losing the blue tint. */
+  --surface-bg: linear-gradient(to bottom right, hsl(28, 24%, 14%), hsl(28, 28%, 19%), hsl(28, 24%, 12%));
 }
 
 html {

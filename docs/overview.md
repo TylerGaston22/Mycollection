@@ -50,6 +50,7 @@ A personal collection tracker for movies, TV shows, restaurants, places, and use
 
 ### UI / UX
 - Dark mode toggle (cohesive dark blue-grey palette with bright blue accent) via the gear-icon dropdown.
+- **Bookstore theme** — a one-click app-wide *light* cream theme (warm palette from `bookstorecode/`) toggled from the same gear-icon dropdown, alongside per-content-type colour themes picked in Settings.
 - Tailwind palette remapping in dark mode so `slate-*` and `cyan-*` utility classes also reskin.
 - Mobile-responsive: dedicated mobile components for header, bottom-nav, list items, section nav.
 - Toasts for success/failure on every mutation.
@@ -108,7 +109,13 @@ src/components/
 - `useIsMobile` — viewport detection
 
 ### Theme-aware styling via CSS variables
-Light and dark palettes are defined as CSS custom properties (`--background`, `--foreground`, `--card`, etc.) in `src/styles/index.css`. Tailwind utilities (`bg-background`, `text-foreground`) resolve through these vars, so the same components reskin automatically when the `dark` class flips. Tailwind's `slate-*` and `cyan-*` palette variables are also remapped in dark mode for cohesive sidebar/accent coloring.
+The app has **three independent styling layers**, all driven by CSS custom properties so components never hardcode a color:
+
+1. **Surface tokens (`next-themes`)** — light/dark palettes defined as `--background`, `--foreground`, `--card`, etc. in `src/styles/index.css` (`:root` + `.dark`). Tailwind utilities (`bg-background`, `text-foreground`) resolve through these vars, so Cards/Dialogs/Popovers reskin automatically when the `dark` class flips. Tailwind's `slate-*` and `cyan-*` palettes are also remapped in dark mode for cohesive sidebar/accent coloring.
+2. **Colour themes (`src/utils/themeConfig.ts`)** — a `colorThemes` record where each `ThemeConfig` supplies a `sidebarGradient`, `backgroundGradient`, and `accentColor`. Selected per content-type in Settings (`ColorPicker`) and persisted in `preferences.background_colors`. Drives the page background overlay and every accent-coloured element.
+3. **Page-chrome tokens (`--page-*`)** — semantic variables (`--page-fg`, `--page-fg-muted`, `--page-surface`, `--page-divider`, `--page-backdrop`, …) for the persistent layout that sits *directly on the page background* (Sidebar, main content, ListView, mobile chrome) rather than on a themed Card surface. Their `:root` defaults equal the historical dark-page values; a single `[data-surface="bookstore"]` override block repaints the whole chrome cream. Mapped to Tailwind utilities (`text-page-fg`, `bg-page-surface`, `border-page-divider`) via `@theme inline`. This is what lets the **Bookstore** theme be a *genuine light surface* without un-hardcoding colors per-component — see `docs/coding-standards.md`.
+
+**Why three layers:** Radix overlays (Dialog/DropdownMenu/Popover) portal to `document.body`, *outside* the App root that carries `data-surface`. So page chrome uses layer 3, themed surfaces use layer 1, and portaled menus deliberately stay dark even in Bookstore mode.
 
 ---
 
@@ -161,3 +168,4 @@ In rough priority order — see `docs/todo.md` and `docs/ideas.md` for detail:
 - RLS scopes data correctly (a user only sees their own rows in the read paths).
 - TMDB search auto-fills title, year, and poster on the Add Item dialog.
 - Dark mode toggle switches the full app palette (custom CSS variables + Tailwind palette remap).
+- Bookstore light theme toggles app-wide (incl. custom tabs), persists across reloads (demo localStorage + Supabase), and wins over the next-themes light/dark state.

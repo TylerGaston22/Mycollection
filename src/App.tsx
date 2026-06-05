@@ -104,9 +104,34 @@ export default function App() {
 
   const { movieCount, tvShowCount, restaurantCount, placeCount } = useCollectionStats(items);
 
-  // Custom tabs don't have a saved theme, so fall back to 'current' (default Ghibli theme)
-  const activeThemeId = backgroundColors[contentType as keyof typeof backgroundColors] || 'current';
+  // App-wide Bookstore override (toggled from the profile dropdown) wins over
+  // the per-content-type theme, so it also covers custom tabs which otherwise
+  // have no saved theme and fall back to 'current' (default Ghibli theme).
+  const isBookstoreActive = backgroundColors.surfaceTheme === 'bookstore';
+  const activeThemeId = isBookstoreActive
+    ? 'bookstore'
+    : (backgroundColors[contentType as keyof typeof backgroundColors] || 'current');
   const currentTheme = getTheme(activeThemeId);
+
+  const handleToggleBookstore = () => {
+    setBackgroundColors({
+      ...backgroundColors,
+      surfaceTheme: isBookstoreActive ? 'default' : 'bookstore',
+    });
+  };
+
+  // Put data-surface on <html> (not just the app root) so the Bookstore tokens
+  // also reach Radix overlays — DropdownMenu, Dialog, Popover — which portal to
+  // document.body, outside the React root. Without this the gear menu and
+  // dialogs would keep the default (navy) surface even in Bookstore mode.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isBookstoreActive) {
+      root.setAttribute('data-surface', 'bookstore');
+    } else {
+      root.removeAttribute('data-surface');
+    }
+  }, [isBookstoreActive]);
 
   // Bound helpers
   const getItemsForSection = (sectionId: string) => getSectionContent(sectionId, items, contentType);
@@ -123,7 +148,7 @@ export default function App() {
     // LandingPage for the brief window before the session resolves.)
     mainPageContent = (
       <div className="relative z-10 min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-white/70" />
+        <Loader2 className="h-8 w-8 animate-spin text-page-fg-subtle" />
       </div>
     );
   } else if (auth.showPasswordResetPage) {
@@ -165,6 +190,8 @@ export default function App() {
           restaurantCount={restaurantCount}
           placeCount={placeCount}
           currentTheme={currentTheme}
+          isBookstoreActive={isBookstoreActive}
+          onToggleBookstore={handleToggleBookstore}
           onContentTypeChange={setContentType}
           onActiveSectionChange={setActiveSection}
           onExpandedCategoryChange={setExpandedCategory}
@@ -316,7 +343,7 @@ export default function App() {
     <div className="min-h-screen bg-background">
       {/* Light-mode-only decorative background: Ghibli image + theme gradient.
           In dark mode, we let bg-background show through for a flat, clean look. */}
-      {!isDark && (
+      {!isDark && !isBookstoreActive && (
         <>
           <div
             className="fixed inset-0 z-0"
@@ -334,6 +361,15 @@ export default function App() {
             style={{ background: currentTheme.backgroundGradient, opacity: 0.95 }}
           />
         </>
+      )}
+
+      {/* Bookstore is a true light surface: paint a flat cream gradient that
+          wins regardless of the next-themes light/dark state. */}
+      {isBookstoreActive && (
+        <div
+          className="fixed inset-0 z-0"
+          style={{ background: currentTheme.backgroundGradient }}
+        />
       )}
 
       {mainPageContent}
