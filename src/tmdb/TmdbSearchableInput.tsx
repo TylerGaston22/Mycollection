@@ -80,12 +80,9 @@ export function TmdbSearchableInput({
           placeholder={placeholder}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (canSearch && event.key === "Enter") {
-              event.preventDefault();
-              handleSearch();
-            }
-          }}
+          // Intentionally NO Enter override here — let Enter bubble up to
+          // the surrounding <form> so it submits the parent dialog. Users
+          // who want to run a TMDB search click the visible Search button.
           required={required}
         />
         {canSearch && (

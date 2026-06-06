@@ -264,7 +264,10 @@ export function ItemFormDialog({
             )}
           </div>
 
-          <DialogFooter>
+          {/* Sticky footer so the Cancel / Add buttons stay visible without
+              scrolling past every optional field. The bg-background match
+              keeps the form fields above from showing through. */}
+          <DialogFooter className="sticky bottom-0 -mx-6 px-6 py-4 bg-background border-t z-10">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
