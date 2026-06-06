@@ -61,8 +61,12 @@ export function getContentTypeFieldConfig(contentType: string): ContentTypeField
   // Restaurants and places share field labels ("Name" instead of "Title", "Location" instead of "Year")
   const isRestaurantOrPlaceType = contentType === 'restaurant' || contentType === 'place';
 
+  // The built-in 'item' content type is the Movies category (legacy id
+  // from when the app shipped as a movie tracker). Its user-facing label
+  // is "Movie", but the id stays 'item' for backwards compatibility with
+  // existing DB rows.
   let displayLabel: string;
-  if (contentType === 'item') displayLabel = 'Item';
+  if (contentType === 'item') displayLabel = 'Movie';
   else if (contentType === 'tv-show') displayLabel = 'TV Show';
   else if (contentType === 'restaurant') displayLabel = 'Restaurant';
   else if (contentType === 'place') displayLabel = 'Place';
@@ -141,11 +145,13 @@ export function getContentTypeName(
   plural: boolean = true,
   customTabs: CustomTab[] = []
 ): string {
+  // 'item' is the legacy id for the Movies category; user-facing
+  // singular/plural should read as "movie" / "movies".
   if (type === 'item') {
     if (plural) {
-      return 'items';
+      return 'movies';
     }
-    return 'item';
+    return 'movie';
   }
   if (type === 'tv-show') {
     if (plural) {

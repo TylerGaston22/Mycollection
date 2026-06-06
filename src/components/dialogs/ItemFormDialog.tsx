@@ -3,9 +3,12 @@
  * Serves double duty: when `item` is provided it operates in edit mode,
  * otherwise it creates a new item. Field labels and placeholders adapt
  * automatically to the content type via getContentTypeFieldConfig().
+ *
+ * All form state + populate-on-open + submit logic lives in
+ * ./itemForm/useItemForm.ts; this component is the dialog shell + the
+ * field JSX bound to that hook.
  */
 
-import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -23,32 +26,24 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Checkbox } from "../ui/checkbox";
 import { Item, CustomSection } from "../../types";
 import { ThemeConfig } from "../../utils/themeConfig";
-import { getContentTypeFieldConfig, getWatchedLabel, getWantToSeeLabel, isMediaContentType } from "../../utils/contentHelpers";
-import { sanitizeImageUrl } from "../../utils/sanitize";
+import {
+  getContentTypeFieldConfig,
+  getWatchedLabel,
+  getWantToSeeLabel,
+  isMediaContentType,
+} from "../../utils/contentHelpers";
 import { TmdbSearchableInput } from "../../tmdb";
 import { DEFAULT_CONTENT_TYPE, type ItemStatus } from "../../constants";
+import { useItemForm } from "./itemForm/useItemForm";
 
-/**
- * When the user clicks "Add Item" from a specific sub-section, we
- * preselect the matching status so the form mirrors the bucket they
- * were viewing. Falls back to 'want-to-see' for 'all' / favorites /
- * custom sections / undefined (more useful than 'watched' since most
- * adds are things you haven't gotten to yet).
- */
-function defaultStatusForActiveSection(activeSection: string | undefined): ItemStatus {
-  if (activeSection === 'watched') return 'watched';
-  if (activeSection === 'want-to-see') return 'want-to-see';
-  return 'want-to-see';
-}
-
-interface MovieFormDialogProps {
+interface ItemFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customSections?: CustomSection[];
   contentType?: string;
   activeSection?: string;
   currentTheme?: ThemeConfig;
-  onAdd?: (item: Omit<Item, 'id'>) => void;
+  onAdd?: (item: Omit<Item, "id">) => void;
   item?: Item | null;
   onUpdate?: (id: string, updates: Partial<Item>) => void;
 }
@@ -63,148 +58,50 @@ export function ItemFormDialog({
   onAdd,
   item,
   onUpdate,
-}: MovieFormDialogProps) {
-  // Determine content type: from the item being edited, the active tab, or default to 'item'
+}: ItemFormDialogProps) {
+  // Determine content type: from the item being edited, the active tab,
+  // or the default. Drives field labels + which optional fields show.
   const itemContentType = item?.type ?? contentType ?? DEFAULT_CONTENT_TYPE;
   const isEditingExistingItem = !!item;
   const fieldConfig = getContentTypeFieldConfig(itemContentType);
   const isMovieOrTvShow = isMediaContentType(itemContentType);
+  const sectionsForCurrentContentType = customSections.filter(
+    (section) => section.contentType === itemContentType,
+  );
 
-  const [title, setTitle] = useState('');
-  const [year, setYear] = useState('');
-  const [posterUrl, setPosterUrl] = useState('');
-  const [status, setStatus] = useState<ItemStatus>('watched');
-  const [notes, setNotes] = useState('');
-  const [platform, setPlatform] = useState('');
-  const [studio, setStudio] = useState('');
-  const [genre, setGenre] = useState('');
-  const [seasons, setSeasons] = useState('');
-  const [episodes, setEpisodes] = useState('');
-  const [selectedSections, setSelectedSections] = useState<string[]>([]);
-  // Increments each time the dialog opens, used to clear TMDB results inside the search input
-  const [tmdbResetCount, setTmdbResetCount] = useState(0);
+  const form = useItemForm({
+    open,
+    item,
+    contentType: itemContentType,
+    activeSection,
+    customSections,
+    onAdd,
+    onUpdate,
+    onSubmitted: () => onOpenChange(false),
+  });
 
-  const sectionsForCurrentContentType = customSections.filter((section) => section.contentType === itemContentType);
-
-  // Populate form fields when the dialog opens (edit mode copies from item, add mode resets)
-  useEffect(() => {
-    if (!open) return;
-    setTmdbResetCount((count) => count + 1);
-    if (item) {
-      setTitle(item.title);
-      setYear(item.year || '');
-      setPosterUrl(item.posterUrl || '');
-      setStatus(item.status);
-      setNotes(item.notes || '');
-      setPlatform(item.platform || '');
-      setStudio(item.studio || '');
-      setGenre(item.genre || '');
-      setSeasons(item.seasons?.toString() || '');
-      setEpisodes(item.episodes?.toString() || '');
-      setSelectedSections(item.sections || []);
-    } else {
-      setTitle(''); setYear(''); setPosterUrl('');
-      setStatus(defaultStatusForActiveSection(activeSection));
-      setNotes(''); setPlatform(''); setStudio(''); setGenre('');
-      setSeasons(''); setEpisodes('');
-
-      // Pre-select the currently active section if it belongs to this content type
-      let preSelectedSectionIds: string[] = [];
-      if (activeSection) {
-        const activeSectionBelongsToCurrentContentType = customSections.some(
-          (section) => section.id === activeSection && section.contentType === contentType
-        );
-        if (activeSectionBelongsToCurrentContentType) {
-          preSelectedSectionIds = [activeSection];
-        }
-      }
-      setSelectedSections(preSelectedSectionIds);
-    }
-  }, [open, item, activeSection, customSections, contentType]);
-
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!title.trim()) return;
-
-    let parsedSeasonsValue: number | undefined = undefined;
-    if (seasons) {
-      parsedSeasonsValue = parseInt(seasons);
-    }
-
-    let parsedEpisodesValue: number | undefined = undefined;
-    if (episodes) {
-      parsedEpisodesValue = parseInt(episodes);
-    }
-
-    let sectionsToSave: string[] | undefined = undefined;
-    if (selectedSections.length > 0) {
-      sectionsToSave = selectedSections;
-    }
-
-    const formDataToSave = {
-      title: title.trim(),
-      year: year.trim() || undefined,
-      posterUrl: sanitizeImageUrl(posterUrl.trim()),
-      status,
-      notes: notes.trim() || undefined,
-      platform: platform.trim() || undefined,
-      studio: studio.trim() || undefined,
-      genre: genre.trim() || undefined,
-      seasons: parsedSeasonsValue,
-      episodes: parsedEpisodesValue,
-      sections: sectionsToSave,
-    };
-
-    if (isEditingExistingItem && item) {
-      onUpdate?.(item.id, formDataToSave);
-    } else {
-      onAdd?.({ ...formDataToSave, type: itemContentType, favorite: false });
-    }
-    onOpenChange(false);
-  };
-
-  let dialogActionWord: string;
-  if (isEditingExistingItem) {
-    dialogActionWord = 'Edit';
-  } else {
-    dialogActionWord = 'Add';
-  }
-
-  let dialogDescriptionText: string;
-  if (isEditingExistingItem) {
-    dialogDescriptionText = 'Update the details of this item';
-  } else {
-    // Build a "Adding to: <Category> › <Section>" hint so the user knows
-    // the form was preseeded from their current view (and can override).
-    const customSectionName = customSections.find(
-      (s) => s.id === activeSection && s.contentType === itemContentType,
-    )?.name;
-    let sectionLabel: string | null = null;
-    if (customSectionName) sectionLabel = customSectionName;
-    else if (activeSection === 'watched') sectionLabel = getWatchedLabel(itemContentType);
-    else if (activeSection === 'want-to-see') sectionLabel = getWantToSeeLabel(itemContentType);
-    else if (activeSection === 'favorites') sectionLabel = 'Favorites';
-    else if (activeSection === 'all') sectionLabel = 'All';
-
-    dialogDescriptionText = sectionLabel
-      ? `Adding to: ${fieldConfig.displayLabel} › ${sectionLabel}`
-      : `Add a new ${fieldConfig.displayLabel.toLowerCase()} to your collection`;
-  }
-
-  let submitButtonLabel: string;
-  if (isEditingExistingItem) {
-    submitButtonLabel = 'Save Changes';
-  } else {
-    submitButtonLabel = `Add ${fieldConfig.displayLabel}`;
-  }
+  const dialogActionWord = isEditingExistingItem ? "Edit" : "Add";
+  const submitButtonLabel = isEditingExistingItem
+    ? "Save Changes"
+    : `Add ${fieldConfig.displayLabel}`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={form.handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{dialogActionWord} {fieldConfig.displayLabel}</DialogTitle>
-            <DialogDescription>{dialogDescriptionText}</DialogDescription>
+            <DialogTitle>
+              {dialogActionWord} {fieldConfig.displayLabel}
+            </DialogTitle>
+            <DialogDescription>
+              {buildDialogDescription({
+                isEditingExistingItem,
+                itemContentType,
+                activeSection,
+                customSections,
+                fieldConfig,
+              })}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
@@ -213,14 +110,14 @@ export function ItemFormDialog({
               <TmdbSearchableInput
                 id="mf-title"
                 contentType={itemContentType}
-                value={title}
-                onChange={setTitle}
+                value={form.title}
+                onChange={form.setTitle}
                 onPick={(result) => {
-                  setTitle(result.title);
-                  if (result.year) setYear(result.year);
-                  if (result.posterUrl) setPosterUrl(result.posterUrl);
+                  form.setTitle(result.title);
+                  if (result.year) form.setYear(result.year);
+                  if (result.posterUrl) form.setPosterUrl(result.posterUrl);
                 }}
-                resetSignal={tmdbResetCount}
+                resetSignal={form.tmdbResetCount}
                 placeholder={`Enter ${fieldConfig.displayLabel.toLowerCase()} ${fieldConfig.titleFieldWord}`}
                 required
               />
@@ -231,8 +128,8 @@ export function ItemFormDialog({
               <Input
                 id="mf-year"
                 placeholder={fieldConfig.yearFieldPlaceholder}
-                value={year}
-                onChange={(event) => setYear(event.target.value)}
+                value={form.year}
+                onChange={(event) => form.setYear(event.target.value)}
               />
             </div>
 
@@ -241,14 +138,17 @@ export function ItemFormDialog({
               <Input
                 id="mf-poster"
                 placeholder="https://..."
-                value={posterUrl}
-                onChange={(event) => setPosterUrl(event.target.value)}
+                value={form.posterUrl}
+                onChange={(event) => form.setPosterUrl(event.target.value)}
               />
             </div>
 
             <div className="grid gap-2">
               <Label>Status</Label>
-              <RadioGroup value={status} onValueChange={(newValue: string) => setStatus(newValue as ItemStatus)}>
+              <RadioGroup
+                value={form.status}
+                onValueChange={(newValue: string) => form.setStatus(newValue as ItemStatus)}
+              >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="watched" id="mf-watched" />
                   <Label htmlFor="mf-watched" className="cursor-pointer">
@@ -269,8 +169,8 @@ export function ItemFormDialog({
               <Input
                 id="mf-platform"
                 placeholder={fieldConfig.platformFieldPlaceholder}
-                value={platform}
-                onChange={(event) => setPlatform(event.target.value)}
+                value={form.platform}
+                onChange={(event) => form.setPlatform(event.target.value)}
               />
             </div>
 
@@ -281,8 +181,8 @@ export function ItemFormDialog({
                   <Input
                     id="mf-studio"
                     placeholder="Studio Ghibli, Pixar, etc."
-                    value={studio}
-                    onChange={(event) => setStudio(event.target.value)}
+                    value={form.studio}
+                    onChange={(event) => form.setStudio(event.target.value)}
                   />
                 </div>
                 <div className="grid gap-2">
@@ -290,22 +190,36 @@ export function ItemFormDialog({
                   <Input
                     id="mf-genre"
                     placeholder="Animated, Korean Drama, Action, etc."
-                    value={genre}
-                    onChange={(event) => setGenre(event.target.value)}
+                    value={form.genre}
+                    onChange={(event) => form.setGenre(event.target.value)}
                   />
                 </div>
               </>
             )}
 
-            {itemContentType === 'tv-show' && (
+            {itemContentType === "tv-show" && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="mf-seasons">Seasons</Label>
-                  <Input id="mf-seasons" type="number" min="1" placeholder="1" value={seasons} onChange={(event) => setSeasons(event.target.value)} />
+                  <Input
+                    id="mf-seasons"
+                    type="number"
+                    min="1"
+                    placeholder="1"
+                    value={form.seasons}
+                    onChange={(event) => form.setSeasons(event.target.value)}
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="mf-episodes">Episodes</Label>
-                  <Input id="mf-episodes" type="number" min="1" placeholder="10" value={episodes} onChange={(event) => setEpisodes(event.target.value)} />
+                  <Input
+                    id="mf-episodes"
+                    type="number"
+                    min="1"
+                    placeholder="10"
+                    value={form.episodes}
+                    onChange={(event) => form.setEpisodes(event.target.value)}
+                  />
                 </div>
               </div>
             )}
@@ -315,8 +229,8 @@ export function ItemFormDialog({
               <Textarea
                 id="mf-notes"
                 placeholder="Add your thoughts..."
-                value={notes}
-                onChange={(event) => setNotes(event.target.value)}
+                value={form.notes}
+                onChange={(event) => form.setNotes(event.target.value)}
                 rows={3}
               />
             </div>
@@ -329,12 +243,14 @@ export function ItemFormDialog({
                     <div key={section.id} className="flex items-center space-x-2">
                       <Checkbox
                         id={`mf-section-${section.id}`}
-                        checked={selectedSections.includes(section.id)}
-                        onCheckedChange={(isNowChecked: boolean | 'indeterminate') => {
+                        checked={form.selectedSections.includes(section.id)}
+                        onCheckedChange={(isNowChecked: boolean | "indeterminate") => {
                           if (isNowChecked) {
-                            setSelectedSections([...selectedSections, section.id]);
+                            form.setSelectedSections([...form.selectedSections, section.id]);
                           } else {
-                            setSelectedSections(selectedSections.filter((sectionId) => sectionId !== section.id));
+                            form.setSelectedSections(
+                              form.selectedSections.filter((sectionId) => sectionId !== section.id),
+                            );
                           }
                         }}
                       />
@@ -349,12 +265,10 @@ export function ItemFormDialog({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <ThemePrimaryButton
-              type="submit"
-              disabled={!title.trim()}
-              currentTheme={currentTheme}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <ThemePrimaryButton type="submit" disabled={!form.isValid} currentTheme={currentTheme}>
               {submitButtonLabel}
             </ThemePrimaryButton>
           </DialogFooter>
@@ -362,4 +276,42 @@ export function ItemFormDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+/**
+ * Builds the "Adding to: <Category> › <Section>" hint that appears under
+ * the dialog title in add mode. Edit mode shows a fixed string instead.
+ * Plain helper (not a component) since it's just string assembly.
+ */
+function buildDialogDescription({
+  isEditingExistingItem,
+  itemContentType,
+  activeSection,
+  customSections,
+  fieldConfig,
+}: {
+  isEditingExistingItem: boolean;
+  itemContentType: string;
+  activeSection: string | undefined;
+  customSections: CustomSection[];
+  fieldConfig: ReturnType<typeof getContentTypeFieldConfig>;
+}): string {
+  if (isEditingExistingItem) {
+    return "Update the details of this item";
+  }
+
+  const customSectionName = customSections.find(
+    (s) => s.id === activeSection && s.contentType === itemContentType,
+  )?.name;
+
+  let sectionLabel: string | null = null;
+  if (customSectionName) sectionLabel = customSectionName;
+  else if (activeSection === "watched") sectionLabel = getWatchedLabel(itemContentType);
+  else if (activeSection === "want-to-see") sectionLabel = getWantToSeeLabel(itemContentType);
+  else if (activeSection === "favorites") sectionLabel = "Favorites";
+  else if (activeSection === "all") sectionLabel = "All";
+
+  return sectionLabel
+    ? `Adding to: ${fieldConfig.displayLabel} › ${sectionLabel}`
+    : `Add a new ${fieldConfig.displayLabel.toLowerCase()} to your collection`;
 }

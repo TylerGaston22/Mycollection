@@ -4,6 +4,26 @@ Running list of non-obvious bugs we ran into while building, with root cause + f
 
 ---
 
+## First "Add" attempt silently fails; the second one works
+
+**Symptom:** Open the Add Item dialog, type a title, click Add → dialog closes (or stays open) but **no item appears in the list**. Reopen the dialog, type the same title again, click Add → works fine.
+
+**Root cause:** The populate-on-open `useEffect` in `useItemForm` had `[open, item, activeSection, customSections, contentType]` as its dependency list. That looks reasonable — those are the values the effect *reads* to decide what to seed the form with — but it has a nasty interaction: any time React re-runs the parent and creates a fresh array reference for `customSections` (or any of those other deps changes for any reason), the effect re-fires and resets every form field back to its empty initial value. Including the title the user has just typed.
+
+The race that actually triggered it: dialog opens before `useCustomSections` has finished hydrating from Supabase. A few hundred ms later the hook resolves and pushes a new (non-empty) array, which has a different reference than the empty placeholder `customSections` started at. The effect re-fires, the title is reset to `''`, the user clicks Add, the `if (!title.trim()) return` guard inside `handleSubmit` bails silently → nothing happens.
+
+The second attempt works because by then `customSections` is stable, the effect doesn't re-fire, the title sticks.
+
+**Fix:** Narrow the dependency list to just `[open, item]` — the only two values whose change SHOULD re-populate the form (dialog opens, or the user is editing a different item). Read the latest values of `activeSection` / `customSections` / `contentType` *inside* the effect via refs that are updated on every render, so the effect can see fresh values without depending on them. `// eslint-disable-next-line react-hooks/exhaustive-deps` on the dep line because we're deliberately violating the exhaustive-deps lint to fix this exact class of bug.
+
+**Lesson:**
+- **`useEffect` dependency lists must distinguish "read" from "re-trigger".** `useEffect` re-runs whenever a dep changes by reference. If you only need a value to be readable *when* the effect fires (not to *cause* the effect to fire), it doesn't belong in the deps. Use a ref that's updated on render.
+- **A populate-on-open effect should generally depend ONLY on the open transition.** Adding "everything I read inside" to the deps will re-fire mid-edit and clobber user input every time the parent re-renders.
+- **Async-loading parent state is the silent killer.** Even if the user's interaction doesn't touch a dep, the parent's async data hydration WILL — and you won't see it during local dev with a hot cache. Test under cold-start conditions (hard refresh of a signed-in user, slow network) to catch this class of bug.
+- This bug existed for many months before we caught it. It would have stayed forever if we kept assuming "first attempt failed because I was too quick" — small intermittent UX failures are worth tracing, not shrugging at.
+
+---
+
 ## Refresh dumped me on Movies + flashed sign-in + flashed default theme
 
 **Symptom:** Three separate annoyances all from one browser refresh:
