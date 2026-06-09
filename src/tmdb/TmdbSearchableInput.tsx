@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import { Search, Loader2 } from "lucide-react";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
-import { isMediaContentType } from "../utils/contentHelpers";
+import { isTmdbSearchableContentType } from "../utils/contentHelpers";
 import { isTmdbConfigured, searchTmdb, type TmdbSearchResult } from "./client";
 
 interface TmdbSearchableInputProps {
@@ -41,7 +41,7 @@ export function TmdbSearchableInput({
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canSearch = isMediaContentType(contentType) && isTmdbConfigured();
+  const canSearch = isTmdbSearchableContentType(contentType) && isTmdbConfigured();
 
   // Clear state whenever the parent signals a reset
   useEffect(() => {

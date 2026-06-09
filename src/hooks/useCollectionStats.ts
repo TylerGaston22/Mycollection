@@ -17,6 +17,7 @@ export function useCollectionStats(items: Item[]) {
       tvShowCount: byType['tv-show'] || 0,
       restaurantCount: byType.restaurant || 0,
       placeCount: byType.place || 0,
+      gameCount: byType.game || 0,
     };
   }, [items]);
 }

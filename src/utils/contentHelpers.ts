@@ -11,21 +11,38 @@ import type { ItemStatus } from '../constants';
 
 // --- Status label helpers ---
 
+/**
+ * "Media-ish" content types — share rich-metadata fields like Genre,
+ * Studio, and a stylised Platform label. Drives UI scoping: ListView
+ * Genre column, ItemFormDialog optional Studio/Genre inputs,
+ * ItemDetailDialog Studio/Genre blocks. Includes Movies, TV Shows,
+ * and Games (which all have Genre/Studio/Platform); excludes
+ * Restaurants and Places (where Platform is re-labelled to Cuisine
+ * Type / Location and Genre/Studio don't apply).
+ */
 export function isMediaContentType(contentType: string): boolean {
+  return contentType === 'item' || contentType === 'tv-show' || contentType === 'game';
+}
+
+/**
+ * Whether TMDB lookup applies to this content type. TMDB only knows
+ * Movies + TV Shows — not Games or any other category. Keep separate
+ * from isMediaContentType so adding "media-ish" types in the future
+ * doesn't accidentally turn TMDB search on for them.
+ */
+export function isTmdbSearchableContentType(contentType: string): boolean {
   return contentType === 'item' || contentType === 'tv-show';
 }
 
 export function getWatchedLabel(contentType: string): string {
-  if (isMediaContentType(contentType)) {
-    return 'Watched';
-  }
+  if (contentType === 'game') return 'Played';
+  if (isMediaContentType(contentType)) return 'Watched';
   return 'Visited';
 }
 
 export function getWantToSeeLabel(contentType: string): string {
-  if (isMediaContentType(contentType)) {
-    return 'Want to See';
-  }
+  if (contentType === 'game') return 'Want to Play';
+  if (isMediaContentType(contentType)) return 'Want to See';
   return 'Want to Visit';
 }
 
@@ -70,6 +87,7 @@ export function getContentTypeFieldConfig(contentType: string): ContentTypeField
   else if (contentType === 'tv-show') displayLabel = 'TV Show';
   else if (contentType === 'restaurant') displayLabel = 'Restaurant';
   else if (contentType === 'place') displayLabel = 'Place';
+  else if (contentType === 'game') displayLabel = 'Game';
   else displayLabel = 'Item';
 
   let titleFieldLabel: string;
@@ -103,7 +121,9 @@ export function getContentTypeFieldConfig(contentType: string): ContentTypeField
   }
 
   let imageUrlLabel: string;
-  if (isMovieOrTvShowType) {
+  if (contentType === 'game') {
+    imageUrlLabel = 'Cover URL';
+  } else if (isMovieOrTvShowType) {
     imageUrlLabel = 'Poster URL';
   } else {
     imageUrlLabel = 'Photo URL';
@@ -114,9 +134,12 @@ export function getContentTypeFieldConfig(contentType: string): ContentTypeField
   // per-type heading text + the ListView column header.
   let platformFieldLabel: string;
   let platformFieldPlaceholder: string;
-  if (isMovieOrTvShowType) {
+  if (contentType === 'item' || contentType === 'tv-show') {
     platformFieldLabel = 'Where to Watch';
     platformFieldPlaceholder = 'Netflix, Disney+, Hulu, etc.';
+  } else if (contentType === 'game') {
+    platformFieldLabel = 'Platform';
+    platformFieldPlaceholder = 'PS5, Xbox, Steam, Switch, etc.';
   } else if (contentType === 'restaurant') {
     platformFieldLabel = 'Cuisine Type';
     platformFieldPlaceholder = 'Italian, Thai, Mexican, etc.';
@@ -171,6 +194,12 @@ export function getContentTypeName(
     }
     return 'place';
   }
+  if (type === 'game') {
+    if (plural) {
+      return 'games';
+    }
+    return 'game';
+  }
   const matchingCustomTab = customTabs.find((tab) => tab.id === type);
   if (matchingCustomTab) {
     return matchingCustomTab.name;
@@ -190,19 +219,13 @@ export function getSectionDisplayName(
   if (sectionId === 'all') {
     return `All ${getContentTypeName(contentType, true, customTabs)}`;
   }
-  // Local re-check (not calling the exported function) to keep this function self-contained
-  const isMediaContentType = contentType === 'item' || contentType === 'tv-show';
+  // Built-in section labels vary by content type. Delegate to the
+  // shared helpers so games render as Played / Want to Play, etc.
   if (sectionId === 'watched') {
-    if (isMediaContentType) {
-      return 'Watched';
-    }
-    return 'Visited';
+    return getWatchedLabel(contentType);
   }
   if (sectionId === 'want-to-see') {
-    if (isMediaContentType) {
-      return 'Want to See';
-    }
-    return 'Want to Visit';
+    return getWantToSeeLabel(contentType);
   }
   if (sectionId === 'favorites') {
     return 'Favorites';
@@ -226,6 +249,9 @@ export function getCategoryDisplayName(contentType: string, customTabs: CustomTa
   }
   if (contentType === 'place') {
     return 'Places';
+  }
+  if (contentType === 'game') {
+    return 'Games';
   }
   const matchingCustomTab = customTabs.find((tab) => tab.id === contentType);
   if (matchingCustomTab) {

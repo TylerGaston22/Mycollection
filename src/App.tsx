@@ -112,7 +112,7 @@ export default function App() {
     setCustomSections(data.customSections);
   };
 
-  const { movieCount, tvShowCount, restaurantCount, placeCount } = useCollectionStats(items);
+  const { movieCount, tvShowCount, restaurantCount, placeCount, gameCount } = useCollectionStats(items);
 
   // App-wide Bookstore override (toggled from the profile dropdown) wins over
   // the per-content-type theme, so it also covers custom tabs which otherwise
@@ -209,6 +209,7 @@ export default function App() {
           tvShowCount={tvShowCount}
           restaurantCount={restaurantCount}
           placeCount={placeCount}
+          gameCount={gameCount}
           currentTheme={currentTheme}
           isBookstoreActive={isBookstoreActive}
           onToggleBookstore={handleToggleBookstore}
@@ -268,6 +269,7 @@ export default function App() {
           tvShowCount={tvShowCount}
           restaurantCount={restaurantCount}
           placeCount={placeCount}
+          gameCount={gameCount}
           items={items}
           customTabs={customTabs}
           customSections={customSections}

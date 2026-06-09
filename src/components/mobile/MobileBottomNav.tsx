@@ -3,7 +3,7 @@
  * Edge-to-edge with safe area padding for iOS notch devices.
  */
 
-import { Film, Tv, UtensilsCrossed, MapPin, Star, Plus, LucideIcon } from 'lucide-react';
+import { Film, Tv, UtensilsCrossed, MapPin, Star, Plus, Gamepad2, LucideIcon } from 'lucide-react';
 import { CustomTab } from "../../types";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
 
@@ -14,6 +14,7 @@ interface MobileBottomNavProps {
   tvShowCount: number;
   restaurantCount: number;
   placeCount: number;
+  gameCount: number;
   currentTheme: ThemeConfig;
   onContentTypeChange: (type: string) => void;
   onAddTabDialogOpen: () => void;
@@ -34,6 +35,7 @@ export function MobileBottomNav({
   tvShowCount,
   restaurantCount,
   placeCount,
+  gameCount,
   currentTheme,
   onContentTypeChange,
   onAddTabDialogOpen,
@@ -44,6 +46,7 @@ export function MobileBottomNav({
     { id: 'tv-show', label: 'TV Shows', icon: Tv, count: tvShowCount },
     { id: 'restaurant', label: 'Food', icon: UtensilsCrossed, count: restaurantCount },
     { id: 'place', label: 'Places', icon: MapPin, count: placeCount },
+    { id: 'game', label: 'Games', icon: Gamepad2, count: gameCount },
   ];
 
   const customTabItems: TabItem[] = customTabs.map((tab) => ({

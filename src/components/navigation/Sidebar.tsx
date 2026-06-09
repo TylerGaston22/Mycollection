@@ -7,7 +7,7 @@
  */
 
 import { Button } from "../ui/button";
-import { Plus, Film, Tv, UtensilsCrossed, MapPin, Settings, LogOut, Star, Moon, Sun, SlidersHorizontal, Users, User, BookOpen } from 'lucide-react';
+import { Plus, Film, Tv, UtensilsCrossed, MapPin, Settings, LogOut, Star, Moon, Sun, SlidersHorizontal, Users, User, BookOpen, Gamepad2 } from 'lucide-react';
 import { useTheme } from "next-themes";
 import { Item, CustomTab, CustomSection } from "../../types";
 import type { User as UserType } from "../../types";
@@ -44,6 +44,7 @@ interface SidebarProps {
   tvShowCount: number;
   restaurantCount: number;
   placeCount: number;
+  gameCount: number;
   currentTheme: ThemeConfig;
   /** Whether the app-wide Bookstore light theme is currently active. */
   isBookstoreActive: boolean;
@@ -78,6 +79,7 @@ export function Sidebar({
   tvShowCount,
   restaurantCount,
   placeCount,
+  gameCount,
   currentTheme,
   isBookstoreActive,
   onToggleBookstore,
@@ -133,6 +135,7 @@ export function Sidebar({
     { id: 'tv-show', label: 'TV Shows', count: tvShowCount, icon: Tv },
     { id: 'restaurant', label: 'Restaurants', count: restaurantCount, icon: UtensilsCrossed },
     { id: 'place', label: 'Places', count: placeCount, icon: MapPin },
+    { id: 'game', label: 'Games', count: gameCount, icon: Gamepad2 },
   ];
 
   // Slide-out behaviour for narrow screens. The .sidebar-fluid CSS rule

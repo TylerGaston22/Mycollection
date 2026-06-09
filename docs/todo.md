@@ -79,21 +79,41 @@ sidebar until J is fixed, so they don't trip over the broken flow.
 Re-show it as part of fixing J. (One-line change — comment out / gate
 the `onAddTabDialogOpen` button in `Sidebar.tsx`.)
 
-### L. Add a built-in Gaming category
-Currently the four built-ins are Movies / TV Shows / Restaurants /
-Places. Add Gaming as a fifth, alongside the others, so video games
-get first-class support without needing the (broken) custom-tabs flow.
-- Pick a content-type id (probably `'game'`).
-- Extend `getContentTypeFieldConfig` and `getContentTypeName` for the
-  new id — labels like "Game" / "Played" / "Want to Play" /
-  "Platform" (PS5, Xbox, Steam, etc.) / "Genre" (RPG, FPS, etc.) /
-  optional "Studio" (developer).
-- Update `isMediaContentType`? Games share Genre + Platform with
-  Movies/TV, so probably treat games as media-ish OR introduce a
-  third category — decide when implementing.
-- Add a Gamepad2 icon entry in Sidebar's `builtInCategories` array.
-- TMDB integration doesn't apply; the title input falls back to plain
-  text for non-media types automatically.
+### L. ~~Add a built-in Gaming category~~ ✅ Done 2026-06-06
+Content type id `'game'` shipped across the helpers and chrome:
+- `isMediaContentType` now includes `'game'` (games share Genre / Studio / Platform with Movies / TV).
+- New helper `isTmdbSearchableContentType` returns true ONLY for `'item'` + `'tv-show'` so TMDB lookup stays scoped to Movies / TV. TmdbSearchableInput uses the new helper.
+- `getContentTypeFieldConfig`: `'game'` → displayLabel "Game", imageUrlLabel "Cover URL", platformFieldLabel "Platform" with placeholder "PS5, Xbox, Steam, Switch, etc.".
+- `getWatchedLabel` / `getWantToSeeLabel`: "Played" / "Want to Play" for games.
+- `getContentTypeName` and `getCategoryDisplayName`: "Games" / "game" / "games".
+- `useCollectionStats` exposes `gameCount`; threaded through App → SidebarLayout → Sidebar + MobileBottomNav.
+- Sidebar + MobileBottomNav `builtInCategories` arrays gain a Gamepad2 Gaming entry.
+- `getSectionDisplayName` now delegates to the shared Watched / WantToSee label helpers so games render correctly there too.
+
+### P. Refactor contentHelpers.ts to a per-type registry
+Adding the Gaming category (todo L) required touching ~6 separate
+if/else chains in `src/utils/contentHelpers.ts` — one per concern
+(displayLabel, watchedLabel, platformFieldLabel, etc.). It works but
+isn't compartmentalised: adding the next content type means another
+6-place tour through the file.
+
+Refactor into a single per-type config registry:
+```ts
+const CONTENT_TYPE_CONFIGS = {
+  item:       { displayLabel: 'Movie', plural: 'movies', singular: 'movie', watched: 'Watched', wantToSee: 'Want to See', platformLabel: 'Where to Watch', platformPlaceholder: '...', imageUrlLabel: 'Poster URL', usesTmdb: true, hasGenreStudio: true },
+  'tv-show':  { ... },
+  restaurant: { ... },
+  place:      { ... },
+  game:       { ... },
+};
+```
+Helpers (`isMediaContentType`, `getWatchedLabel`,
+`getContentTypeFieldConfig`, `getContentTypeName`, etc.) become thin
+lookups into that object. Adding the 6th content type then means
+adding ONE block.
+
+Keep the existing exported helper signatures so call sites don't have
+to change. Smoke-test every content type after the migration.
 
 ### M. Per-user toggle: show/hide categories in Settings
 Some users only track some things. Add a Settings → Preferences

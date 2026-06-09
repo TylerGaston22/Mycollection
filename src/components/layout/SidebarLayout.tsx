@@ -32,6 +32,7 @@ interface SidebarLayoutProps {
   tvShowCount: number;
   restaurantCount: number;
   placeCount: number;
+  gameCount: number;
   currentTheme: ThemeConfig;
   isBookstoreActive: boolean;
   onToggleBookstore: () => void;
@@ -68,6 +69,7 @@ export function SidebarLayout({
   tvShowCount,
   restaurantCount,
   placeCount,
+  gameCount,
   currentTheme,
   isBookstoreActive,
   onToggleBookstore,
@@ -139,6 +141,7 @@ export function SidebarLayout({
           tvShowCount={tvShowCount}
           restaurantCount={restaurantCount}
           placeCount={placeCount}
+          gameCount={gameCount}
           currentTheme={currentTheme}
           onContentTypeChange={onContentTypeChange}
           onAddTabDialogOpen={onAddTabDialogOpen}
