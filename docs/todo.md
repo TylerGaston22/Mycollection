@@ -74,6 +74,80 @@ Places each have a fixed schema baked into `contentHelpers.ts`
   a custom_tabs.fields jsonb column.
 Decide between (a)/(b) when we tackle this.
 
+**Interim:** the user wants the Add Category button HIDDEN in the
+sidebar until J is fixed, so they don't trip over the broken flow.
+Re-show it as part of fixing J. (One-line change — comment out / gate
+the `onAddTabDialogOpen` button in `Sidebar.tsx`.)
+
+### L. Add a built-in Gaming category
+Currently the four built-ins are Movies / TV Shows / Restaurants /
+Places. Add Gaming as a fifth, alongside the others, so video games
+get first-class support without needing the (broken) custom-tabs flow.
+- Pick a content-type id (probably `'game'`).
+- Extend `getContentTypeFieldConfig` and `getContentTypeName` for the
+  new id — labels like "Game" / "Played" / "Want to Play" /
+  "Platform" (PS5, Xbox, Steam, etc.) / "Genre" (RPG, FPS, etc.) /
+  optional "Studio" (developer).
+- Update `isMediaContentType`? Games share Genre + Platform with
+  Movies/TV, so probably treat games as media-ish OR introduce a
+  third category — decide when implementing.
+- Add a Gamepad2 icon entry in Sidebar's `builtInCategories` array.
+- TMDB integration doesn't apply; the title input falls back to plain
+  text for non-media types automatically.
+
+### M. Per-user toggle: show/hide categories in Settings
+Some users only track some things. Add a Settings → Preferences
+section with one checkbox per built-in category ("Show Movies",
+"Show TV Shows", "Show Restaurants", "Show Places", "Show Gaming"
+once L lands) that hides the category from the sidebar when off.
+- Storage: extend the existing `preferences.background_colors` JSONB
+  (cheapest — no schema change) or add a sibling
+  `preferences.visible_categories text[]` column. JSONB sibling key
+  is the path that matches how `surfaceTheme` is stored today.
+- `Sidebar.tsx` filters `builtInCategories` by the preference before
+  rendering.
+- Default: all categories visible. Hiding a category should NOT delete
+  its items — just hide the sidebar entry. If they re-enable later,
+  the items reappear in that category.
+- If a user hides their currently-selected category, fall back to the
+  first visible one (App.tsx).
+
+### O. Enter key in Add Item dialog closes without adding
+Pressing Enter inside the Add Item dialog (after removing the
+TmdbSearchableInput Enter override) closes the dialog but no item is
+added. Don't know yet whether handleSubmit is even firing, whether
+title is empty at submit time, or whether addItem's duplicate check is
+silently bailing. Diagnostics to run next session:
+- Open dialog, type a definitely-unique title (e.g. "zzz-test-123"),
+  press Enter, watch for any toast.
+- If a toast appears, paste its text — likely "Duplicate item" or
+  "Failed to add item".
+- If no toast and no add, add a temporary console.log at the top of
+  `useItemForm.handleSubmit` to confirm it's firing AND what `title`
+  evaluates to at that moment.
+Likely fixes (pick after diagnosis):
+- Make `handleSubmit` `async` and `await onAdd?.(…)` before calling
+  `onSubmitted()` so a Supabase failure or the duplicate-check toast
+  is surfaced while the dialog is still open.
+- Have `addItem` return a boolean (success / not) so the caller can
+  decide whether to close.
+Probably trivial once diagnosed; deferring because we're not sure
+which of those two is the actual cause yet.
+
+### N. Faster / mobile-friendly notes editing
+Today editing the Notes cell opens the QuickEditDialog which is good
+on desktop but awkward on mobile (small textarea, full dialog, two
+clicks to save). Make it quicker:
+- On mobile: inline-edit the notes cell directly (tap the cell → text
+  area expands in-place → tap outside / press Save → done). No
+  separate dialog.
+- On desktop: a hybrid — maybe an inline-expand notes row instead of
+  a modal, or auto-save on blur with a small "Saved" pulse so the
+  user doesn't have to click Save.
+- Consider adding a small "edit" pencil icon next to the notes row in
+  the detail dialog too, so the user can edit notes directly from the
+  item detail without navigating to the table cell.
+
 ### E. Upload / change user profile picture
 Right now the sidebar + ProfileDialog avatars both render the generic
 User icon on the accent-color gradient — there's no way for a user to
