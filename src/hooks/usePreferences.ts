@@ -23,6 +23,28 @@ export type BackgroundColorsState = {
   visibleCategories: Record<string, boolean>;
 };
 
+/** Keys in BackgroundColorsState that hold a per-category theme id
+ *  (string). Excludes `surfaceTheme` (app-wide) and `visibleCategories`
+ *  (a map, not a theme id). `getCategoryThemeId` below uses this to
+ *  bound the runtime index lookup — without that narrowing, indexing
+ *  with a plain `string` from the call site could return the
+ *  visibleCategories map and silently break consumers. */
+const PER_CATEGORY_THEME_KEYS = ['item', 'tv-show', 'restaurant', 'place'] as const;
+type PerCategoryThemeKey = typeof PER_CATEGORY_THEME_KEYS[number];
+
+/** Resolve the theme id for a content type. Custom tabs and unknown
+ *  ids fall back to 'current'. Centralised here so App.tsx (and any
+ *  future caller) doesn't have to repeat the narrowing dance. */
+export function getCategoryThemeId(
+  bg: BackgroundColorsState,
+  contentType: string,
+): string {
+  if (!(PER_CATEGORY_THEME_KEYS as readonly string[]).includes(contentType)) {
+    return 'current';
+  }
+  return bg[contentType as PerCategoryThemeKey] || 'current';
+}
+
 const DEFAULT_BACKGROUND_COLORS: BackgroundColorsState = {
   item: 'current',
   'tv-show': 'current',

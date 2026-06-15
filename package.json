@@ -43,6 +43,7 @@
     "dev": "vite",
     "build": "vite build",
     "test": "vitest run",
+    "typecheck": "tsc --noEmit",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "ngrok": "ngrok http 5173"

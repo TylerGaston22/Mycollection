@@ -107,7 +107,7 @@ export function ListView({
   // custom) since the concept doesn't apply there.
   const columns = isMedia
     ? allColumns
-    : allColumns.filter((col: { accessorKey?: string }) => col.accessorKey !== "genre");
+    : allColumns.filter((col) => !('accessorKey' in col) || col.accessorKey !== "genre");
 
   const table = useReactTable({
     data: items,

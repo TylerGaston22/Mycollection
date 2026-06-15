@@ -38,7 +38,7 @@ import { getSectionDisplayName, getCategoryDisplayName, getSectionContent } from
 import { useAuth } from "./hooks/useAuth";
 import { useItems } from "./hooks/useItems";
 import { useCustomTabs, useCustomSections } from "./hooks/useCollections";
-import { usePreferences } from "./hooks/usePreferences";
+import { usePreferences, getCategoryThemeId } from "./hooks/usePreferences";
 import { useDialogState } from "./hooks/useDialogState";
 import { useCollectionStats } from "./hooks/useCollectionStats";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
@@ -144,9 +144,12 @@ export default function App() {
   // the per-content-type theme, so it also covers custom tabs which otherwise
   // have no saved theme and fall back to 'current' (default Ghibli theme).
   const isBookstoreActive = backgroundColors.surfaceTheme === 'bookstore';
-  const activeThemeId = isBookstoreActive
-    ? 'bookstore'
-    : (backgroundColors[contentType as keyof typeof backgroundColors] || 'current');
+  let activeThemeId: string;
+  if (isBookstoreActive) {
+    activeThemeId = 'bookstore';
+  } else {
+    activeThemeId = getCategoryThemeId(backgroundColors, contentType);
+  }
   const currentTheme = getTheme(activeThemeId);
 
   const handleToggleBookstore = () => {
