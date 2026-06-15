@@ -11,5 +11,6 @@ import { mockMovies } from './movies';
 import { mockTvShows } from './tvShows';
 import { mockRestaurants } from './restaurants';
 import { mockPlaces } from './places';
+import { mockGames } from './games';
 
-export const mockItems = [...mockMovies, ...mockTvShows, ...mockRestaurants, ...mockPlaces];
+export const mockItems = [...mockMovies, ...mockTvShows, ...mockRestaurants, ...mockPlaces, ...mockGames];
