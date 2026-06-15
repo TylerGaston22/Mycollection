@@ -109,23 +109,16 @@ Root cause was the fire-and-forget pattern in `useItemForm.handleSubmit` — it 
 Fix: `addItem` and `updateItem` in `useItems` now return `Promise<boolean>` (true on success, false on duplicate / Supabase error). `useItemForm.handleSubmit` became `async` and awaits the result, only calling `onSubmitted()` when the mutation succeeded. On false, the dialog stays open so the user sees the toast and can correct the input.
 
 
-### N. Faster / mobile-friendly notes editing
-Today editing the Notes cell opens the QuickEditDialog which is good
-on desktop but awkward on mobile (small textarea, full dialog, two
-clicks to save). Make it quicker:
-- **Long-press on an item row (mobile)** — open the notes editor
-  directly, bypassing the item detail dialog. Touch-and-hold for ~500ms
-  on the row should trigger it; use `pointerdown` / `pointerup` timing
-  rather than native `contextmenu` (which Safari iOS doesn't always
-  fire reliably for long-press).
-- On desktop: a hybrid — maybe an inline-expand notes row instead of
-  a modal, or auto-save on blur with a small "Saved" pulse so the
-  user doesn't have to click Save.
-- Consider adding a small "edit" pencil icon next to the notes row in
-  the detail dialog too, so the user can edit notes directly from the
-  item detail without navigating to the table cell.
-- Also worth: increase the textarea size on mobile so the notes are
-  comfortable to type on a phone keyboard.
+### N. ~~Faster / mobile-friendly notes editing~~ ✅ Done 2026-06-06 (long-press)
+Long-press on any ListView row (touch-and-hold ~500ms) now opens the QuickEditDialog focused on Notes, bypassing the item-detail dialog. Implemented via pointerdown/up timing (not native contextmenu — iOS Safari is unreliable for that), with a 10px move tolerance so scrolling doesn't accidentally trigger it. The follow-up tap that fires after release is suppressed so the open-detail action doesn't also run.
+
+Works on desktop too (mouse hold for 500ms) but it's primarily a mobile UX win — short tap still opens the detail dialog, long-press jumps straight to notes editing.
+
+Deferred — not done this pass:
+- Auto-save on blur (desktop) so user doesn't have to click Save.
+- "Edit notes" pencil icon in the item-detail dialog.
+- Bigger textarea on mobile.
+Pick these up if they prove worth doing once the long-press behaviour is tested.
 
 ### E. Upload / change user profile picture
 Right now the sidebar + ProfileDialog avatars both render the generic
