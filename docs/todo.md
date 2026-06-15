@@ -42,6 +42,15 @@ Verified every field-surface against `isMediaContentType` / `getContentTypeField
 - **TmdbSearchableInput** — already gated on `isMediaContentType`, never shows for non-media.
 - **CSV import/export** — intentionally left writing all standard columns regardless of type; a CSV file can mix types and per-row scoping happens at display, not transport. Empty cells for absent fields is standard.
 
+### R. Per-custom-category column / field configuration
+Custom tabs created via "Add Category" inherit the FALLBACK_REGISTRY_ENTRY behaviour from `contentHelpers.ts` — title, year, posterUrl, notes, status, favourite. No Genre / Studio / Platform UI surfaces for them (they default to `isMedia: false`). That's a sensible default, but users have no way to opt in if their custom category SHOULD have those fields (e.g. a "Board Games" custom tab probably wants Platform = "Player count" or similar).
+
+Two paths to decide between:
+- (a) Custom tabs always inherit the default field set. Simpler. Users who want richer fields use one of the built-ins.
+- (b) Add a column / field picker to the Add Category dialog (toggle which fields apply). Requires a `custom_tabs.fields jsonb` column + UI for the picker. Also means `getContentTypeFieldConfig` needs a per-tab override path. Bigger surface change.
+
+Pick when motivated by a real user need.
+
 ### K. ~~Modularity refactor pass~~ ✅ K1–K5 done 2026-05-22 / K6 deferred
 Audit findings + recommended order in commit history (search for "Modularity refactor K1–K3" and "K4 + K5").
 
@@ -55,29 +64,16 @@ Audit findings + recommended order in commit history (search for "Modularity ref
 Explicitly NOT doing:
 - Flex / Row primitive component for repeated `flex items-center justify-between` strings — Tailwind class repetition is fine; abstracting it costs more than it saves.
 
-### J. Add Category button is broken
-Clicking "Add Category" in the sidebar should let the user create a
-new top-level category (a custom tab) but it currently doesn't work
-end-to-end. Investigate: confirm the dialog opens, the addCustomTab
-flow saves to Supabase via useCustomTabs, and the new tab appears in
-the sidebar. Likely a wiring bug or an RLS gap on custom_tabs.
+### J. ~~Add Category button is broken~~ ✅ Done 2026-06-06
+Root cause: `useCustomTabs.addCustomTab` returned a **fake fallback CustomTab** with a `temp-…` id whenever the Supabase insert errored. App.tsx then blindly did `setContentType(newTab.id)` — switching to a phantom category that didn't actually exist in `customTabs`. RLS / schema were fine; the bug was in the return-value contract (and the dialog's fire-and-forget close before the async insert finished, same pattern as O).
 
-Connected: there's no way today for the user to pick which columns/
-fields their new custom category supports. Movies/TV/Restaurants/
-Places each have a fixed schema baked into `contentHelpers.ts`
-(getContentTypeFieldConfig + isMediaContentType). Two paths:
-- (a) Custom categories inherit a sensible default field set (title,
-  year, posterUrl, notes, status, favourite) and don't expose
-  media-only fields like platform/genre.
-- (b) Add a column picker to the Add Category dialog so the user
-  toggles which fields show in the list view + form. Bigger UI; needs
-  a custom_tabs.fields jsonb column.
-Decide between (a)/(b) when we tackle this.
+Fix:
+- `addCustomTab` now returns `Promise<CustomTab | null>`. null on failure, real CustomTab on success.
+- `App.handleAddCustomTab` checks the result and only sets contentType on a real success; also returns boolean so the dialog can keep itself open on failure.
+- `AddTabDialog.handleSubmit` is now async, awaits onAdd, and only resets + closes on success. Adds an `isSaving` state + "Creating…" button label during the await.
+- Sidebar's "Add Category" button is un-hidden (was gated behind `{false && …}` in the interim).
 
-**Interim:** the user wants the Add Category button HIDDEN in the
-sidebar until J is fixed, so they don't trip over the broken flow.
-Re-show it as part of fixing J. (One-line change — comment out / gate
-the `onAddTabDialogOpen` button in `Sidebar.tsx`.)
+Per-category-column config (the other half of the original J writeup — letting users pick which fields apply to their custom category) is moved to its own todo **R**.
 
 ### L. ~~Add a built-in Gaming category~~ ✅ Done 2026-06-06
 Content type id `'game'` shipped across the helpers and chrome:

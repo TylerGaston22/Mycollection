@@ -46,7 +46,14 @@ export function useCustomTabs(currentUserId: string, isDemoUser: boolean) {
 
   useDemoSync(storageKey, customTabs, isDemoUser);
 
-  const addCustomTab = async (tab: Omit<CustomTab, 'id'>): Promise<CustomTab> => {
+  /**
+   * Insert a new custom tab. Returns the created CustomTab on success
+   * or null on failure. Returning null lets the caller (App.tsx) avoid
+   * the "switch contentType to a phantom id that doesn't exist in
+   * customTabs" bug — the previous implementation returned a fake
+   * fallback tab with a `temp-…` id that wasn't actually in the list.
+   */
+  const addCustomTab = async (tab: Omit<CustomTab, 'id'>): Promise<CustomTab | null> => {
     if (isDemoUser) {
       const newTab: CustomTab = { ...tab, id: `custom-${Date.now()}` };
       setCustomTabs((prev) => [...prev, newTab]);
@@ -60,9 +67,7 @@ export function useCustomTabs(currentUserId: string, isDemoUser: boolean) {
       .single();
 
     if (handleSupabaseError('Failed to create tab', error)) {
-      // Return a temporary tab so the UI doesn't break
-      const fallback: CustomTab = { ...tab, id: `temp-${Date.now()}` };
-      return fallback;
+      return null;
     }
 
     const newTab: CustomTab = { id: data.id, name: data.name, icon: data.icon };

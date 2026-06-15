@@ -300,18 +300,17 @@ export function Sidebar({
           );
         })}
 
-        {/* Add Category button intentionally hidden — the flow is broken
-            (see todo J). Re-show when J is resolved. */}
-        {false && (
-          <Button
-            onClick={onAddTabDialogOpen}
-            variant="ghost"
-            className={`w-full justify-start text-page-fg-muted hover:text-page-fg ${NAV_HOVER_CLASS}`}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Category
-          </Button>
-        )}
+        {/* Add Category — adds a custom top-level tab. The dialog awaits
+            the insert; on failure (RLS, network) the dialog stays open
+            and surfaces the toast (see commit history for todo J). */}
+        <Button
+          onClick={onAddTabDialogOpen}
+          variant="ghost"
+          className={`w-full justify-start text-page-fg-muted hover:text-page-fg ${NAV_HOVER_CLASS}`}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Category
+        </Button>
       </div>
 
     </div>

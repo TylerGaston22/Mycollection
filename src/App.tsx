@@ -107,9 +107,11 @@ export default function App() {
   }, [backgroundColors.visibleCategories, contentType, setContentType, setExpandedCategory]);
 
   // Cross-cutting handlers
-  const handleAddCustomTab = async (tab: Omit<CustomTab, 'id'>) => {
+  const handleAddCustomTab = async (tab: Omit<CustomTab, 'id'>): Promise<boolean> => {
     const newTab = await addTab(tab);
+    if (!newTab) return false;
     setContentType(newTab.id);
+    return true;
   };
 
   const handleAddCustomSection = async (section: Omit<CustomSection, 'id'>) => {

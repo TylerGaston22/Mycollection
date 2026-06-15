@@ -59,24 +59,35 @@ const availableIcons = [
 interface AddTabDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdd: (tab: Omit<CustomTab, 'id'>) => void;
+  /** Resolves to true on a successful insert; false (or undefined for
+   *  back-compat) keeps the dialog open so the user sees the failure
+   *  toast and can correct the input. */
+  onAdd: (tab: Omit<CustomTab, 'id'>) => Promise<boolean> | void;
   currentTheme?: ThemeConfig;
 }
 
 export function AddTabDialog({ open, onOpenChange, onAdd, currentTheme }: AddTabDialogProps) {
   const [categoryTabName, setCategoryTabName] = useState('');
   const [selectedCategoryIconName, setSelectedCategoryIconName] = useState('Star');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!categoryTabName.trim()) return;
 
-    onAdd({
+    // Await onAdd so we can keep the dialog open on failure (e.g. RLS
+    // gap, network error). Same pattern as ItemFormDialog post-O.
+    setIsSaving(true);
+    const result = await onAdd({
       name: categoryTabName.trim(),
       icon: selectedCategoryIconName,
     });
+    setIsSaving(false);
 
-    // Reset form
+    // Treat undefined as legacy "success"; false explicitly means failure.
+    if (result === false) return;
+
+    // Reset form on success.
     setCategoryTabName('');
     setSelectedCategoryIconName('Star');
     onOpenChange(false);
@@ -147,10 +158,10 @@ export function AddTabDialog({ open, onOpenChange, onAdd, currentTheme }: AddTab
             </Button>
             <ThemePrimaryButton
               type="submit"
-              disabled={!categoryTabName.trim()}
+              disabled={!categoryTabName.trim() || isSaving}
               currentTheme={currentTheme}
             >
-              Create Tab
+              {isSaving ? 'Creating…' : 'Create Tab'}
             </ThemePrimaryButton>
           </DialogFooter>
         </form>
