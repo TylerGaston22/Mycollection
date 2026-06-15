@@ -93,14 +93,17 @@ export default function App() {
   // doesn't keep rendering an invisible category. Custom tabs are NOT
   // subject to visibleCategories — they're always visible if they exist.
   useEffect(() => {
+    // Read with optional-chain in case the prefs blob is from before the
+    // visibleCategories key existed and the merge in usePreferences ever
+    // misses (defensive — usePreferences SHOULD always return the full
+    // shape, but a missing key here would crash the whole app).
+    const visibleMap = backgroundColors.visibleCategories ?? {};
     const builtInIds = BUILT_IN_CATEGORIES.map((c) => c.id);
     const isViewingBuiltIn = builtInIds.includes(contentType);
     if (!isViewingBuiltIn) return;
-    if (backgroundColors.visibleCategories[contentType] !== false) return;
+    if (visibleMap[contentType] !== false) return;
 
-    const fallback = BUILT_IN_CATEGORIES.find(
-      (c) => backgroundColors.visibleCategories[c.id] !== false,
-    );
+    const fallback = BUILT_IN_CATEGORIES.find((c) => visibleMap[c.id] !== false);
     if (fallback) {
       setContentType(fallback.id);
       setExpandedCategory(fallback.id);

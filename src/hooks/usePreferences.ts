@@ -54,7 +54,21 @@ export function usePreferences(currentUserId: string, isDemoUser: boolean) {
 
   useEffect(() => {
     if (isDemoUser) {
-      setBackgroundColors(loadDemoData(storageKey, DEFAULT_BACKGROUND_COLORS));
+      // Demo data lives in localStorage and predates the visibleCategories
+      // key (and any future additions). Merge with defaults — same shape as
+      // the Supabase path below — so consumers can read every key safely.
+      const stored = loadDemoData<Partial<BackgroundColorsState>>(
+        storageKey,
+        DEFAULT_BACKGROUND_COLORS,
+      );
+      setBackgroundColors({
+        ...DEFAULT_BACKGROUND_COLORS,
+        ...stored,
+        visibleCategories: {
+          ...DEFAULT_BACKGROUND_COLORS.visibleCategories,
+          ...(stored.visibleCategories ?? {}),
+        },
+      });
       setLoadedForUserId(currentUserId);
     } else {
       setBackgroundColors(DEFAULT_BACKGROUND_COLORS);
