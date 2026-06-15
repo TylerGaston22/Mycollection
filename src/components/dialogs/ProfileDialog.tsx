@@ -14,7 +14,10 @@ import {
 } from "../ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
-import { User, Mail, Calendar, MapPin as MapPinIcon } from 'lucide-react';
+import { User, Mail, Calendar, MapPin as MapPinIcon, Upload, Trash2 } from 'lucide-react';
+import { useRef, useState } from "react";
+import { toast } from "sonner";
+import { uploadAvatar, validateAvatarFile } from "../../utils/uploadAvatar";
 import { Separator } from "../ui/separator";
 import { DataManagementButtons } from "../settings/DataManagementButtons";
 import { CategoryCountRow } from "../navigation/CategoryCountRow";
@@ -37,6 +40,12 @@ interface ProfileDialogProps {
   customSections?: CustomSection[];
   currentTheme?: ThemeConfig;
   onImport?: (data: { items: Item[], customTabs: CustomTab[], customSections: CustomSection[] }) => void;
+  /** Optional callback to persist a new profile_image URL (or clear it
+   *  with null). Wired up by App.tsx → auth.handleUpdateProfile. Demo
+   *  users / contexts without auth omit this and the upload UI hides. */
+  onUpdateProfile?: (updates: { profileImage?: string | null }) => Promise<boolean>;
+  /** Demo users can't upload — the bucket RLS requires auth.uid(). */
+  isDemoUser?: boolean;
 }
 
 export function ProfileDialog({
@@ -51,8 +60,44 @@ export function ProfileDialog({
   customTabs,
   customSections,
   currentTheme,
-  onImport
+  onImport,
+  onUpdateProfile,
+  isDemoUser,
 }: ProfileDialogProps) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  const handleAvatarFilePicked = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    // Always clear the input value so picking the same file again still fires onChange.
+    event.target.value = '';
+    if (!file) return;
+    if (!onUpdateProfile) return;
+
+    const validationError = validateAvatarFile(file);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      const { publicUrl } = await uploadAvatar(currentUser.id, file);
+      const ok = await onUpdateProfile({ profileImage: publicUrl });
+      if (ok) toast.success('Profile picture updated');
+    } catch (uploadError) {
+      const message = uploadError instanceof Error ? uploadError.message : 'Upload failed';
+      toast.error('Failed to upload avatar', { description: message });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!onUpdateProfile) return;
+    const ok = await onUpdateProfile({ profileImage: null });
+    if (ok) toast.success('Profile picture removed');
+  };
   const { exportData, importData } = useDataExportImport();
 
   const totalCollectionItemCount = movieCount + tvShowCount + restaurantCount + placeCount;
@@ -117,6 +162,42 @@ export function ProfileDialog({
               <h3 className="mb-1">{currentUser.name}</h3>
               <p className="text-muted-foreground">{currentUser.username}</p>
             </div>
+            {/* Upload / remove controls. Hidden for demo users (no auth
+                identity → bucket RLS would block the upload anyway) and
+                when no onUpdateProfile callback was supplied. */}
+            {onUpdateProfile && !isDemoUser && (
+              <div className="flex items-center gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  onChange={handleAvatarFilePicked}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingAvatar}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {isUploadingAvatar ? 'Uploading…' : 'Upload photo'}
+                </Button>
+                {currentUser.profileImage && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRemoveAvatar}
+                    disabled={isUploadingAvatar}
+                    title="Remove photo"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
           <Separator />

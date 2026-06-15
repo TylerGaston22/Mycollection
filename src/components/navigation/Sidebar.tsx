@@ -180,13 +180,20 @@ export function Sidebar({
             onClick={onProfileDialogOpen}
             aria-label="Open profile"
             title="Open profile"
-            className="w-10 h-10 rounded-full flex items-center justify-center text-page-on-accent shadow-lg cursor-pointer transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="w-10 h-10 rounded-full flex items-center justify-center text-page-on-accent shadow-lg cursor-pointer transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 overflow-hidden"
             style={{
               background: `linear-gradient(to bottom right, ${currentTheme.accentColor}, ${colorToRgba(currentTheme.accentColor, 0.8)})`,
               outlineColor: currentTheme.accentColor,
             }}
           >
-            <User className="h-5 w-5" />
+            {currentUser.profileImage && (
+              <img
+                src={currentUser.profileImage}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+            )}
+            {!currentUser.profileImage && <User className="h-5 w-5" />}
           </button>
           <button
             onClick={onProfileDialogOpen}

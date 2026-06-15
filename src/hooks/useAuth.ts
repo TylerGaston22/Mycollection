@@ -173,7 +173,13 @@ export function useAuth() {
   // longer sign in. Block username changes for synthetic-email accounts
   // until we have a story for syncing both (or recovery codes).
   const handleUpdateProfile = async (
-    updates: { name?: string; listVisibility?: 'private' | 'friends'; username?: string },
+    updates: {
+      name?: string;
+      listVisibility?: 'private' | 'friends';
+      username?: string;
+      /** Pass a URL to set the avatar; pass null to clear it; omit to leave unchanged. */
+      profileImage?: string | null;
+    },
   ): Promise<boolean> => {
     // Build the patch — only include fields the caller actually supplied.
     const dbUpdates: Record<string, string> = {};
@@ -192,6 +198,15 @@ export function useAuth() {
     if (updates.listVisibility) {
       dbUpdates.list_visibility = updates.listVisibility;
       stateUpdates.listVisibility = updates.listVisibility;
+    }
+
+    if (updates.profileImage !== undefined) {
+      // Pass an empty string when clearing — Postgres translates that
+      // to NULL via the column's default behaviour, but we use the
+      // explicit empty-string vs URL distinction in our state shape.
+      const url = updates.profileImage ?? '';
+      dbUpdates.profile_image = url;
+      stateUpdates.profileImage = url || undefined;
     }
 
     if (typeof updates.username === 'string') {

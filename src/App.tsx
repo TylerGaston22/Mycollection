@@ -292,13 +292,13 @@ export default function App() {
           tvShowCount={tvShowCount}
           restaurantCount={restaurantCount}
           placeCount={placeCount}
-          gameCount={gameCount}
-          visibleCategories={backgroundColors.visibleCategories}
           items={items}
           customTabs={customTabs}
           customSections={customSections}
           currentTheme={currentTheme}
           onImport={handleImportData}
+          onUpdateProfile={auth.handleUpdateProfile}
+          isDemoUser={auth.isDemoUser}
         />
 
         <SettingsDialog

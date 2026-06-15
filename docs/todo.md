@@ -120,27 +120,15 @@ Deferred — not done this pass:
 - Bigger textarea on mobile.
 Pick these up if they prove worth doing once the long-press behaviour is tested.
 
-### E. Upload / change user profile picture
-Right now the sidebar + ProfileDialog avatars both render the generic
-User icon on the accent-color gradient — there's no way for a user to
-upload their own. Build out:
-- A file input in ProfileDialog (Settings → Profile section) that lets
-  the user pick a local image (PNG / JPG, ≤ ~2 MB; show inline error
-  for oversized or wrong-type files).
-- Upload to a new Supabase Storage bucket (e.g. `avatars/`) using
-  `supabase.storage.from('avatars').upload(...)` keyed by user id.
-  Public-read RLS or signed URL — whichever fits.
-- Persist the resulting public URL onto `profiles.profile_image` (column
-  already in the User type as `profileImage`; add it to the schema if
-  not already present).
-- Render `AvatarImage` from that URL in BOTH the sidebar avatar button
-  and the ProfileDialog `<Avatar>` — fall back to the current User-icon
-  +accent-gradient when no image is set.
-- "Remove photo" button to revert to the default.
-- Image-source guardrails: extend `index.html` CSP `img-src` to include
-  the Supabase storage hostname (`*.supabase.co`).
-- Demo users: keep this disabled / use a fixed mock image, per the
-  isolate-demo rule.
+### E. ~~Upload / change user profile picture~~ ✅ Done 2026-06-06 (needs SQL)
+Code shipped:
+- `src/utils/uploadAvatar.ts` — pure helper: `validateAvatarFile` (PNG/JPG/WebP/GIF, ≤ 2 MB) + `uploadAvatar(userId, file)` writes to the Supabase `avatars` bucket at `<userId>/<ts>.<ext>` and returns the public URL. No React / no toasts — the dialog handles those.
+- ProfileDialog gains an "Upload photo" button (and a trash button to clear). Hidden for demo users / when no `onUpdateProfile` callback is wired (defense in depth — bucket RLS would block them anyway).
+- `useAuth.handleUpdateProfile` extended to accept `profileImage?: string | null` (null clears). Persists to `profiles.profile_image` (column already existed in schema.sql).
+- Sidebar avatar button now renders the uploaded `<img>` when `currentUser.profileImage` is set, falling back to the User-icon-on-accent-gradient when not.
+- `index.html` CSP `img-src` extended with `https://*.supabase.co` so uploaded avatar URLs actually load.
+
+**Needs SQL run by user** before this works end-to-end: `supabase/avatars_storage.sql` creates the public `avatars` bucket + RLS policies (only the owning user can write to `<their-uid>/…`).
 
 ### D. ~~Wire up the Tailwind v4 Vite plugin (re-enable JIT)~~ ✅ Done 2026-05-22
 Installed `@tailwindcss/vite` + `tailwindcss@^4.3.0`, added the plugin
