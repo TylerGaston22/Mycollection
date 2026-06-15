@@ -48,8 +48,9 @@ import { FriendsDialog, useFriends } from "./friends";
 import { useRecommendations } from "./recommendations";
 
 export default function App() {
-  const { resolvedTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
+  const handleToggleDark = () => setTheme(isDark ? "light" : "dark");
   const auth = useAuth();
   const { backgroundColors, setBackgroundColors, isLoading: prefsLoading } = usePreferences(auth.currentUserId, auth.isDemoUser);
   const { items, setItems, addItem, updateItem, deleteItem, removeByType, importItems, isLoading: itemsLoading } = useItems(auth.currentUserId, auth.isDemoUser);
@@ -233,6 +234,8 @@ export default function App() {
           placeCount={placeCount}
           gameCount={gameCount}
           visibleCategories={backgroundColors.visibleCategories}
+          isDark={isDark}
+          onToggleDark={handleToggleDark}
           currentTheme={currentTheme}
           isBookstoreActive={isBookstoreActive}
           onToggleBookstore={handleToggleBookstore}

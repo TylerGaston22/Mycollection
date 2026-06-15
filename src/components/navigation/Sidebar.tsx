@@ -7,8 +7,9 @@
  */
 
 import { Button } from "../ui/button";
-import { Plus, Settings, LogOut, Star, Moon, Sun, SlidersHorizontal, Users, User, BookOpen } from 'lucide-react';
+import { Plus, Settings, Star, User } from 'lucide-react';
 import { BUILT_IN_CATEGORIES } from "../../utils/builtInCategories";
+import { UserMenu } from "./UserMenu";
 import { useTheme } from "next-themes";
 import { Item, CustomTab, CustomSection } from "../../types";
 import type { User as UserType } from "../../types";
@@ -27,9 +28,6 @@ import {
 } from "../ui/context-menu";
 import {
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
@@ -219,38 +217,16 @@ export function Sidebar({
                 <NotificationBadge count={pendingFriendRequestsCount} variant="floating" dot />
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="text-white border-white/10 [&_[data-slot=dropdown-menu-item]]:focus:bg-white/10 [&_[data-slot=dropdown-menu-item]]:focus:text-white"
-              style={{
-                background: SURFACE_BACKGROUND,
-              }}
-            >
-              <DropdownMenuItem onClick={() => setTheme(isDark ? "light" : "dark")}>
-                {isDark
-                  ? <Sun className="h-4 w-4 mr-2 text-yellow-400" />
-                  : <Moon className="h-4 w-4 mr-2 text-blue-300" />}
-                {isDark ? "Light Mode" : "Dark Mode"}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={onToggleBookstore}>
-                <BookOpen className="h-4 w-4 mr-2 text-amber-400" />
-                {isBookstoreActive ? "Default Theme" : "Bookstore Theme"}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={onFriendsDialogOpen}>
-                <Users className="h-4 w-4 mr-2 text-green-400" />
-                <span>Friends</span>
-                <NotificationBadge count={pendingFriendRequestsCount} dot className="ml-auto" />
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={onSettingsDialogOpen}>
-                <SlidersHorizontal className="h-4 w-4 mr-2 text-cyan-400" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-white/10" />
-              <DropdownMenuItem onClick={onLogout}>
-                <LogOut className="h-4 w-4 mr-2 text-red-400" />
-                Log Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
+            <UserMenu
+              isDark={isDark}
+              isBookstoreActive={isBookstoreActive}
+              pendingFriendRequestsCount={pendingFriendRequestsCount}
+              onToggleDark={() => setTheme(isDark ? "light" : "dark")}
+              onToggleBookstore={onToggleBookstore}
+              onFriendsDialogOpen={onFriendsDialogOpen}
+              onSettingsDialogOpen={onSettingsDialogOpen}
+              onLogout={onLogout}
+            />
           </DropdownMenu>
         </div>
       </div>
