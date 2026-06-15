@@ -197,3 +197,27 @@ On mount, `isSignedIn=false` (default) → branch 2 → Landing. Session check c
 2. `overflow-x: hidden` on the body as a safety net for any child that resists shrinking.
 
 **Lesson:** Flex items default to `min-width: auto`, which means they refuse to shrink below their content. When you wrap a fixed sidebar + flex main column, always set `min-width: 0` on the main column. And put `overflow-x: hidden` on body to belt-and-braces against unexpected wide content.
+
+
+## Games count showed 0 even though items array clearly had 30 games
+
+**Symptom:** Sidebar's main "Games" CategoryButton showed `0` next to the icon. Under it, the SubCategoryNav (All / Played / Want to Play / Favorites) showed the correct counts — All (30), Played (19), Want to Play (11), Favorites (6). Movies/TV/Restaurants/Places counts on the same sidebar all rendered correctly. Only Games was 0.
+
+**Diagnosis dead-ends:**
+- Cleared Vite's `node_modules/.vite` cache → no change.
+- Hard-refreshed the browser, cleared site data → no change.
+- Wrote a sanity test against `mockItems`: 40/40/20/20/30 split with literal `type === 'game'` → all green.
+- Added a `console.log` to `useCollectionStats`: confirmed `byType.game: 30`, `totalItems: 150`, and `sampleGameTypes` contained real game entries.
+
+So the hook returned `gameCount: 30`. The Sidebar received `0`. The bug had to be on the prop-threading hop between them.
+
+**Root cause:** `SidebarLayout` is the desktop ↔ mobile branching component. When the L commit added the Gaming category, the *mobile* branch was updated to pass `gameCount` down (line 158), but the desktop `<Sidebar>` JSX was *not* — `gameCount` was simply omitted. Sidebar destructures `gameCount` with no default; `countById['game']` becomes `undefined`; `count={countById[category.id] ?? 0}` renders `0`.
+
+`SidebarProps.gameCount: number` is required — TypeScript should have caught the missing prop. It didn't, because **the project has no `tsconfig.json`** and Vite + SWC do not typecheck source files at build time. Type errors that would fail `tsc --noEmit` ship to runtime as silent bugs.
+
+**Fix:** Pass `gameCount={gameCount}` (and `visibleCategories={visibleCategories}`, which was missing for the same reason) in the desktop `<Sidebar>` JSX inside `SidebarLayout`.
+
+**Lessons:**
+1. **No tsconfig means no type safety at build.** Worth a separate todo: add `tsconfig.json` and a `npm run typecheck` script that runs `tsc --noEmit`, then wire it into CI / pre-push.
+2. **Branch-and-mirror components are the highest-risk site for prop drift.** Any time the mobile branch and desktop branch both render the same downstream component, every new prop must be added in two places. Worth considering a single object-spread (`<Sidebar {...sidebarProps} />`) so a missed field becomes a destructuring miss instead of silently-undefined.
+3. **"Movies works but Games doesn't" is diagnostic.** Identical render pipeline, only the most recently-added field is wrong → it's a prop wiring miss for that field, not a counting bug. Should have been my first hypothesis, not the last.

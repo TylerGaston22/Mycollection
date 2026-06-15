@@ -203,6 +203,8 @@ export function SidebarLayout({
         tvShowCount={tvShowCount}
         restaurantCount={restaurantCount}
         placeCount={placeCount}
+        gameCount={gameCount}
+        visibleCategories={visibleCategories}
         currentTheme={currentTheme}
         isBookstoreActive={isBookstoreActive}
         onToggleBookstore={onToggleBookstore}
