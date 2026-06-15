@@ -11,7 +11,19 @@ import { loadDemoData, useDemoSync } from '../demo';
 import { STORAGE_KEYS } from '../constants';
 import { handleSupabaseError } from '../utils/toastError';
 
-const DEFAULT_BACKGROUND_COLORS = {
+/** Full shape of the per-user preferences blob. Consumers that mutate
+ *  it (SettingsDialog) should import this type rather than redeclaring
+ *  a narrower one. */
+export type BackgroundColorsState = {
+  item: string;
+  'tv-show': string;
+  restaurant: string;
+  place: string;
+  surfaceTheme: string;
+  visibleCategories: Record<string, boolean>;
+};
+
+const DEFAULT_BACKGROUND_COLORS: BackgroundColorsState = {
   item: 'current',
   'tv-show': 'current',
   restaurant: 'current',
@@ -21,6 +33,17 @@ const DEFAULT_BACKGROUND_COLORS = {
   // light Bookstore theme everywhere (incl. custom tabs). Stored as a sibling
   // key in the same JSONB blob, so no schema change is needed.
   surfaceTheme: 'default',
+  // Per-user visibility flags for the built-in categories. Sidebar +
+  // MobileBottomNav filter their lists by this map. Default: every
+  // category visible. Stored as another sibling key in the same JSONB
+  // blob — no schema change.
+  visibleCategories: {
+    item: true,
+    'tv-show': true,
+    restaurant: true,
+    place: true,
+    game: true,
+  } as Record<string, boolean>,
 };
 
 export function usePreferences(currentUserId: string, isDemoUser: boolean) {
@@ -56,10 +79,18 @@ export function usePreferences(currentUserId: string, isDemoUser: boolean) {
 
     if (data) {
       // Merge over defaults so rows saved before a key existed (e.g.
-      // surfaceTheme) still deserialise with every field present.
+      // surfaceTheme) still deserialise with every field present. The
+      // visibleCategories sub-map needs its own shallow merge so adding
+      // a new built-in category later doesn't drop the user's stored
+      // toggles for the others.
+      const saved = data.background_colors as Partial<typeof DEFAULT_BACKGROUND_COLORS>;
       setBackgroundColors({
         ...DEFAULT_BACKGROUND_COLORS,
-        ...(data.background_colors as typeof DEFAULT_BACKGROUND_COLORS),
+        ...saved,
+        visibleCategories: {
+          ...DEFAULT_BACKGROUND_COLORS.visibleCategories,
+          ...(saved.visibleCategories ?? {}),
+        },
       });
     } else {
       setBackgroundColors(DEFAULT_BACKGROUND_COLORS);
@@ -68,7 +99,7 @@ export function usePreferences(currentUserId: string, isDemoUser: boolean) {
   };
 
   // Wrap setBackgroundColors to also persist to Supabase
-  const updateBackgroundColors = (colors: typeof DEFAULT_BACKGROUND_COLORS) => {
+  const updateBackgroundColors = (colors: BackgroundColorsState) => {
     setBackgroundColors(colors);
 
     if (!isDemoUser) {

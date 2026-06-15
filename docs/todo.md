@@ -115,22 +115,14 @@ adding ONE block.
 Keep the existing exported helper signatures so call sites don't have
 to change. Smoke-test every content type after the migration.
 
-### M. Per-user toggle: show/hide categories in Settings
-Some users only track some things. Add a Settings → Preferences
-section with one checkbox per built-in category ("Show Movies",
-"Show TV Shows", "Show Restaurants", "Show Places", "Show Gaming"
-once L lands) that hides the category from the sidebar when off.
-- Storage: extend the existing `preferences.background_colors` JSONB
-  (cheapest — no schema change) or add a sibling
-  `preferences.visible_categories text[]` column. JSONB sibling key
-  is the path that matches how `surfaceTheme` is stored today.
-- `Sidebar.tsx` filters `builtInCategories` by the preference before
-  rendering.
-- Default: all categories visible. Hiding a category should NOT delete
-  its items — just hide the sidebar entry. If they re-enable later,
-  the items reappear in that category.
-- If a user hides their currently-selected category, fall back to the
-  first visible one (App.tsx).
+### M. ~~Per-user toggle: show/hide categories in Settings~~ ✅ Done 2026-06-06
+- Storage: `visibleCategories: Record<string, boolean>` sibling key in `preferences.background_colors` JSONB (no schema change), defaults all-true. Shallow merge on load preserves saved entries when new categories are added later.
+- New shared module `src/utils/builtInCategories.ts` (`BUILT_IN_CATEGORIES` array with `id` / `label` / `shortLabel` / `icon`) replaces the duplicated inline arrays in Sidebar + MobileBottomNav.
+- Sidebar + MobileBottomNav filter the shared list by the visibility map (missing entries treated as visible).
+- SettingsDialog → Appearance tab gains a "Visible Categories" section with one Checkbox per built-in category.
+- App.tsx auto-falls-back to the first visible category if the user hides the one they're currently viewing.
+- Bonus fix: restored the missing `<TabsList>` in SettingsDialog so the Appearance tab is actually reachable (it had been hidden — only Account ever rendered).
+- usePreferences now exports `BackgroundColorsState` so SettingsDialog uses the same typed shape rather than redeclaring a narrower one.
 
 ### Q. Settings: let users change their username
 Settings → Account currently has Display Name and Email + Password

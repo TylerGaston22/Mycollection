@@ -19,6 +19,9 @@ import type { User } from "../../types";
 import { ColorPicker } from "../settings/ColorPicker";
 import { FormatGuideDialog } from "./FormatGuideDialog";
 import { useDataExportImport } from "../../hooks/useDataExportImport";
+import type { BackgroundColorsState } from "../../hooks/usePreferences";
+import { BUILT_IN_CATEGORIES } from "../../utils/builtInCategories";
+import { Checkbox } from "../ui/checkbox";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -27,13 +30,8 @@ interface SettingsDialogProps {
   customTabs?: CustomTab[];
   customSections?: CustomSection[];
   onImport?: (data: { items: Item[], customTabs: CustomTab[], customSections: CustomSection[] }) => void;
-  backgroundColors: {
-    item: string;
-    'tv-show': string;
-    restaurant: string;
-    place: string;
-  };
-  onBackgroundColorsChange: (colors: { item: string; 'tv-show': string; restaurant: string; place: string }) => void;
+  backgroundColors: BackgroundColorsState;
+  onBackgroundColorsChange: (colors: BackgroundColorsState) => void;
   currentUser: User;
   isDemoUser: boolean;
   onUpdateProfile: (updates: { name?: string; listVisibility?: 'private' | 'friends' }) => Promise<boolean>;
@@ -122,6 +120,18 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
     onBackgroundColorsChange({ ...backgroundColors, [type]: colorId });
   };
 
+  // Flip a built-in category's visibility flag and persist via the
+  // preferences setter. Other keys in visibleCategories preserved.
+  const toggleCategoryVisible = (categoryId: string, isNowVisible: boolean) => {
+    onBackgroundColorsChange({
+      ...backgroundColors,
+      visibleCategories: {
+        ...backgroundColors.visibleCategories,
+        [categoryId]: isNowVisible,
+      },
+    });
+  };
+
   const handleExportCsv = () => {
     exportCsv(items || []);
   };
@@ -149,6 +159,17 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
           </DialogHeader>
 
           <Tabs defaultValue="account" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="account">
+                <UserIcon className="h-4 w-4 mr-2" />
+                Account
+              </TabsTrigger>
+              <TabsTrigger value="appearance">
+                <Palette className="h-4 w-4 mr-2" />
+                Appearance
+              </TabsTrigger>
+            </TabsList>
+
             <TabsContent value="appearance" className="space-y-6 mt-6">
               <div className="space-y-4">
                 <div>
@@ -162,6 +183,49 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
                 <ColorPicker label="TV Shows Background" icon={Tv} type="tv-show" selectedColor={backgroundColors['tv-show']} onColorChange={updateColor} />
                 <ColorPicker label="Restaurants Background" icon={UtensilsCrossed} type="restaurant" selectedColor={backgroundColors.restaurant} onColorChange={updateColor} />
                 <ColorPicker label="Places Background" icon={MapPin} type="place" selectedColor={backgroundColors.place} onColorChange={updateColor} />
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="mb-2 flex items-center gap-2">
+                    <Eye className="h-4 w-4" />
+                    Visible Categories
+                  </h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Hide the categories you don't use. Hidden categories keep
+                    their items — they just disappear from the sidebar.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  {BUILT_IN_CATEGORIES.map((category) => {
+                    const Icon = category.icon;
+                    let isVisible = true;
+                    if (backgroundColors.visibleCategories[category.id] === false) {
+                      isVisible = false;
+                    }
+                    return (
+                      <label
+                        key={category.id}
+                        htmlFor={`vis-${category.id}`}
+                        className="flex items-center gap-3 cursor-pointer rounded-md px-3 py-2 hover:bg-muted/50 transition-colors"
+                      >
+                        <Checkbox
+                          id={`vis-${category.id}`}
+                          checked={isVisible}
+                          onCheckedChange={(next) => {
+                            // Radix Checkbox emits boolean | 'indeterminate';
+                            // coerce to a plain boolean for our flag.
+                            let nextVisible = false;
+                            if (next === true) nextVisible = true;
+                            toggleCategoryVisible(category.id, nextVisible);
+                          }}
+                        />
+                        <Icon className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{category.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
             </TabsContent>
 

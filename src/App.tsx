@@ -43,6 +43,7 @@ import { useDialogState } from "./hooks/useDialogState";
 import { useCollectionStats } from "./hooks/useCollectionStats";
 import { useLocalStorageState } from "./hooks/useLocalStorageState";
 import { DEFAULT_CONTENT_TYPE } from "./constants";
+import { BUILT_IN_CATEGORIES } from "./utils/builtInCategories";
 import { FriendsDialog, useFriends } from "./friends";
 import { useRecommendations } from "./recommendations";
 
@@ -85,6 +86,25 @@ export default function App() {
     }
     setActiveSection('all');
   }, [contentType, setActiveSection]);
+
+  // If the user hides the built-in category they're currently viewing,
+  // fall back to the first still-visible one so the main content area
+  // doesn't keep rendering an invisible category. Custom tabs are NOT
+  // subject to visibleCategories — they're always visible if they exist.
+  useEffect(() => {
+    const builtInIds = BUILT_IN_CATEGORIES.map((c) => c.id);
+    const isViewingBuiltIn = builtInIds.includes(contentType);
+    if (!isViewingBuiltIn) return;
+    if (backgroundColors.visibleCategories[contentType] !== false) return;
+
+    const fallback = BUILT_IN_CATEGORIES.find(
+      (c) => backgroundColors.visibleCategories[c.id] !== false,
+    );
+    if (fallback) {
+      setContentType(fallback.id);
+      setExpandedCategory(fallback.id);
+    }
+  }, [backgroundColors.visibleCategories, contentType, setContentType, setExpandedCategory]);
 
   // Cross-cutting handlers
   const handleAddCustomTab = async (tab: Omit<CustomTab, 'id'>) => {
@@ -210,6 +230,7 @@ export default function App() {
           restaurantCount={restaurantCount}
           placeCount={placeCount}
           gameCount={gameCount}
+          visibleCategories={backgroundColors.visibleCategories}
           currentTheme={currentTheme}
           isBookstoreActive={isBookstoreActive}
           onToggleBookstore={handleToggleBookstore}
@@ -270,6 +291,7 @@ export default function App() {
           restaurantCount={restaurantCount}
           placeCount={placeCount}
           gameCount={gameCount}
+          visibleCategories={backgroundColors.visibleCategories}
           items={items}
           customTabs={customTabs}
           customSections={customSections}

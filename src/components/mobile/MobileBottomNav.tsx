@@ -3,9 +3,10 @@
  * Edge-to-edge with safe area padding for iOS notch devices.
  */
 
-import { Film, Tv, UtensilsCrossed, MapPin, Star, Plus, Gamepad2, LucideIcon } from 'lucide-react';
+import { Star, Plus, type LucideIcon } from 'lucide-react';
 import { CustomTab } from "../../types";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
+import { BUILT_IN_CATEGORIES } from "../../utils/builtInCategories";
 
 interface MobileBottomNavProps {
   contentType: string;
@@ -15,6 +16,9 @@ interface MobileBottomNavProps {
   restaurantCount: number;
   placeCount: number;
   gameCount: number;
+  /** Per-user visibility map keyed by content-type id. Missing entries
+   *  are treated as visible. */
+  visibleCategories: Record<string, boolean>;
   currentTheme: ThemeConfig;
   onContentTypeChange: (type: string) => void;
   onAddTabDialogOpen: () => void;
@@ -36,18 +40,33 @@ export function MobileBottomNav({
   restaurantCount,
   placeCount,
   gameCount,
+  visibleCategories,
   currentTheme,
   onContentTypeChange,
   onAddTabDialogOpen,
   items,
 }: MobileBottomNavProps) {
-  const builtInTabs: TabItem[] = [
-    { id: 'item', label: 'Movies', icon: Film, count: movieCount },
-    { id: 'tv-show', label: 'TV Shows', icon: Tv, count: tvShowCount },
-    { id: 'restaurant', label: 'Food', icon: UtensilsCrossed, count: restaurantCount },
-    { id: 'place', label: 'Places', icon: MapPin, count: placeCount },
-    { id: 'game', label: 'Games', icon: Gamepad2, count: gameCount },
-  ];
+  // Count lookup keyed by content-type id (see Sidebar.tsx for the same
+  // pattern). Mobile uses the `shortLabel` from the shared definition.
+  const countById: Record<string, number> = {
+    item: movieCount,
+    'tv-show': tvShowCount,
+    restaurant: restaurantCount,
+    place: placeCount,
+    game: gameCount,
+  };
+
+  const builtInTabs: TabItem[] = BUILT_IN_CATEGORIES
+    .filter((category) => {
+      if (visibleCategories[category.id] === false) return false;
+      return true;
+    })
+    .map((category) => ({
+      id: category.id,
+      label: category.shortLabel,
+      icon: category.icon,
+      count: countById[category.id] ?? 0,
+    }));
 
   const customTabItems: TabItem[] = customTabs.map((tab) => ({
     id: tab.id,

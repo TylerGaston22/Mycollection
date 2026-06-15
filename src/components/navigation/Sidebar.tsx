@@ -7,7 +7,8 @@
  */
 
 import { Button } from "../ui/button";
-import { Plus, Film, Tv, UtensilsCrossed, MapPin, Settings, LogOut, Star, Moon, Sun, SlidersHorizontal, Users, User, BookOpen, Gamepad2 } from 'lucide-react';
+import { Plus, Settings, LogOut, Star, Moon, Sun, SlidersHorizontal, Users, User, BookOpen } from 'lucide-react';
+import { BUILT_IN_CATEGORIES } from "../../utils/builtInCategories";
 import { useTheme } from "next-themes";
 import { Item, CustomTab, CustomSection } from "../../types";
 import type { User as UserType } from "../../types";
@@ -45,6 +46,9 @@ interface SidebarProps {
   restaurantCount: number;
   placeCount: number;
   gameCount: number;
+  /** Per-user visibility map keyed by content-type id. Missing entries
+   *  are treated as visible (defensive default for new categories). */
+  visibleCategories: Record<string, boolean>;
   currentTheme: ThemeConfig;
   /** Whether the app-wide Bookstore light theme is currently active. */
   isBookstoreActive: boolean;
@@ -80,6 +84,7 @@ export function Sidebar({
   restaurantCount,
   placeCount,
   gameCount,
+  visibleCategories,
   currentTheme,
   isBookstoreActive,
   onToggleBookstore,
@@ -130,13 +135,25 @@ export function Sidebar({
     onAddSectionDialogOpen,
   };
 
-  const builtInCategories = [
-    { id: 'item', label: 'Movies', count: movieCount, icon: Film },
-    { id: 'tv-show', label: 'TV Shows', count: tvShowCount, icon: Tv },
-    { id: 'restaurant', label: 'Restaurants', count: restaurantCount, icon: UtensilsCrossed },
-    { id: 'place', label: 'Places', count: placeCount, icon: MapPin },
-    { id: 'game', label: 'Games', count: gameCount, icon: Gamepad2 },
-  ];
+  // Count lookup keyed by content-type id. Read from the existing named
+  // count props rather than threading a Record through every chain
+  // (the count props pre-date this refactor and are still useful at
+  // their existing callsites). Adding a new built-in category here
+  // requires also extending useCollectionStats's named output.
+  const countById: Record<string, number> = {
+    item: movieCount,
+    'tv-show': tvShowCount,
+    restaurant: restaurantCount,
+    place: placeCount,
+    game: gameCount,
+  };
+
+  // Hide categories the user has explicitly toggled off in Settings.
+  // Missing entries in visibleCategories are treated as visible.
+  const visibleBuiltInCategories = BUILT_IN_CATEGORIES.filter((category) => {
+    if (visibleCategories[category.id] === false) return false;
+    return true;
+  });
 
   // Slide-out behaviour for narrow screens. The .sidebar-fluid CSS rule
   // (in index.css) reads data-open to translate the panel in/out below
@@ -235,11 +252,11 @@ export function Sidebar({
       <div className="space-y-2">
         <div style={{ color: colorToRgba(currentTheme.accentColor, 0.7) }} className="text-xs uppercase tracking-wider mb-3">Categories</div>
 
-        {builtInCategories.map((category) => (
+        {visibleBuiltInCategories.map((category) => (
           <div key={category.id}>
             <CategoryButton
               label={category.label}
-              count={category.count}
+              count={countById[category.id] ?? 0}
               icon={category.icon}
               isActive={contentType === category.id}
               currentTheme={currentTheme}
