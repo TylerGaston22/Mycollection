@@ -10,6 +10,7 @@
  */
 
 import { useRef, useState } from "react";
+import { useLongPress } from "../../hooks/useLongPress";
 import {
   useReactTable,
   getCoreRowModel,
@@ -75,47 +76,16 @@ export function ListView({
     setFieldBeingQuickEdited(field);
   };
 
-  // Long-press handling for fast notes editing (mobile especially):
-  // touch-and-hold a row for ~500ms → opens the notes editor directly,
-  // bypassing the item-detail dialog. iOS Safari's contextmenu event is
-  // flaky for long-press, so we use a pointerdown/up timer instead.
-  //
-  // pointermove cancels the timer if the user starts scrolling (move >
-  // ~10px is treated as a drag, not a press).
-  const LONG_PRESS_MS = 500;
-  const LONG_PRESS_MOVE_TOLERANCE = 10;
-  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressStartRef = useRef<{ x: number; y: number } | null>(null);
-  const longPressFiredRef = useRef(false);
-
-  const cancelLongPress = () => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-    longPressStartRef.current = null;
-  };
-
-  const startLongPress = (item: Item, event: React.PointerEvent) => {
-    // Don't start a long-press if the user touched an interactive
-    // descendant — those have their own handlers.
-    if ((event.target as HTMLElement).closest('button, a, [role="menuitem"], input')) return;
-    longPressFiredRef.current = false;
-    longPressStartRef.current = { x: event.clientX, y: event.clientY };
-    longPressTimerRef.current = setTimeout(() => {
-      longPressFiredRef.current = true;
-      handleOpenQuickEdit(item, 'notes');
-    }, LONG_PRESS_MS);
-  };
-
-  const trackLongPressMove = (event: React.PointerEvent) => {
-    if (!longPressStartRef.current) return;
-    const dx = event.clientX - longPressStartRef.current.x;
-    const dy = event.clientY - longPressStartRef.current.y;
-    if (Math.hypot(dx, dy) > LONG_PRESS_MOVE_TOLERANCE) {
-      cancelLongPress();
-    }
-  };
+  // Track which row is currently being held — the long-press fires from
+  // a setTimeout, so the callback needs to know which item to act on.
+  // Captured in the row's onPointerDown wrapper below.
+  const longPressItemRef = useRef<Item | null>(null);
+  const longPress = useLongPress({
+    onLongPress: () => {
+      const item = longPressItemRef.current;
+      if (item) handleOpenQuickEdit(item, 'notes');
+    },
+  });
 
   const allColumns = buildListViewColumns({
     isMedia,
@@ -167,20 +137,21 @@ export function ListView({
             <TableRow
               key={row.id}
               className={`${ROW_HOVER_CLASS} cursor-pointer select-none`}
-              onPointerDown={(event) => startLongPress(row.original, event)}
-              onPointerMove={trackLongPressMove}
-              onPointerUp={cancelLongPress}
-              onPointerCancel={cancelLongPress}
-              onPointerLeave={cancelLongPress}
+              onPointerDown={(event) => {
+                // Skip when the touch / click started on an interactive
+                // descendant — heart, quick-edit cells, kebab menu, etc.
+                if ((event.target as HTMLElement).closest('button, a, [role="menuitem"], input')) return;
+                longPressItemRef.current = row.original;
+                longPress.onPointerDown(event);
+              }}
+              onPointerMove={longPress.onPointerMove}
+              onPointerUp={longPress.onPointerUp}
+              onPointerCancel={longPress.onPointerCancel}
+              onPointerLeave={longPress.onPointerLeave}
               onClick={(event) => {
-                // Suppress the open-detail tap when a long-press already
-                // fired (and opened the notes editor).
-                if (longPressFiredRef.current) {
-                  longPressFiredRef.current = false;
-                  return;
-                }
-                // Inner interactive elements (heart, "Netflix" quick-edit,
-                // kebab menu, etc.) keep their own behaviour.
+                // Suppress the open-detail tap when a long-press already fired.
+                if (longPress.consumeFiredFlag()) return;
+                // Inner interactive elements keep their own behaviour.
                 if ((event.target as HTMLElement).closest('button, a, [role="menuitem"], input')) return;
                 onItemClick?.(row.original);
               }}

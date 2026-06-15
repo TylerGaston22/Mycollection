@@ -109,16 +109,16 @@ Root cause was the fire-and-forget pattern in `useItemForm.handleSubmit` — it 
 Fix: `addItem` and `updateItem` in `useItems` now return `Promise<boolean>` (true on success, false on duplicate / Supabase error). `useItemForm.handleSubmit` became `async` and awaits the result, only calling `onSubmitted()` when the mutation succeeded. On false, the dialog stays open so the user sees the toast and can correct the input.
 
 
-### N. ~~Faster / mobile-friendly notes editing~~ ✅ Done 2026-06-06 (long-press)
-Long-press on any ListView row (touch-and-hold ~500ms) now opens the QuickEditDialog focused on Notes, bypassing the item-detail dialog. Implemented via pointerdown/up timing (not native contextmenu — iOS Safari is unreliable for that), with a 10px move tolerance so scrolling doesn't accidentally trigger it. The follow-up tap that fires after release is suppressed so the open-detail action doesn't also run.
+### N. ~~Faster / mobile-friendly notes editing~~ ✅ Done 2026-06-06
+Long-press on any list row (touch-and-hold ~500ms) opens the QuickEditDialog focused on Notes, bypassing the item-detail dialog.
+- Desktop: works on ListView TableRow (mouse hold also fires it).
+- Mobile: works on MobileListItem in the dedicated phone layout. MobileMainContent mounts its own QuickEditDialog instance for the notes-only flow.
+- Hook extracted: `src/hooks/useLongPress.ts` — pointer-event timing (`pointerdown` → 500ms timer; `pointermove` cancels on >10px drag; `pointerup`/`cancel`/`leave` clear; `consumeFiredFlag` lets the follow-up click suppress itself). Both ListView and MobileListItem consume the hook.
 
-Works on desktop too (mouse hold for 500ms) but it's primarily a mobile UX win — short tap still opens the detail dialog, long-press jumps straight to notes editing.
-
-Deferred — not done this pass:
+Deferred (not done this pass):
 - Auto-save on blur (desktop) so user doesn't have to click Save.
 - "Edit notes" pencil icon in the item-detail dialog.
 - Bigger textarea on mobile.
-Pick these up if they prove worth doing once the long-press behaviour is tested.
 
 ### E. ~~Upload / change user profile picture~~ ✅ Done 2026-06-06 (needs SQL)
 Code shipped:

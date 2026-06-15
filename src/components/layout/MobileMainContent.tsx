@@ -4,13 +4,14 @@
  * plus a Goodreads-style stacked list. Desktop uses DesktopMainContent.
  */
 
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { ThemePrimaryButton } from "../ui/ThemePrimaryButton";
 import { Plus } from 'lucide-react';
 import { Item, CustomTab, CustomSection } from "../../types";
 import { MobileListItem } from "../mobile/MobileListItem";
 import { ThemeConfig } from "../../utils/themeConfig";
 import { getContentTypeName, getWatchedLabel, getWantToSeeLabel } from "../../utils/contentHelpers";
+import { QuickEditDialog } from "../dialogs/QuickEditDialog";
 
 interface MobileMainContentProps {
   items: Item[];
@@ -38,6 +39,10 @@ export function MobileMainContent({
   mobileSectionNav,
 }: MobileMainContentProps) {
   const itemsInActiveSection = getSectionContent(activeSection);
+
+  // Long-press on a row opens this notes editor inline (matches the
+  // desktop ListView long-press behaviour).
+  const [notesItem, setNotesItem] = useState<Item | null>(null);
 
   const singularTypeName = getContentTypeName(contentType, false, customTabs);
   const pluralTypeName = getContentTypeName(contentType, true, customTabs);
@@ -105,6 +110,7 @@ export function MobileMainContent({
                     item={item}
                     onUpdate={onItemUpdate}
                     onClick={onItemClick}
+                    onLongPress={setNotesItem}
                   />
                 </div>
               ))}
@@ -136,6 +142,13 @@ export function MobileMainContent({
       </div>
 
       {mainContentAreaDisplay}
+
+      <QuickEditDialog
+        item={notesItem}
+        field={notesItem ? 'notes' : null}
+        onSave={(itemId, field, value) => onItemUpdate(itemId, { [field]: value })}
+        onClose={() => setNotesItem(null)}
+      />
     </div>
   );
 }

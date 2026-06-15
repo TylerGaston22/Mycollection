@@ -8,6 +8,7 @@ import { Item } from "../../types";
 import { StarRating } from "../item/StarRating";
 import { useItemActions } from "../../hooks/useItemActions";
 import { sanitizeImageUrl } from "../../utils/sanitize";
+import { useLongPress } from "../../hooks/useLongPress";
 
 const ERROR_IMG =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODgiIGhlaWdodD0iODgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBvcGFjaXR5PSIuMyIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIzLjciPjxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiByeD0iNiIvPjxwYXRoIGQ9Im0xNiA1OCAxNi0xOCAzMiAzMiIvPjxjaXJjbGUgY3g9IjUzIiBjeT0iMzUiIHI9IjciLz48L3N2Zz4KCg==';
@@ -16,11 +17,20 @@ interface MobileListItemProps {
   item: Item;
   onUpdate: (id: string, updates: Partial<Item>) => void;
   onClick: (item: Item) => void;
+  /** Optional long-press handler — fires when the user touch-and-holds
+   *  the row for ~500ms. Parent decides what to do (typically opens
+   *  the notes editor; matches the desktop ListView behaviour). */
+  onLongPress?: (item: Item) => void;
 }
 
-export function MobileListItem({ item, onUpdate, onClick }: MobileListItemProps) {
+export function MobileListItem({ item, onUpdate, onClick, onLongPress }: MobileListItemProps) {
   const [hasImageLoadError, setHasImageLoadError] = useState(false);
   const { setRating } = useItemActions(onUpdate);
+  const longPress = useLongPress({
+    onLongPress: () => {
+      if (onLongPress) onLongPress(item);
+    },
+  });
 
   const safePosterUrl = sanitizeImageUrl(item.posterUrl);
 
@@ -44,8 +54,23 @@ export function MobileListItem({ item, onUpdate, onClick }: MobileListItemProps)
 
   return (
     <button
-      onClick={() => onClick(item)}
-      className="flex items-start gap-4 w-full text-left px-4 py-4"
+      onPointerDown={(event) => {
+        if (!onLongPress) return;
+        // Skip when starting on an interactive descendant (StarRating).
+        if ((event.target as HTMLElement).closest('button, a, input')) return;
+        longPress.onPointerDown(event);
+      }}
+      onPointerMove={longPress.onPointerMove}
+      onPointerUp={longPress.onPointerUp}
+      onPointerCancel={longPress.onPointerCancel}
+      onPointerLeave={longPress.onPointerLeave}
+      onClick={(event) => {
+        // Suppress the tap-to-open-detail when a long-press just fired.
+        if (longPress.consumeFiredFlag()) return;
+        if ((event.target as HTMLElement).closest('button, a, input')) return;
+        onClick(item);
+      }}
+      className="flex items-start gap-4 w-full text-left px-4 py-4 select-none"
     >
       <div className="flex-shrink-0">
         {thumbnail}
