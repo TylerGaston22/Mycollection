@@ -146,6 +146,23 @@ These should be invisible — verify nothing regressed:
 - [ ] Click the trash icon next to the avatar → reverts to the default User-icon-on-accent-gradient.
 - [ ] On a demo account: the Upload photo + trash buttons are NOT visible.
 
+### Mobile chrome completion (todo 7)
+On an actual phone OR a touch device — the mobile-only chrome (MobileHeader + MobileBottomNav + MobileMainContent) renders only when the device reports `pointer: coarse` and `hover: none`.
+- [ ] Tap the avatar in the top-right → dropdown opens with: Profile, Light/Dark Mode, Bookstore Theme, Friends (with badge), Settings, Log Out.
+- [ ] After uploading a profile picture, the mobile avatar shows the uploaded image (not the initial letter).
+- [ ] If there are pending friend requests, a small orange dot floats over the mobile avatar (matches the desktop gear icon).
+- [ ] Friends, Settings, Log Out from the mobile UserMenu all work the same as the desktop gear menu.
+- [ ] Bookstore Theme toggle from the mobile menu flips the surface theme app-wide.
+
+### Long-press notes editing on mobile (todo N)
+- [ ] On a phone (or any touch device), touch-and-hold a list item row for ~500ms → opens the notes editor directly.
+- [ ] Short tap on the same row → opens the item detail dialog normally.
+- [ ] Touch a row and immediately scroll → no notes editor (the move tolerance cancels the press).
+
+### Unit-test infrastructure (todo 8)
+- [ ] `npm test` from the project root runs the vitest suite. Expected: ~128 tests across utils + auth + recommendations. All pass.
+- [ ] `npm run test:watch` starts a watch mode you can leave running while editing.
+
 ---
 
 ## ➕ Add Item — auto-default to active view (todo F)
