@@ -42,6 +42,23 @@ Verified every field-surface against `isMediaContentType` / `getContentTypeField
 - **TmdbSearchableInput** — already gated on `isMediaContentType`, never shows for non-media.
 - **CSV import/export** — intentionally left writing all standard columns regardless of type; a CSV file can mix types and per-row scoping happens at display, not transport. Empty cells for absent fields is standard.
 
+### T. Add tsconfig.json + `npm run typecheck` script
+The Games-count-0 bug (errors.md) was a missing `gameCount` prop
+that TypeScript should have flagged at build — but the project has
+no tsconfig.json, so Vite+SWC skip type checking entirely. Two
+similar prop-omissions slipped through in the same component
+(`gameCount` and `visibleCategories` both missing from the desktop
+`<Sidebar>` JSX inside SidebarLayout).
+
+To do:
+1. Add `tsconfig.json` covering `src/**/*.{ts,tsx}` (strict, jsx: react-jsx, target: esnext, module: esnext, moduleResolution: bundler, allowImportingTsExtensions, noEmit). Mirror the resolve.alias from vite.config.ts so `@/*` resolves.
+2. Add `"typecheck": "tsc --noEmit"` to package.json scripts.
+3. Fix whatever errors `tsc --noEmit` surfaces — likely several, since the codebase has never been typechecked.
+4. Wire `typecheck` into the test command (or pre-commit) so it runs alongside vitest.
+
+This is the highest-leverage tooling fix on the list — would have
+caught both bugs in this session before they hit the user.
+
 ### S. ~~Seed demo Gaming category with sample items~~ ✅ Done 2026-06-15
 Added `src/demo/games.ts` with 30 mixed-platform, mixed-genre,
 mixed-status entries (a few favourites). Wired into `mockItems` via
