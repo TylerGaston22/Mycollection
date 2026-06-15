@@ -153,27 +153,11 @@ Implementation:
   confirmation step — defeats the point). Probably disallow with a
   friendly explanation in the UI.
 
-### O. Enter key in Add Item dialog closes without adding
-Pressing Enter inside the Add Item dialog (after removing the
-TmdbSearchableInput Enter override) closes the dialog but no item is
-added. Don't know yet whether handleSubmit is even firing, whether
-title is empty at submit time, or whether addItem's duplicate check is
-silently bailing. Diagnostics to run next session:
-- Open dialog, type a definitely-unique title (e.g. "zzz-test-123"),
-  press Enter, watch for any toast.
-- If a toast appears, paste its text — likely "Duplicate item" or
-  "Failed to add item".
-- If no toast and no add, add a temporary console.log at the top of
-  `useItemForm.handleSubmit` to confirm it's firing AND what `title`
-  evaluates to at that moment.
-Likely fixes (pick after diagnosis):
-- Make `handleSubmit` `async` and `await onAdd?.(…)` before calling
-  `onSubmitted()` so a Supabase failure or the duplicate-check toast
-  is surfaced while the dialog is still open.
-- Have `addItem` return a boolean (success / not) so the caller can
-  decide whether to close.
-Probably trivial once diagnosed; deferring because we're not sure
-which of those two is the actual cause yet.
+### O. ~~Enter key in Add Item dialog closes without adding~~ ✅ Done 2026-06-06
+Root cause was the fire-and-forget pattern in `useItemForm.handleSubmit` — it called `onAdd?.(…)` without awaiting, then immediately called `onSubmitted()` (which closes the dialog). Any failure path inside `addItem` (duplicate-title bail, Supabase error) ran AFTER the dialog had already closed, so the user saw "dialog closes, nothing happens" — the toast was technically there but easy to miss.
+
+Fix: `addItem` and `updateItem` in `useItems` now return `Promise<boolean>` (true on success, false on duplicate / Supabase error). `useItemForm.handleSubmit` became `async` and awaits the result, only calling `onSubmitted()` when the mutation succeeded. On false, the dialog stays open so the user sees the toast and can correct the input.
+
 
 ### N. Faster / mobile-friendly notes editing
 Today editing the Notes cell opens the QuickEditDialog which is good

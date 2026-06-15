@@ -46,10 +46,13 @@ interface UseItemFormArgs {
   contentType: string;
   activeSection: string | undefined;
   customSections: CustomSection[];
-  onAdd?: (item: Omit<Item, "id">) => void;
-  onUpdate?: (id: string, updates: Partial<Item>) => void;
+  /** Resolve to true on a successful insert; false (or undefined) keeps
+   *  the dialog open so the user sees any error toast and can correct
+   *  the input (e.g. duplicate title). */
+  onAdd?: (item: Omit<Item, "id">) => Promise<boolean> | void;
+  onUpdate?: (id: string, updates: Partial<Item>) => Promise<boolean> | void;
   /** Called once the form has successfully submitted; the dialog uses
-   *  this to close itself. */
+   *  this to close itself. NOT called when onAdd/onUpdate returns false. */
   onSubmitted: () => void;
 }
 
@@ -178,13 +181,22 @@ export function useItemForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, item]);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!title.trim()) return;
 
-    const parsedSeasons = seasons ? parseInt(seasons) : undefined;
-    const parsedEpisodes = episodes ? parseInt(episodes) : undefined;
-    const sectionsToSave = selectedSections.length > 0 ? selectedSections : undefined;
+    let parsedSeasons: number | undefined = undefined;
+    if (seasons) {
+      parsedSeasons = parseInt(seasons);
+    }
+    let parsedEpisodes: number | undefined = undefined;
+    if (episodes) {
+      parsedEpisodes = parseInt(episodes);
+    }
+    let sectionsToSave: string[] | undefined = undefined;
+    if (selectedSections.length > 0) {
+      sectionsToSave = selectedSections;
+    }
 
     const formDataToSave = {
       title: title.trim(),
@@ -200,13 +212,22 @@ export function useItemForm({
       sections: sectionsToSave,
     };
 
+    // Await the underlying mutation so we only close the dialog when
+    // the add/update actually succeeded. If onAdd returns false (e.g.
+    // duplicate-title bail in useItems, or a Supabase error), the
+    // dialog stays open and the user keeps their typed input.
+    let result: boolean | void;
     if (isEditingExistingItem && item) {
-      onUpdate?.(item.id, formDataToSave);
+      result = await onUpdate?.(item.id, formDataToSave);
     } else {
       // Newly-created items take the type from the user's current view
       // and never start as a favourite.
-      onAdd?.({ ...formDataToSave, type: contentType, favorite: false });
+      result = await onAdd?.({ ...formDataToSave, type: contentType, favorite: false });
     }
+
+    // Treat undefined as success (legacy void return), false as
+    // failure-keep-open, true as success-close.
+    if (result === false) return;
     onSubmitted();
   };
 

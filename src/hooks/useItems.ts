@@ -95,7 +95,13 @@ export function useItems(currentUserId: string, isDemoUser: boolean) {
   // Mirror state to localStorage in demo mode
   useDemoSync(storageKey, items, isDemoUser);
 
-  const addItem = async (item: Omit<Item, 'id'>) => {
+  /**
+   * Insert an item. Returns true on success, false on failure
+   * (duplicate-title bail, Supabase error). Callers awaiting the result
+   * can use this to decide whether to close a dialog vs keep it open
+   * so the user sees the toast and can correct the input.
+   */
+  const addItem = async (item: Omit<Item, 'id'>): Promise<boolean> => {
     // Duplicate detection
     const isDuplicate = items.some(
       (existing) => existing.title.toLowerCase() === item.title.toLowerCase() && existing.type === item.type
@@ -104,25 +110,33 @@ export function useItems(currentUserId: string, isDemoUser: boolean) {
       toast.error('Duplicate item', {
         description: `"${item.title}" already exists in your collection.`,
       });
-      return;
+      return false;
     }
 
     if (isDemoUser) {
       setItems((prev) => [{ ...item, id: Date.now().toString() }, ...prev]);
-    } else {
-      const row = itemToRow(item, currentUserId);
-      const { data, error } = await supabase
-        .from('collection_items')
-        .insert(row)
-        .select()
-        .single();
-
-      if (handleSupabaseError('Failed to add item', error)) return;
-      setItems((prev) => [rowToItem(data), ...prev]);
+      return true;
     }
+
+    const row = itemToRow(item, currentUserId);
+    const { data, error } = await supabase
+      .from('collection_items')
+      .insert(row)
+      .select()
+      .single();
+
+    if (handleSupabaseError('Failed to add item', error)) return false;
+    setItems((prev) => [rowToItem(data), ...prev]);
+    return true;
   };
 
-  const updateItem = async (id: string, updates: Partial<Item>) => {
+  /**
+   * Update an item. Optimistic — state changes immediately, Supabase
+   * runs in the background. Returns true on success, false if the
+   * Supabase write failed (in which case state has already been
+   * reverted via loadFromSupabase). Demo mode always returns true.
+   */
+  const updateItem = async (id: string, updates: Partial<Item>): Promise<boolean> => {
     // Optimistic update for both modes
     setItems((prev) => prev.map((item) => {
       if (item.id === id) {
@@ -131,19 +145,21 @@ export function useItems(currentUserId: string, isDemoUser: boolean) {
       return item;
     }));
 
-    if (!isDemoUser) {
-      const row = itemToRow(updates, currentUserId);
-      delete row.user_id; // Don't update user_id
-      const { error } = await supabase
-        .from('collection_items')
-        .update(row)
-        .eq('id', id)
-        .eq('user_id', currentUserId);
+    if (isDemoUser) return true;
 
-      if (handleSupabaseError('Failed to update item', error)) {
-        loadFromSupabase(); // Revert on failure
-      }
+    const row = itemToRow(updates, currentUserId);
+    delete row.user_id; // Don't update user_id
+    const { error } = await supabase
+      .from('collection_items')
+      .update(row)
+      .eq('id', id)
+      .eq('user_id', currentUserId);
+
+    if (handleSupabaseError('Failed to update item', error)) {
+      loadFromSupabase(); // Revert on failure
+      return false;
     }
+    return true;
   };
 
   const deleteItem = async (id: string) => {
