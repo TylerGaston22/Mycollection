@@ -132,6 +132,35 @@ once L lands) that hides the category from the sidebar when off.
 - If a user hides their currently-selected category, fall back to the
   first visible one (App.tsx).
 
+### Q. Settings: let users change their username
+Settings → Account currently has Display Name and Email + Password
+sections, but not Username. Users should be able to rename themselves
+in the same place — the username is what shows up as `@handle` in
+the sidebar, search, recommendation rows, etc.
+
+Implementation:
+- Add a "Username" field next to Display Name in `SettingsDialog`.
+- On save, run the existing `validateUsername` from `src/auth/username.ts`
+  (length / character / reserved-word checks). If valid, call
+  `auth.handleUpdateProfile({ username })`.
+- `useAuth.handleUpdateProfile` currently accepts `{ name?, listVisibility? }`
+  — extend to `{ name?, listVisibility?, username? }`. On username
+  changes also update the matching `auth.users` raw_user_meta_data if
+  any code reads it (probably not — usernames live in `profiles`).
+- DB check: the `profiles.username` column has a `unique` constraint
+  (or should). When a duplicate is attempted, surface a friendly
+  "Username already taken" toast via `handleSupabaseError`'s duplicate-
+  regex check.
+- Username-only auth accounts (synthetic email pattern) shouldn't lose
+  their ability to sign in — sign-in resolution uses the synthetic
+  email derived from the username at signup, so renaming the username
+  WOULD break the sign-in path unless we also update the synthetic
+  email. Decide: either disallow username changes for those accounts,
+  or update both the profile + the auth.users email atomically (the
+  latter requires `supabase.auth.updateUser({ email })` which sends a
+  confirmation step — defeats the point). Probably disallow with a
+  friendly explanation in the UI.
+
 ### O. Enter key in Add Item dialog closes without adding
 Pressing Enter inside the Add Item dialog (after removing the
 TmdbSearchableInput Enter override) closes the dialog but no item is
@@ -158,15 +187,19 @@ which of those two is the actual cause yet.
 Today editing the Notes cell opens the QuickEditDialog which is good
 on desktop but awkward on mobile (small textarea, full dialog, two
 clicks to save). Make it quicker:
-- On mobile: inline-edit the notes cell directly (tap the cell → text
-  area expands in-place → tap outside / press Save → done). No
-  separate dialog.
+- **Long-press on an item row (mobile)** — open the notes editor
+  directly, bypassing the item detail dialog. Touch-and-hold for ~500ms
+  on the row should trigger it; use `pointerdown` / `pointerup` timing
+  rather than native `contextmenu` (which Safari iOS doesn't always
+  fire reliably for long-press).
 - On desktop: a hybrid — maybe an inline-expand notes row instead of
   a modal, or auto-save on blur with a small "Saved" pulse so the
   user doesn't have to click Save.
 - Consider adding a small "edit" pencil icon next to the notes row in
   the detail dialog too, so the user can edit notes directly from the
   item detail without navigating to the table cell.
+- Also worth: increase the textarea size on mobile so the notes are
+  comfortable to type on a phone keyboard.
 
 ### E. Upload / change user profile picture
 Right now the sidebar + ProfileDialog avatars both render the generic
