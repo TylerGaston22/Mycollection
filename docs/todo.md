@@ -204,8 +204,10 @@ Earlier commit said "working on mobile view" — components exist in `src/compon
 ### 6. ~~Toast/banner on Supabase failures~~ ✅ Done 2026-05-14
 `usePreferences.ts` upsert + load and `useAuth.ts` profile load now toast on real failures instead of silently `console.error`-ing. PGRST116 (no rows) is still treated as expected (new users with no preferences row, or sign-up trigger hasn't fired yet) and falls through to defaults silently.
 
-### 7. Add tests for `utils/csv.ts`
-The CSV utility is a perfect first test target — pure functions, clear inputs/outputs. Whenever you regress a CSV import this is the obvious thing to set up.
+### 8. ~~Add tests for `utils/csv.ts`~~ ✅ Done 2026-06-06
+Installed vitest (`npm i -D vitest @vitest/ui`) and added test scripts (`test`, `test:watch`, `test:ui`) to package.json. New `vitest.config.ts` keeps the test config separate from the build config; tests run in Node env (no JSDOM needed yet — utils only). First test file `src/utils/csv.test.ts` covers `parseCsvLine` (quoted fields, embedded commas, escaped quotes, empty fields), `parseCsvIntoItems` (error cases + happy path + HTML-strip + sanitize-image + round-trip with serializer), and `serializeItemsToCsv` (header row, quoting, escape rules, empty array). 28 tests, all pass.
+
+Leftover infra debt: `npm audit` shows 2 high-severity warnings on vitest's transitive deps (esbuild's NPM_CONFIG_REGISTRY thing — dev-server only, not runtime). Resolving them needs `npm audit fix --force` which would bump vite from 6 to 8 (a major). Defer until we tackle a deliberate Vite-version bump.
 
 ### 8. ~~Account settings: change display name~~ ✅ Done 2026-05-14
 "Display name" field in Settings → Account. Save button enables when dirty, calls `auth.handleUpdateProfile({ name })`, toast on success/failure. Demo updates in-memory (mockUsers), Supabase users hit `profiles.name`.

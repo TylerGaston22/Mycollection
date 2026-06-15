@@ -66,6 +66,88 @@ A running checklist of things to manually verify, plus known edge cases. Updated
 
 ---
 
+## 🆕 Recent batch — unverified (2026-05/06)
+
+Everything below this header was shipped without manual verification at commit time. Sweep through it when you have a testing window.
+
+### Refresh restores user's view (todo A + UX polish, 2026-05-22)
+- [ ] Sign in. Click TV Shows → Watched. Hit F5 / browser refresh → you land back on TV Shows → Watched, not the default Movies → All.
+- [ ] Refresh while signed in → you see only a spinner briefly, no flash of the Sign In page.
+- [ ] Toggle to the Bookstore theme. Refresh → no flash of the dark/purple background before the cream theme paints.
+
+### Friend system bug fixes (todo B + RLS, 2026-05-22)
+- [ ] Sign in. From a different account, search for your username (≥ 2 chars). You appear in results and they can send a friend request.
+- [ ] Switch to your account. Friends → **Requests** tab shows the incoming request (Accept/Decline). Accept it → tab clears, the friend appears under **Friends**.
+- [ ] Delete a test user in Supabase Auth, then try to sign up with the same username — should succeed (no "username already taken" from an orphan profile row).
+
+### Recommend-to-friend (todo G, 2026-05-22)
+- [ ] Open any item's detail → "Recommend" → pick a friend + optional note → Send. Toast confirms.
+- [ ] As the recipient: orange notification dot on the gear icon. Friends → **Recs** tab shows the incoming row with the snapshot title and the note.
+- [ ] Each pending row has a status radio (Want to See / Watched default) + optional Section dropdown (only visible if you have custom sections for that content type). Click ✓ Accept → item lands in your collection with the chosen status + section. ✕ dismisses.
+- [ ] Pending sent section under it: you can delete an outgoing recommendation.
+
+### Modularity refactors (todo K1–K6 + P, no visible behaviour change)
+These should be invisible — verify nothing regressed:
+- [ ] Password field eye toggle works (`useToggle` refactor).
+- [ ] Add Item from any category still works end-to-end (`useItemForm` extraction).
+- [ ] All ListView columns render correctly per category (column factory extraction).
+- [ ] Movies / TV Shows / Restaurants / Places / Games each show the right labels and field placeholders (`CONTENT_TYPE_REGISTRY` refactor).
+
+### Gaming category (todo L, 2026-05-22)
+- [ ] Sidebar shows a **Games** category with the gamepad icon.
+- [ ] Click Games → status labels read "Played" / "Want to Play".
+- [ ] Add a game → year field, cover URL field, Platform field with placeholder "PS5, Xbox, Steam, Switch, etc.", Genre + Studio fields (game shares these with movies/TV).
+- [ ] TMDB search button does NOT appear on the game form (TMDB only knows movies/TV).
+
+### Per-category visibility (todo M, 2026-05-22)
+- [ ] Settings → Appearance → Visible Categories shows 5 checkboxes.
+- [ ] Uncheck Games → it disappears from the sidebar AND the mobile bottom nav. Items not deleted — re-check to confirm.
+- [ ] While viewing Games, uncheck Games → automatically switches you to the first still-visible category.
+- [ ] Settings now has BOTH Account + Appearance tabs visible (the missing TabsList was restored).
+
+### Movies "Add Item" → "Add Movie" copy fix
+- [ ] On Movies, the "+ Add" button reads **Add Movie**. The Add Movie dialog title also reads "Add Movie".
+- [ ] Other categories read correctly: "Add TV Show", "Add Restaurant", "Add Place", "Add Game".
+
+### Per-category list columns scoping (todo I)
+- [ ] Movies + TV Shows: Where to Watch + Genre columns both visible.
+- [ ] Restaurants: Genre column gone, platform column header reads **Cuisine Type**.
+- [ ] Places: Genre column gone, platform column header reads **Location**.
+- [ ] Games: Genre visible, platform column header reads **Platform**.
+- [ ] Clicking a platform cell on Restaurants opens "Edit Cuisine Type" popup (not "Edit Where to Watch").
+
+### Enter key bug + Add Item failure behaviour (todo O)
+- [ ] Open Add Item. Type a unique title. Press Enter → form submits, item added, dialog closes.
+- [ ] Type a title that already exists in the current category → press Enter or click Add → "Duplicate item" toast appears AND the dialog **stays open** so you can change the title without retyping.
+
+### Change username in Settings (todo Q)
+- [ ] Settings → Account → Username field. Lowercases + strips whitespace as you type.
+- [ ] Change to a new valid value → Save → toast confirms. Sidebar header updates.
+- [ ] Try a username already in use → "Username already taken" toast.
+- [ ] On a username-only account (signed up without email) → toast says "Add a real email first" instead of attempting the rename.
+- [ ] Demo account → toast says "Demo accounts can't change their username".
+
+### Add Category fixed + re-shown (todo J)
+- [ ] Sidebar shows the **Add Category** button at the bottom.
+- [ ] Click it → dialog opens with name + icon picker. Pick → Create Tab → tab appears in the sidebar AND becomes the active view.
+- [ ] If something fails (you'd have to simulate by breaking RLS) — the dialog should STAY open with the toast.
+
+### Long-press to edit notes (todo N)
+- [ ] Touch-and-hold a list row for ~500ms on mobile → opens the notes editor directly (bypasses the item detail dialog).
+- [ ] Short tap on the same row → opens the detail dialog normally.
+- [ ] Hold + drag-to-scroll → does NOT trigger the notes editor (>10px movement cancels the press).
+- [ ] On desktop with mouse: holding the mouse button on a row for 500ms also opens notes editor — short click still opens detail.
+
+### Profile picture upload (todo E)
+**Pre-req: run `supabase/avatars_storage.sql` in the Supabase SQL Editor** — done 2026-06-06 by user.
+- [ ] Open Profile → "Upload photo" button → pick a small PNG/JPG → uploads + the avatar updates in the Profile dialog AND in the sidebar header.
+- [ ] Try a 5 MB file → toast "Image is too big (5.0 MB). Max 2 MB." No upload happens.
+- [ ] Try a `.txt` file → toast "Please pick a PNG, JPG, GIF, or WebP image." No upload.
+- [ ] Click the trash icon next to the avatar → reverts to the default User-icon-on-accent-gradient.
+- [ ] On a demo account: the Upload photo + trash buttons are NOT visible.
+
+---
+
 ## ➕ Add Item — auto-default to active view (todo F)
 Navigate around the sidebar, then click **Add Item** and confirm the form
 matches what you were viewing.

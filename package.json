@@ -33,13 +33,18 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react-swc": "^3.10.2",
+    "@vitest/ui": "^4.1.9",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.2",
-    "vite": "^6.4.2"
+    "vite": "^6.4.2",
+    "vitest": "^4.1.9"
   },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
     "ngrok": "ngrok http 5173"
   }
 }
