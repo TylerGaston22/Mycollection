@@ -42,6 +42,20 @@ Verified every field-surface against `isMediaContentType` / `getContentTypeField
 - **TmdbSearchableInput** — already gated on `isMediaContentType`, never shows for non-media.
 - **CSV import/export** — intentionally left writing all standard columns regardless of type; a CSV file can mix types and per-row scoping happens at display, not transport. Empty cells for absent fields is standard.
 
+### S. Seed demo Gaming category with sample items
+The other built-in categories (Movies, TV, Restaurants, Places) all
+have a handful of demo items in `src/demo/items.ts` so the demo
+account looks alive on first run. Gaming was added in commit L
+(2026-06-06) but no demo seed was added with it — the demo Gaming
+tab is empty, so it's impossible to see how the Gaming layout looks
+without actually adding items. Add ~5-8 representative games
+(title, year, platform, status, rating, notes) to the seed so
+visitors to the demo see something there.
+
+Lives in `src/demo/items.ts` — match the shape of the existing
+Movies/TV entries. Pick titles that show off the layout (mix of
+finished/want-to-play, different platforms, varied ratings).
+
 ### R. Per-custom-category column / field configuration
 Custom tabs created via "Add Category" inherit the FALLBACK_REGISTRY_ENTRY behaviour from `contentHelpers.ts` — title, year, posterUrl, notes, status, favourite. No Genre / Studio / Platform UI surfaces for them (they default to `isMedia: false`). That's a sensible default, but users have no way to opt in if their custom category SHOULD have those fields (e.g. a "Board Games" custom tab probably wants Platform = "Player count" or similar).
 
