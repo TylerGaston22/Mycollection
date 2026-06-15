@@ -90,30 +90,8 @@ Content type id `'game'` shipped across the helpers and chrome:
 - Sidebar + MobileBottomNav `builtInCategories` arrays gain a Gamepad2 Gaming entry.
 - `getSectionDisplayName` now delegates to the shared Watched / WantToSee label helpers so games render correctly there too.
 
-### P. Refactor contentHelpers.ts to a per-type registry
-Adding the Gaming category (todo L) required touching ~6 separate
-if/else chains in `src/utils/contentHelpers.ts` — one per concern
-(displayLabel, watchedLabel, platformFieldLabel, etc.). It works but
-isn't compartmentalised: adding the next content type means another
-6-place tour through the file.
-
-Refactor into a single per-type config registry:
-```ts
-const CONTENT_TYPE_CONFIGS = {
-  item:       { displayLabel: 'Movie', plural: 'movies', singular: 'movie', watched: 'Watched', wantToSee: 'Want to See', platformLabel: 'Where to Watch', platformPlaceholder: '...', imageUrlLabel: 'Poster URL', usesTmdb: true, hasGenreStudio: true },
-  'tv-show':  { ... },
-  restaurant: { ... },
-  place:      { ... },
-  game:       { ... },
-};
-```
-Helpers (`isMediaContentType`, `getWatchedLabel`,
-`getContentTypeFieldConfig`, `getContentTypeName`, etc.) become thin
-lookups into that object. Adding the 6th content type then means
-adding ONE block.
-
-Keep the existing exported helper signatures so call sites don't have
-to change. Smoke-test every content type after the migration.
+### P. ~~Refactor contentHelpers.ts to a per-type registry~~ ✅ Done 2026-06-06
+Single `CONTENT_TYPE_REGISTRY` object now owns every per-type trait — categoryLabel, displayLabel, name (singular/plural), watched/wantToSee labels, all the field labels + placeholders, plus the `isMedia` / `usesTmdb` capability flags. Helpers (`isMediaContentType`, `getWatchedLabel`, `getContentTypeFieldConfig`, `getContentTypeName`, `getCategoryDisplayName`, etc.) are now thin lookups into that registry. Custom tabs / unknown content types fall through to a single `FALLBACK_REGISTRY_ENTRY`. Adding the next built-in content type is one new entry instead of seven if/else additions across the file. Exported function signatures unchanged — no call-site updates needed.
 
 ### M. ~~Per-user toggle: show/hide categories in Settings~~ ✅ Done 2026-06-06
 - Storage: `visibleCategories: Record<string, boolean>` sibling key in `preferences.background_colors` JSONB (no schema change), defaults all-true. Shallow merge on load preserves saved entries when new categories are added later.
