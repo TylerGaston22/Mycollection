@@ -90,7 +90,62 @@ The `preferences.background_colors` column is JSONB. The Bookstore toggle added 
 
 ---
 
-## 6. Type safety
+## 6. No ternary operators
+
+**Rule:** prefer `if`/`else` (and `else if` chains) over the `cond ? a : b` ternary. Even one-line ternaries.
+
+**Why:** ternaries compress branching into a syntax that gets hard to scan as the branches grow, mix poorly with JSX, and tempt nesting (`a ? b ? c : d : e`) — which is almost always less readable than the equivalent `if` chain. `if`/`else` also makes it easier to add a third branch later without restructuring.
+
+**Do / Don't:**
+```diff
+- const label = isActive ? 'On' : 'Off';
++ let label: string;
++ if (isActive) {
++   label = 'On';
++ } else {
++   label = 'Off';
++ }
+
+- {isLoading ? <Spinner /> : <Content />}
++ {(() => {
++   if (isLoading) return <Spinner />;
++   return <Content />;
++ })()}
+```
+
+For JSX where an immediate-invoked function feels heavy, factor the branch into a small local helper that returns the right node:
+```tsx
+function renderBody() {
+  if (isLoading) return <Spinner />;
+  return <Content />;
+}
+return <div>{renderBody()}</div>;
+```
+
+**Acceptable exception:** the **logical-AND short-circuit** for "render X only when truthy" is fine — `{condition && <X />}` is not a ternary and reads cleanly.
+
+---
+
+## 7. Modularity & loose coupling
+
+**Rule:** each file owns one concern. Concerns don't reach into each other's internals. If two modules need to talk, they go through a typed boundary (interface, barrel export, or a hook's return value) — never an import from a sibling file's deep path.
+
+**What this looks like in practice:**
+- **Feature folders are sealed via barrels.** Things inside `src/friends/` import from each other freely; things outside `src/friends/` import only from `src/friends/index.ts`. Same for `src/recommendations/`, `src/auth/`, `src/tmdb/`, `src/demo/`, `src/picker/`. Don't reach into `src/friends/client.ts` from `src/App.tsx` — go through the barrel.
+- **Hooks own state; components own rendering.** When a component has more than ~3 `useState` calls and a multi-deps `useEffect`, the state goes in a custom hook (see `useItemForm`, `useFriends`, `useRecommendations`). The component reads the hook's return value and renders. State is testable without mounting UI.
+- **Pure helpers are pure.** No React, no DOM, no toasts inside `src/utils/*.ts`. If a util needs to talk to React state or fire toasts, it's actually a hook (`src/hooks/use*.ts`) — move it.
+- **No reach-around imports.** A component should never import from `../../hooks/internalDetail.ts` or `../../friends/decorate.ts` if a public barrel can give it the same thing. If the barrel doesn't expose what you need, ADD it to the barrel — don't bypass.
+- **Dependency direction is one-way.** `components/` and `pages/` depend on `hooks/`, `utils/`, `lib/`, `types.ts`. `hooks/` depend on `utils/`, `lib/`, `types.ts`. `utils/` depend only on `lib/`, `types.ts`, and external libraries. Never the other way around — `utils/` must never import from `hooks/` or `components/`.
+
+**Smell tests:**
+- Importing from a sibling's deep path instead of the barrel → couple too tight; add it to the barrel.
+- A component knows about Supabase or localStorage directly → that should be inside a hook.
+- A util imports React → it's a hook in disguise; move it.
+- Adding a feature requires changing 4+ files in 4+ directories → the abstraction boundaries are wrong; ask whether a new feature folder is warranted.
+
+---
+
+## 8. Type safety
 
 - **No `any`** outside constrained Supabase row casts.
 - **Typed unions from `as const` arrays**, so renaming a value is a compile error everywhere it's used — not a silent runtime bug.
@@ -98,7 +153,7 @@ The `preferences.background_colors` column is JSONB. The Bookstore toggle added 
 
 ---
 
-## 7. Verify before claiming done
+## 9. Verify before claiming done
 
 - `npm run build` must pass (this is what Vercel runs — see `docs/errors.md` for the `outDir` gotcha).
 - For styling/token work, confirm the utility classes and any override blocks actually appear in the built CSS (`dist/assets/index-*.css`) — an unrecognized Tailwind class is a silent no-op, not an error.
