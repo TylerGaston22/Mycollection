@@ -34,7 +34,7 @@ interface SettingsDialogProps {
   onBackgroundColorsChange: (colors: BackgroundColorsState) => void;
   currentUser: User;
   isDemoUser: boolean;
-  onUpdateProfile: (updates: { name?: string; listVisibility?: 'private' | 'friends' }) => Promise<boolean>;
+  onUpdateProfile: (updates: { name?: string; listVisibility?: 'private' | 'friends'; username?: string }) => Promise<boolean>;
   onUpdateEmail: (newEmail: string) => Promise<boolean>;
   onChangePassword: (newPassword: string, currentPassword?: string) => Promise<boolean>;
 }
@@ -43,6 +43,11 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
   const [isFormatGuideDialogOpen, setIsFormatGuideDialogOpen] = useState(false);
   const [displayName, setDisplayName] = useState(currentUser.name);
   const [isSavingName, setIsSavingName] = useState(false);
+  // Username state mirrors the Display Name pattern: local input,
+  // dirty-check, async save. Stripped of any leading "@" the UI may
+  // show because the underlying value never includes the prefix.
+  const [username, setUsername] = useState(currentUser.username.replace(/^@/, ''));
+  const [isSavingUsername, setIsSavingUsername] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [isSavingEmail, setIsSavingEmail] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -63,6 +68,7 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
   useEffect(() => {
     if (open) {
       setDisplayName(currentUser.name);
+      setUsername(currentUser.username.replace(/^@/, ''));
       setNewEmail('');
       setCurrentPassword('');
       setNewPassword('');
@@ -72,6 +78,9 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
   }, [open, currentUser.name]);
 
   const isNameDirty = displayName.trim() !== currentUser.name && displayName.trim().length > 0;
+  const trimmedUsername = username.trim().toLowerCase();
+  const currentUsernameNoPrefix = currentUser.username.replace(/^@/, '').toLowerCase();
+  const isUsernameDirty = trimmedUsername.length > 0 && trimmedUsername !== currentUsernameNoPrefix;
   const isEmailDirty =
     newEmail.trim().length > 0 && newEmail.trim().toLowerCase() !== currentUser.email.toLowerCase();
   const canSavePassword =
@@ -83,6 +92,18 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
     setIsSavingName(true);
     await onUpdateProfile({ name: displayName });
     setIsSavingName(false);
+  };
+
+  const handleSaveUsername = async () => {
+    setIsSavingUsername(true);
+    const ok = await onUpdateProfile({ username: trimmedUsername });
+    setIsSavingUsername(false);
+    if (!ok) {
+      // Revert the input to the canonical stored value on failure
+      // (e.g. duplicate or validation error) so the UI doesn't keep
+      // showing an invalid pending change.
+      setUsername(currentUsernameNoPrefix);
+    }
   };
 
   const handleSaveEmail = async () => {
@@ -255,6 +276,38 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
                         {isSavingName ? 'Saving…' : 'Save'}
                       </Button>
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-username">Username</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="settings-username"
+                        value={username}
+                        // Lowercase + strip whitespace as the user types so the
+                        // value in the input matches what we'll actually save.
+                        onChange={(event) =>
+                          setUsername(event.target.value.toLowerCase().replace(/\s+/g, ''))
+                        }
+                        placeholder="username"
+                        disabled={isSavingUsername}
+                        maxLength={30}
+                        autoCapitalize="off"
+                        autoCorrect="off"
+                        spellCheck={false}
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleSaveUsername}
+                        disabled={!isUsernameDirty || isSavingUsername}
+                      >
+                        {isSavingUsername ? 'Saving…' : 'Save'}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Lowercase letters, numbers, dashes, and underscores. This is what shows as
+                      @{trimmedUsername || 'handle'} in the sidebar and friend search.
+                    </p>
                   </div>
                 </div>
 

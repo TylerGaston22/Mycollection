@@ -163,11 +163,17 @@ export function useAuth() {
     }
   };
 
-  // Update editable profile fields. Exposed: name + listVisibility.
+  // Update editable profile fields. Exposed: name + listVisibility + username.
   // Demo users update in-memory only (mockUsers); Supabase users hit the
   // profiles table. Returns true on success so callers can clear "dirty" UI.
+  //
+  // Username caveat: username-only accounts sign in via the synthetic
+  // email `<username>@no-email.mycollection.local`. Renaming the username
+  // here would NOT update that synthetic email, so the user could no
+  // longer sign in. Block username changes for synthetic-email accounts
+  // until we have a story for syncing both (or recovery codes).
   const handleUpdateProfile = async (
-    updates: { name?: string; listVisibility?: 'private' | 'friends' },
+    updates: { name?: string; listVisibility?: 'private' | 'friends'; username?: string },
   ): Promise<boolean> => {
     // Build the patch — only include fields the caller actually supplied.
     const dbUpdates: Record<string, string> = {};
@@ -188,6 +194,37 @@ export function useAuth() {
       stateUpdates.listVisibility = updates.listVisibility;
     }
 
+    if (typeof updates.username === 'string') {
+      // Demo users have a fixed username — block the change with a friendly
+      // message rather than silently appearing to succeed.
+      if (authMode === DEMO_MODE) {
+        toast.error("Demo accounts can't change their username");
+        return false;
+      }
+      // Synthetic-email (username-only) accounts: blocking renames here
+      // until we have a way to keep the sign-in email in sync.
+      const { data: authData } = await supabase.auth.getUser();
+      const authEmail = authData.user?.email ?? '';
+      if (isSyntheticEmail(authEmail)) {
+        toast.error('Username-only accounts can\'t rename yet', {
+          description: 'Add a real email in Settings first, then come back.',
+        });
+        return false;
+      }
+      const validation = validateUsername(updates.username);
+      if (!validation.ok) {
+        toast.error(validation.error);
+        return false;
+      }
+      const normalised = updates.username.trim().toLowerCase();
+      if (normalised === currentUser.username) {
+        // No-op rename — silently succeed.
+      } else {
+        dbUpdates.username = normalised;
+        stateUpdates.username = normalised;
+      }
+    }
+
     if (Object.keys(dbUpdates).length === 0) return true;
 
     if (authMode === DEMO_MODE) {
@@ -201,7 +238,19 @@ export function useAuth() {
       .update(dbUpdates)
       .eq('id', currentUserId);
 
-    if (handleSupabaseError('Failed to update profile', error)) return false;
+    if (error) {
+      // The profiles.username column carries a unique index; surface
+      // duplicate-collisions with a friendly message instead of the
+      // raw Postgres "duplicate key value violates unique constraint".
+      const isDuplicate = /duplicate|unique|already/i.test(error.message);
+      if (isDuplicate && typeof dbUpdates.username === 'string') {
+        toast.error('Username already taken', {
+          description: 'Pick a different one.',
+        });
+        return false;
+      }
+      if (handleSupabaseError('Failed to update profile', error)) return false;
+    }
 
     setCurrentUser((prev) => ({ ...prev, ...stateUpdates }));
     toast.success('Profile updated');

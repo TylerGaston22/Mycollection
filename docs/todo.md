@@ -124,34 +124,10 @@ to change. Smoke-test every content type after the migration.
 - Bonus fix: restored the missing `<TabsList>` in SettingsDialog so the Appearance tab is actually reachable (it had been hidden — only Account ever rendered).
 - usePreferences now exports `BackgroundColorsState` so SettingsDialog uses the same typed shape rather than redeclaring a narrower one.
 
-### Q. Settings: let users change their username
-Settings → Account currently has Display Name and Email + Password
-sections, but not Username. Users should be able to rename themselves
-in the same place — the username is what shows up as `@handle` in
-the sidebar, search, recommendation rows, etc.
-
-Implementation:
-- Add a "Username" field next to Display Name in `SettingsDialog`.
-- On save, run the existing `validateUsername` from `src/auth/username.ts`
-  (length / character / reserved-word checks). If valid, call
-  `auth.handleUpdateProfile({ username })`.
-- `useAuth.handleUpdateProfile` currently accepts `{ name?, listVisibility? }`
-  — extend to `{ name?, listVisibility?, username? }`. On username
-  changes also update the matching `auth.users` raw_user_meta_data if
-  any code reads it (probably not — usernames live in `profiles`).
-- DB check: the `profiles.username` column has a `unique` constraint
-  (or should). When a duplicate is attempted, surface a friendly
-  "Username already taken" toast via `handleSupabaseError`'s duplicate-
-  regex check.
-- Username-only auth accounts (synthetic email pattern) shouldn't lose
-  their ability to sign in — sign-in resolution uses the synthetic
-  email derived from the username at signup, so renaming the username
-  WOULD break the sign-in path unless we also update the synthetic
-  email. Decide: either disallow username changes for those accounts,
-  or update both the profile + the auth.users email atomically (the
-  latter requires `supabase.auth.updateUser({ email })` which sends a
-  confirmation step — defeats the point). Probably disallow with a
-  friendly explanation in the UI.
+### Q. ~~Settings: let users change their username~~ ✅ Done 2026-06-06
+- Settings → Account now has a Username field directly under Display Name. Live-lowercases / strips whitespace as the user types. Save button enables on dirty.
+- `useAuth.handleUpdateProfile` extended to accept `{ username? }`. Runs the existing `validateUsername` (length / character / reserved-word checks). Surfaces duplicate-username collisions from the existing `profiles_username_lower_unique` index with a friendly "Username already taken" toast (matched via the duplicate-regex used elsewhere).
+- Synthetic-email (username-only) accounts are blocked from renaming with a clear "add a real email first" message — their sign-in path resolves the synthetic email from the stored username, so renaming would break sign-in. Demo accounts also blocked with their own message.
 
 ### O. ~~Enter key in Add Item dialog closes without adding~~ ✅ Done 2026-06-06
 Root cause was the fire-and-forget pattern in `useItemForm.handleSubmit` — it called `onAdd?.(…)` without awaiting, then immediately called `onSubmitted()` (which closes the dialog). Any failure path inside `addItem` (duplicate-title bail, Supabase error) ran AFTER the dialog had already closed, so the user saw "dialog closes, nothing happens" — the toast was technically there but easy to miss.
