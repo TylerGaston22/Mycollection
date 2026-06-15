@@ -56,9 +56,12 @@ export function MobileBottomNav({
     game: gameCount,
   };
 
+  // `?? {}` mirrors the Sidebar/App.tsx defensive read — a stale prefs
+  // blob without visibleCategories shouldn't crash the bottom nav.
+  const visibleMap = visibleCategories ?? {};
   const builtInTabs: TabItem[] = BUILT_IN_CATEGORIES
     .filter((category) => {
-      if (visibleCategories[category.id] === false) return false;
+      if (visibleMap[category.id] === false) return false;
       return true;
     })
     .map((category) => ({

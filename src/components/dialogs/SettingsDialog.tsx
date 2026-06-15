@@ -220,8 +220,10 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
                 <div className="space-y-2">
                   {BUILT_IN_CATEGORIES.map((category) => {
                     const Icon = category.icon;
+                    // `?? {}` matches the Sidebar/App.tsx defensive read.
+                    const visibleMap = backgroundColors.visibleCategories ?? {};
                     let isVisible = true;
-                    if (backgroundColors.visibleCategories[category.id] === false) {
+                    if (visibleMap[category.id] === false) {
                       isVisible = false;
                     }
                     return (

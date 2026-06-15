@@ -147,9 +147,13 @@ export function Sidebar({
   };
 
   // Hide categories the user has explicitly toggled off in Settings.
-  // Missing entries in visibleCategories are treated as visible.
+  // Missing entries in visibleCategories are treated as visible. The
+  // `?? {}` guards against a stale prefs blob whose visibleCategories
+  // key was never written (see usePreferences for the same defensive
+  // merge at the source).
+  const visibleMap = visibleCategories ?? {};
   const visibleBuiltInCategories = BUILT_IN_CATEGORIES.filter((category) => {
-    if (visibleCategories[category.id] === false) return false;
+    if (visibleMap[category.id] === false) return false;
     return true;
   });
 
