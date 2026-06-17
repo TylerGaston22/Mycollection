@@ -52,7 +52,7 @@ export function accentColorHoverHandlers(
  * Variant used by the sidebar action buttons: fade a subtle accent-color
  * gradient on hover, restore transparent on leave. The resting text colour
  * is the page-foreground token (white on dark sidebars, dark-brown on the
- * Bookstore light sidebar).
+ * Coffee light sidebar).
  */
 export function accentGradientHoverHandlers(theme: ThemeConfig): {
   onMouseEnter: (event: React.MouseEvent<HTMLElement>) => void;

@@ -140,46 +140,58 @@ export default function App() {
 
   const { movieCount, tvShowCount, restaurantCount, placeCount, gameCount } = useCollectionStats(items);
 
-  // App-wide Bookstore override (toggled from the profile dropdown) wins over
+  // App-wide Coffee override (toggled from the profile dropdown) wins over
   // the per-content-type theme, so it also covers custom tabs which otherwise
   // have no saved theme and fall back to 'current' (default Ghibli theme).
-  const isBookstoreActive = backgroundColors.surfaceTheme === 'bookstore';
+  const isCoffeeActive = backgroundColors.surfaceTheme === 'coffee';
   let activeThemeId: string;
-  if (isBookstoreActive) {
-    activeThemeId = 'bookstore';
+  if (isCoffeeActive) {
+    activeThemeId = 'coffee';
   } else {
     activeThemeId = getCategoryThemeId(backgroundColors, contentType);
   }
   const currentTheme = getTheme(activeThemeId);
 
-  const handleToggleBookstore = () => {
+  const handleToggleCoffee = () => {
     setBackgroundColors({
       ...backgroundColors,
-      surfaceTheme: isBookstoreActive ? 'default' : 'bookstore',
+      surfaceTheme: isCoffeeActive ? 'default' : 'coffee',
     });
   };
 
-  // Put data-surface on <html> (not just the app root) so the Bookstore tokens
+  // Put data-surface on <html> (not just the app root) so the Coffee tokens
   // also reach Radix overlays — DropdownMenu, Dialog, Popover — which portal to
   // document.body, outside the React root. Without this the gear menu and
-  // dialogs would keep the default (navy) surface even in Bookstore mode.
+  // dialogs would keep the default (navy) surface even in Coffee mode.
   //
   // Mirror the value into localStorage so main.tsx can re-apply it
   // synchronously on the next page load — that's what prevents the default-
   // theme flash that used to show before Supabase preferences finished loading.
+  //
+  // Only apply the Coffee surface when the user is signed in. Landing /
+  // sign-in pages are pre-auth chrome that's painted in the dark default
+  // theme — without this auth gate, logging out while Coffee was on left
+  // <html data-surface="coffee"> stuck on the landing page (whose own
+  // colours are hardcoded dark) and the page rendered with a clashing
+  // cream background.
   useEffect(() => {
     const root = document.documentElement;
-    if (isBookstoreActive) {
-      root.setAttribute('data-surface', 'bookstore');
+    const applyCoffee = isCoffeeActive && auth.isSignedIn;
+    if (applyCoffee) {
+      root.setAttribute('data-surface', 'coffee');
     } else {
       root.removeAttribute('data-surface');
     }
     try {
-      localStorage.setItem('surfaceTheme', isBookstoreActive ? 'bookstore' : 'default');
+      // Only persist 'coffee' to localStorage when actually applied — this
+      // keeps main.tsx's pre-React hydration in lockstep with the gate
+      // above, so logging out then refreshing doesn't briefly re-paint the
+      // landing page in Coffee.
+      localStorage.setItem('surfaceTheme', applyCoffee ? 'coffee' : 'default');
     } catch {
       // localStorage disabled — accept the next-load flash, app still works.
     }
-  }, [isBookstoreActive]);
+  }, [isCoffeeActive, auth.isSignedIn]);
 
   // Bound helpers
   const getItemsForSection = (sectionId: string) => getSectionContent(sectionId, items, contentType);
@@ -243,8 +255,8 @@ export default function App() {
           isDark={isDark}
           onToggleDark={handleToggleDark}
           currentTheme={currentTheme}
-          isBookstoreActive={isBookstoreActive}
-          onToggleBookstore={handleToggleBookstore}
+          isCoffeeActive={isCoffeeActive}
+          onToggleCoffee={handleToggleCoffee}
           onContentTypeChange={setContentType}
           onActiveSectionChange={setActiveSection}
           onExpandedCategoryChange={setExpandedCategory}
@@ -396,7 +408,7 @@ export default function App() {
 
   // Skip decorative overlays while auth/data is still resolving. Otherwise
   // they paint with the *default* theme (preferences haven't loaded yet),
-  // causing a purple flash for users whose actual theme is Bookstore. The
+  // causing a purple flash for users whose actual theme is Coffee. The
   // bg-background token underneath is already theme-aware via the
   // data-surface attribute we set synchronously in main.tsx.
   const showDecorativeOverlays = !auth.isLoading && !isHydratingUserData;
@@ -405,7 +417,7 @@ export default function App() {
     <div className="min-h-screen bg-background">
       {/* Light-mode-only decorative background: Ghibli image + theme gradient.
           In dark mode, we let bg-background show through for a flat, clean look. */}
-      {showDecorativeOverlays && !isDark && !isBookstoreActive && (
+      {showDecorativeOverlays && !isDark && !isCoffeeActive && (
         <>
           <div
             className="fixed inset-0 z-0"
@@ -425,9 +437,9 @@ export default function App() {
         </>
       )}
 
-      {/* Bookstore is a true light surface: paint a flat cream gradient that
+      {/* Coffee is a true light surface: paint a flat cream gradient that
           wins regardless of the next-themes light/dark state. */}
-      {showDecorativeOverlays && isBookstoreActive && (
+      {showDecorativeOverlays && isCoffeeActive && (
         <div
           className="fixed inset-0 z-0"
           style={{ background: currentTheme.backgroundGradient }}

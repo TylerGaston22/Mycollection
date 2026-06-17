@@ -233,7 +233,7 @@ Implemented as planned, isolated under `src/picker/` (matches `src/demo/`, `src/
 ### 7. ~~Mobile view completion (major gaps closed)~~ ✅ Done 2026-06-06
 Two big mobile gaps closed this session:
 
-1. **No access to Friends / Settings / Logout / theme toggles.** The desktop sidebar has a gear icon that opens a dropdown with Light/Dark, Bookstore, Friends, Settings, Log Out. Mobile had none of these — only Add Item, the category title, and a profile avatar that opened the profile dialog. Fix: extracted the gear-menu content into a new `<UserMenu>` component (`src/components/navigation/UserMenu.tsx`); both Sidebar and MobileHeader use it. Tapping the mobile avatar now opens the same set of actions, plus a Profile item at the top so the original "tap avatar → profile" path is preserved.
+1. **No access to Friends / Settings / Logout / theme toggles.** The desktop sidebar has a gear icon that opens a dropdown with Light/Dark, Coffee, Friends, Settings, Log Out. Mobile had none of these — only Add Item, the category title, and a profile avatar that opened the profile dialog. Fix: extracted the gear-menu content into a new `<UserMenu>` component (`src/components/navigation/UserMenu.tsx`); both Sidebar and MobileHeader use it. Tapping the mobile avatar now opens the same set of actions, plus a Profile item at the top so the original "tap avatar → profile" path is preserved.
 
 2. **Uploaded profile picture didn't show on mobile.** MobileHeader was hard-coded to show the user's name initial. Now renders the `profileImage` URL when set, falling back to the initial otherwise — matches the sidebar avatar's behaviour.
 

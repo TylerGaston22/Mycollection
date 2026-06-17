@@ -32,10 +32,10 @@ import { SURFACE_BACKGROUND } from "../../utils/surfaceBackgrounds";
 
 interface UserMenuProps {
   isDark: boolean;
-  isBookstoreActive: boolean;
+  isCoffeeActive: boolean;
   pendingFriendRequestsCount: number;
   onToggleDark: () => void;
-  onToggleBookstore: () => void;
+  onToggleCoffee: () => void;
   onFriendsDialogOpen: () => void;
   onSettingsDialogOpen: () => void;
   onLogout: () => void;
@@ -53,10 +53,10 @@ interface UserMenuProps {
 
 export function UserMenu({
   isDark,
-  isBookstoreActive,
+  isCoffeeActive,
   pendingFriendRequestsCount,
   onToggleDark,
-  onToggleBookstore,
+  onToggleCoffee,
   onFriendsDialogOpen,
   onSettingsDialogOpen,
   onLogout,
@@ -83,9 +83,9 @@ export function UserMenu({
         )}
         {isDark ? "Light Mode" : "Dark Mode"}
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={onToggleBookstore}>
+      <DropdownMenuItem onClick={onToggleCoffee}>
         <BookOpen className="h-4 w-4 mr-2 text-amber-400" />
-        {isBookstoreActive ? "Default Theme" : "Bookstore Theme"}
+        {isCoffeeActive ? "Default Theme" : "Coffee Theme"}
       </DropdownMenuItem>
       <DropdownMenuItem onClick={onFriendsDialogOpen}>
         <Users className="h-4 w-4 mr-2 text-green-400" />

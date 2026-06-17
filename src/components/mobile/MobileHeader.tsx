@@ -21,11 +21,11 @@ interface MobileHeaderProps {
   currentTheme: ThemeConfig;
   categoryTitle: string;
   isDark: boolean;
-  isBookstoreActive: boolean;
+  isCoffeeActive: boolean;
   pendingFriendRequestsCount: number;
   onAddDialogOpen: () => void;
   onToggleDark: () => void;
-  onToggleBookstore: () => void;
+  onToggleCoffee: () => void;
   onFriendsDialogOpen: () => void;
   onSettingsDialogOpen: () => void;
   onProfileDialogOpen: () => void;
@@ -37,11 +37,11 @@ export function MobileHeader({
   currentTheme,
   categoryTitle,
   isDark,
-  isBookstoreActive,
+  isCoffeeActive,
   pendingFriendRequestsCount,
   onAddDialogOpen,
   onToggleDark,
-  onToggleBookstore,
+  onToggleCoffee,
   onFriendsDialogOpen,
   onSettingsDialogOpen,
   onProfileDialogOpen,
@@ -101,10 +101,10 @@ export function MobileHeader({
           </DropdownMenuTrigger>
           <UserMenu
             isDark={isDark}
-            isBookstoreActive={isBookstoreActive}
+            isCoffeeActive={isCoffeeActive}
             pendingFriendRequestsCount={pendingFriendRequestsCount}
             onToggleDark={onToggleDark}
-            onToggleBookstore={onToggleBookstore}
+            onToggleCoffee={onToggleCoffee}
             onFriendsDialogOpen={onFriendsDialogOpen}
             onSettingsDialogOpen={onSettingsDialogOpen}
             onLogout={onLogout}

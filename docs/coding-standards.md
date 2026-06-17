@@ -14,7 +14,7 @@ If a color, string, gradient, magic number, or className combo appears in two pl
 | Kind | Home | Example |
 |---|---|---|
 | Content-type / status strings | `src/constants.ts` (`as const` + derived union types) | `'watched'`, `DEFAULT_CONTENT_TYPE` |
-| Colour themes (gradients, accent) | `src/utils/themeConfig.ts` (`colorThemes`) | `bookstore` theme entry |
+| Colour themes (gradients, accent) | `src/utils/themeConfig.ts` (`colorThemes`) | `coffee` theme entry |
 | Surface backgrounds | `src/utils/surfaceBackgrounds.ts` | `NAVY_SURFACE_BACKGROUND` |
 | Hover/interaction classes | `src/utils/hoverStyles.ts`, `src/utils/accentHover.ts` | `NAV_HOVER_CLASS` |
 | Page-chrome colours | CSS variables in `src/styles/index.css` | `--page-fg`, `--page-surface` |
@@ -26,7 +26,7 @@ If a color, string, gradient, magic number, or className combo appears in two pl
 
 ## 2. Colours come from tokens, never literals — especially in page chrome
 
-This is the pattern we used to make the **Bookstore** light theme possible, and it's the model for any future theming.
+This is the pattern we used to make the **Coffee** light theme possible, and it's the model for any future theming.
 
 **The problem:** the page chrome (Sidebar, main content, ListView, mobile chrome) sits directly on the page background and used to hardcode `text-white` / `text-gray-400` / `rgba(255,255,255,.1)` ~100 times. That made a true light theme impossible without editing every call site — and impossible to keep consistent.
 
@@ -38,7 +38,7 @@ This is the pattern we used to make the **Bookstore** light theme possible, and 
    ```
 2. Add **one override block** per alternate surface:
    ```css
-   [data-surface="bookstore"] { --page-fg: hsl(28,18%,18%); --page-surface: hsl(33,35%,92%); /* … */ }
+   [data-surface="coffee"] { --page-fg: hsl(28,18%,18%); --page-surface: hsl(33,35%,92%); /* … */ }
    ```
 3. Map tokens → utilities once, via Tailwind v4 `@theme inline`:
    ```css
@@ -83,7 +83,7 @@ Demo-account code, data, and UI stay inside demo-mode paths — they must not le
 
 ## 5. Persist new preference fields without a migration when you can
 
-The `preferences.background_colors` column is JSONB. The Bookstore toggle added a new `surfaceTheme` key **inside that existing JSON** — no `ALTER TABLE`, no SQL file to run. Old rows deserialize the missing key as `undefined` and we merge over `DEFAULT_BACKGROUND_COLORS` so every field is always present.
+The `preferences.background_colors` column is JSONB. The Coffee toggle added a new `surfaceTheme` key **inside that existing JSON** — no `ALTER TABLE`, no SQL file to run. Old rows deserialize the missing key as `undefined` and we merge over `DEFAULT_BACKGROUND_COLORS` so every field is always present.
 
 - Prefer a new key in an existing JSONB blob over a new column for small, app-only flags.
 - When a real schema change *is* needed: write an **idempotent** `.sql` file in `supabase/` (`create … if not exists`, `drop policy if exists` + `create policy`, `create or replace function`). The user runs it in the Supabase SQL Editor — there's no automated migration runner. Never assume a migration ran; the SQL must be safe to re-run.
@@ -149,7 +149,7 @@ return <div>{renderBody()}</div>;
 
 - **No `any`** outside constrained Supabase row casts.
 - **Typed unions from `as const` arrays**, so renaming a value is a compile error everywhere it's used — not a silent runtime bug.
-- Thread new props through the full chain with explicit interface additions (e.g. `isBookstoreActive` / `onToggleBookstore` added to both `SidebarLayoutProps` and `SidebarProps`), so TypeScript flags any missing wiring.
+- Thread new props through the full chain with explicit interface additions (e.g. `isCoffeeActive` / `onToggleCoffee` added to both `SidebarLayoutProps` and `SidebarProps`), so TypeScript flags any missing wiring.
 
 ---
 

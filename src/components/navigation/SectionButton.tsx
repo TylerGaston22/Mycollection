@@ -29,7 +29,7 @@ export function SectionButton({ label, count, isActive, currentTheme, onClick }:
   } else {
     // No inline backgroundColor — leave it to CSS so the hover utility
     // can paint the page-surface overlay over it. Text uses the page-fg
-    // tokens so it reads on both the dark sidebars and the cream Bookstore one.
+    // tokens so it reads on both the dark sidebars and the cream Coffee one.
     style = { color: 'var(--page-fg-subtle)' };
     additionalClass = `hover:text-page-fg ${NAV_HOVER_CLASS}`;
   }

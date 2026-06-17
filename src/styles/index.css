@@ -49,7 +49,7 @@
 
   /* Page-chrome tokens — the persistent dark-page layout (sidebar, main, nav,
    * list, mobile chrome). Defaults (in :root) match the historical hardcoded
-   * dark-page values; the [data-surface="bookstore"] block overrides them to a
+   * dark-page values; the [data-surface="coffee"] block overrides them to a
    * light cream palette. Mapping here generates text-page-fg, bg-page-surface,
    * border-page-divider, etc. so components never hardcode a color. */
   --color-page-fg: var(--page-fg);
@@ -64,7 +64,7 @@
   --color-page-signin: var(--page-signin-fg);
   /* Text/icon colour for elements sitting ON the accent colour (active
    * category button, primary buttons, avatar). White on the dark themes'
-   * bright accents; cream on the Bookstore brown accent. */
+   * bright accents; cream on the Coffee brown accent. */
   --color-page-on-accent: var(--page-on-accent);
 }
 
@@ -197,11 +197,11 @@
   --color-cyan-950: hsl(210 100% 16%);
 }
 
-/* Bookstore — a TRUE light surface (warm cream + dark-brown text), derived
- * from the bookstorecode palette. Overrides ONLY the page-chrome tokens; the
+/* Coffee — a TRUE light surface (warm cream + dark-brown text), derived
+ * from the coffeecode palette. Overrides ONLY the page-chrome tokens; the
  * shadcn --background/--foreground set stays owned by next-themes light/dark.
  * This is the single source of truth for the cream palette. */
-[data-surface="bookstore"] {
+[data-surface="coffee"] {
   --page-fg: hsl(28, 18%, 18%);             /* dark-brown text */
   --page-fg-muted: hsl(28, 12%, 40%);
   --page-fg-subtle: hsl(28, 15%, 30%);

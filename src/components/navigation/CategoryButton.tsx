@@ -23,12 +23,12 @@ export function CategoryButton({ label, count, icon: Icon, isActive, currentThem
   let className: string;
   if (isActive) {
     // Active sits on the accent colour. text-page-on-accent = white on the
-    // dark themes' bright accents, cream on the Bookstore brown accent.
+    // dark themes' bright accents, cream on the Coffee brown accent.
     background = currentTheme.accentColor;
     className = 'w-full flex items-center justify-between p-3 rounded-lg transition-all cursor-pointer text-page-on-accent shadow-lg';
   } else {
     // Inactive uses the raised SURFACE_BACKGROUND, which stays dark in every
-    // theme (navy on dark themes, warm espresso brown under Bookstore), so its
+    // theme (navy on dark themes, warm espresso brown under Coffee), so its
     // label stays white and readable.
     background = SURFACE_BACKGROUND;
     className = `w-full flex items-center justify-between p-3 rounded-lg transition-all cursor-pointer text-white ${NAV_HOVER_CLASS}`;

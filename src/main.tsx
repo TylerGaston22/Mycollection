@@ -12,8 +12,15 @@ import "./styles/index.css";
 // before Supabase preferences load. App.tsx keeps this cache in sync
 // every time the user toggles the surface theme.
 try {
-  if (localStorage.getItem('surfaceTheme') === 'bookstore') {
-    document.documentElement.setAttribute('data-surface', 'bookstore');
+  // Accept both 'coffee' (current) and the legacy 'bookstore' value, which
+  // was the original name for this theme before the rename. Existing users
+  // have 'bookstore' in localStorage / Supabase prefs; usePreferences
+  // migrates the in-memory state on load, and the next toggle/save flushes
+  // 'coffee' back out — but the synchronous hydration here happens BEFORE
+  // React mounts, so it has to handle the legacy value too.
+  const stored = localStorage.getItem('surfaceTheme');
+  if (stored === 'coffee' || stored === 'bookstore') {
+    document.documentElement.setAttribute('data-surface', 'coffee');
   }
 } catch {
   // localStorage disabled (private mode) — fall through; brief flash on

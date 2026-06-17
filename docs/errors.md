@@ -29,7 +29,7 @@ The second attempt works because by then `customSections` is stable, the effect 
 **Symptom:** Three separate annoyances all from one browser refresh:
 1. Selected a category (e.g. TV Shows) → refresh → landed back on Movies instead.
 2. Briefly saw the sign-in page (default colours) before the main app rendered.
-3. Even after fix #2, briefly saw a purple Ghibli background before the user's actual Bookstore theme painted.
+3. Even after fix #2, briefly saw a purple Ghibli background before the user's actual Coffee theme painted.
 
 **Root causes (three different layers):**
 
@@ -37,7 +37,7 @@ The second attempt works because by then `customSections` is stable, the effect 
 
 2. **Hydration window fell into the sign-in branch.** App.tsx's auth gating had `if (!auth.isSignedIn || isHydratingUserData) → SignInPage`. The `isHydratingUserData` half of that OR meant a signed-in user whose data was still loading still got SignInPage (with `externalLoading=true` for the spinner). Functionally a loading state but visually it rendered the entire sign-in form.
 
-3. **Decorative overlays painted with stale theme data.** The Ghibli + gradient overlays in App.tsx render based on `isBookstoreActive` / `currentTheme.backgroundGradient`, both derived from `usePreferences`. Preferences initialise to defaults and only update after the Supabase fetch returns — so during the spinner phase the user's actual theme wasn't known yet and the default (purple Ghibli) overlay painted briefly even for Bookstore users.
+3. **Decorative overlays painted with stale theme data.** The Ghibli + gradient overlays in App.tsx render based on `isCoffeeActive` / `currentTheme.backgroundGradient`, both derived from `usePreferences`. Preferences initialise to defaults and only update after the Supabase fetch returns — so during the spinner phase the user's actual theme wasn't known yet and the default (purple Ghibli) overlay painted briefly even for Coffee users.
 
 **Fixes (one per layer):**
 
@@ -46,8 +46,8 @@ The second attempt works because by then `customSections` is stable, the effect 
 2. App.tsx loading gating restructured: `if (auth.isLoading || isHydratingUserData) → spinner` instead of letting hydration fall into the sign-in branch. The SignInPage now only renders when the user actually needs to sign in (no spinner mode on it any more).
 
 3. Two-part theme cache:
-   - App.tsx mirrors `surfaceTheme` ('bookstore' / 'default') into localStorage on every change.
-   - main.tsx reads that cache **synchronously** before React mounts, setting `data-surface="bookstore"` on `<html>` if needed. CSS variables flip to cream **before** the first paint.
+   - App.tsx mirrors `surfaceTheme` ('coffee' / 'default') into localStorage on every change.
+   - main.tsx reads that cache **synchronously** before React mounts, setting `data-surface="coffee"` on `<html>` if needed. CSS variables flip to cream **before** the first paint.
    - Plus a guard in App.tsx render: `if (auth.isLoading || isHydratingUserData) → don't paint the decorative overlays at all`. The `bg-background` token underneath is already theme-aware via `data-surface`, so the spinner sits on the correct flat colour.
 
 **Lesson:**

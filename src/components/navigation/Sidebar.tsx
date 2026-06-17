@@ -48,10 +48,10 @@ interface SidebarProps {
    *  are treated as visible (defensive default for new categories). */
   visibleCategories: Record<string, boolean>;
   currentTheme: ThemeConfig;
-  /** Whether the app-wide Bookstore light theme is currently active. */
-  isBookstoreActive: boolean;
-  /** Toggle the Bookstore theme on/off from the profile dropdown. */
-  onToggleBookstore: () => void;
+  /** Whether the app-wide Coffee light theme is currently active. */
+  isCoffeeActive: boolean;
+  /** Toggle the Coffee theme on/off from the profile dropdown. */
+  onToggleCoffee: () => void;
   onContentTypeChange: (type: string) => void;
   onActiveSectionChange: (section: string) => void;
   onExpandedCategoryChange: (category: string) => void;
@@ -84,8 +84,8 @@ export function Sidebar({
   gameCount,
   visibleCategories,
   currentTheme,
-  isBookstoreActive,
-  onToggleBookstore,
+  isCoffeeActive,
+  onToggleCoffee,
   onContentTypeChange,
   onActiveSectionChange,
   onExpandedCategoryChange,
@@ -165,12 +165,12 @@ export function Sidebar({
       data-open={isOpen}
       className="sidebar-fluid backdrop-blur-sm border-r p-6 overflow-y-auto fixed h-screen z-40"
       style={{
-        // Bookstore is a light surface that must win even when next-themes is
+        // Coffee is a light surface that must win even when next-themes is
         // dark, so it takes precedence over the isDark dark-sidebar branch.
-        background: isBookstoreActive
+        background: isCoffeeActive
           ? currentTheme.sidebarGradient
           : (isDark ? 'var(--sidebar)' : currentTheme.sidebarGradient),
-        borderRightColor: isBookstoreActive
+        borderRightColor: isCoffeeActive
           ? 'var(--page-divider)'
           : (isDark ? 'var(--sidebar-border)' : colorToRgba(currentTheme.accentColor, 0.19)),
       }}
@@ -223,10 +223,10 @@ export function Sidebar({
             </DropdownMenuTrigger>
             <UserMenu
               isDark={isDark}
-              isBookstoreActive={isBookstoreActive}
+              isCoffeeActive={isCoffeeActive}
               pendingFriendRequestsCount={pendingFriendRequestsCount}
               onToggleDark={() => setTheme(isDark ? "light" : "dark")}
-              onToggleBookstore={onToggleBookstore}
+              onToggleCoffee={onToggleCoffee}
               onFriendsDialogOpen={onFriendsDialogOpen}
               onSettingsDialogOpen={onSettingsDialogOpen}
               onLogout={onLogout}

@@ -11,7 +11,7 @@
  *  of surface:
  *  - `hover:bg-page-surface` lifts items with no inline background (most
  *    nav rows, transparent dialog rows). The page-surface token is white/10
- *    on dark themes and beige on the Bookstore light theme.
+ *    on dark themes and beige on the Coffee light theme.
  *  - `hover:brightness-110` lifts items WITH an opaque inline
  *    background (e.g. the sidebar CategoryButton's navy gradient),
  *    where the bg-color overlay would otherwise be hidden underneath. */

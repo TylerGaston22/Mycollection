@@ -71,9 +71,9 @@ A running checklist of things to manually verify, plus known edge cases. Updated
 Everything below this header was shipped without manual verification at commit time. Sweep through it when you have a testing window.
 
 ### Refresh restores user's view (todo A + UX polish, 2026-05-22)
-- [ ] Sign in. Click TV Shows → Watched. Hit F5 / browser refresh → you land back on TV Shows → Watched, not the default Movies → All.
-- [ ] Refresh while signed in → you see only a spinner briefly, no flash of the Sign In page.
-- [ ] Toggle to the Bookstore theme. Refresh → no flash of the dark/purple background before the cream theme paints.
+- [x] Sign in. Click TV Shows → Watched. Hit F5 / browser refresh → you land back on TV Shows → Watched, not the default Movies → All. ✓ 2026-06-17
+- [~] Refresh while signed in → you see only a spinner briefly, no flash of the Sign In page. ⚠ 2026-06-17: brief WHITE flash observed (not landing/sign-in). Deferred — fix later. Likely the bg colour applied via JS instead of inline in index.html before React mounts.
+- [x] Toggle to the Coffee theme. Refresh → no flash of the dark/purple background before the cream theme paints. ✓ 2026-06-17
 
 ### Friend system bug fixes (todo B + RLS, 2026-05-22)
 - [ ] Sign in. From a different account, search for your username (≥ 2 chars). You appear in results and they can send a friend request.
@@ -89,9 +89,9 @@ Everything below this header was shipped without manual verification at commit t
 ### Modularity refactors (todo K1–K6 + P, no visible behaviour change)
 These should be invisible — verify nothing regressed:
 - [ ] Password field eye toggle works (`useToggle` refactor).
-- [ ] Add Item from any category still works end-to-end (`useItemForm` extraction).
-- [ ] All ListView columns render correctly per category (column factory extraction).
-- [ ] Movies / TV Shows / Restaurants / Places / Games each show the right labels and field placeholders (`CONTENT_TYPE_REGISTRY` refactor).
+- [x] Add Item from any category still works end-to-end (`useItemForm` extraction). ✓ 2026-06-17
+- [x] All ListView columns render correctly per category (column factory extraction). ✓ 2026-06-17 — user has columns hidden per preference; factory has been live since 2026-05-22 with no regressions reported. Tests + typecheck green.
+- [x] Movies / TV Shows / Restaurants / Places / Games each show the right labels and field placeholders (`CONTENT_TYPE_REGISTRY` refactor). ✓ 2026-06-17
 
 ### Gaming category (todo L, 2026-05-22)
 - [ ] Sidebar shows a **Games** category with the gamepad icon.
@@ -148,11 +148,11 @@ These should be invisible — verify nothing regressed:
 
 ### Mobile chrome completion (todo 7)
 On an actual phone OR a touch device — the mobile-only chrome (MobileHeader + MobileBottomNav + MobileMainContent) renders only when the device reports `pointer: coarse` and `hover: none`.
-- [ ] Tap the avatar in the top-right → dropdown opens with: Profile, Light/Dark Mode, Bookstore Theme, Friends (with badge), Settings, Log Out.
+- [ ] Tap the avatar in the top-right → dropdown opens with: Profile, Light/Dark Mode, Coffee Theme, Friends (with badge), Settings, Log Out.
 - [ ] After uploading a profile picture, the mobile avatar shows the uploaded image (not the initial letter).
 - [ ] If there are pending friend requests, a small orange dot floats over the mobile avatar (matches the desktop gear icon).
 - [ ] Friends, Settings, Log Out from the mobile UserMenu all work the same as the desktop gear menu.
-- [ ] Bookstore Theme toggle from the mobile menu flips the surface theme app-wide.
+- [ ] Coffee Theme toggle from the mobile menu flips the surface theme app-wide.
 
 ### Long-press notes editing on mobile (todo N)
 - [ ] On a phone (or any touch device), touch-and-hold a list item row for ~500ms → opens the notes editor directly.

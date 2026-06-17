@@ -36,9 +36,9 @@ interface SidebarLayoutProps {
   visibleCategories: Record<string, boolean>;
   currentTheme: ThemeConfig;
   isDark: boolean;
-  isBookstoreActive: boolean;
+  isCoffeeActive: boolean;
   onToggleDark: () => void;
-  onToggleBookstore: () => void;
+  onToggleCoffee: () => void;
   onContentTypeChange: (type: string) => void;
   onActiveSectionChange: (section: string) => void;
   onExpandedCategoryChange: (category: string) => void;
@@ -76,9 +76,9 @@ export function SidebarLayout({
   visibleCategories,
   currentTheme,
   isDark,
-  isBookstoreActive,
+  isCoffeeActive,
   onToggleDark,
-  onToggleBookstore,
+  onToggleCoffee,
   onContentTypeChange,
   onActiveSectionChange,
   onExpandedCategoryChange,
@@ -113,11 +113,11 @@ export function SidebarLayout({
           currentTheme={currentTheme}
           categoryTitle={getCategoryDisplayName(contentType, customTabs)}
           isDark={isDark}
-          isBookstoreActive={isBookstoreActive}
+          isCoffeeActive={isCoffeeActive}
           pendingFriendRequestsCount={pendingFriendRequestsCount}
           onAddDialogOpen={onAddDialogOpen}
           onToggleDark={onToggleDark}
-          onToggleBookstore={onToggleBookstore}
+          onToggleCoffee={onToggleCoffee}
           onFriendsDialogOpen={onFriendsDialogOpen}
           onSettingsDialogOpen={onSettingsDialogOpen}
           onProfileDialogOpen={onProfileDialogOpen}
@@ -206,8 +206,8 @@ export function SidebarLayout({
         gameCount={gameCount}
         visibleCategories={visibleCategories}
         currentTheme={currentTheme}
-        isBookstoreActive={isBookstoreActive}
-        onToggleBookstore={onToggleBookstore}
+        isCoffeeActive={isCoffeeActive}
+        onToggleCoffee={onToggleCoffee}
         onContentTypeChange={onContentTypeChange}
         onActiveSectionChange={onActiveSectionChange}
         onExpandedCategoryChange={onExpandedCategoryChange}

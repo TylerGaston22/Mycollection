@@ -45,14 +45,25 @@ export function getCategoryThemeId(
   return bg[contentType as PerCategoryThemeKey] || 'current';
 }
 
+/** Normalise a raw `surfaceTheme` value from storage. The theme was
+ *  originally called 'bookstore'; we renamed it to 'coffee' but old
+ *  user data still carries the legacy string. Map either to 'coffee'
+ *  here so the rest of the app only ever sees the new value. The next
+ *  save will persist 'coffee' and the legacy value disappears. */
+function normaliseSurfaceTheme(raw: unknown): string {
+  if (raw === 'bookstore') return 'coffee';
+  if (typeof raw === 'string') return raw;
+  return 'default';
+}
+
 const DEFAULT_BACKGROUND_COLORS: BackgroundColorsState = {
   item: 'current',
   'tv-show': 'current',
   restaurant: 'current',
   place: 'current',
   // App-wide surface override, independent of the per-content-type themes
-  // above. 'default' = use the per-category theme; 'bookstore' = force the
-  // light Bookstore theme everywhere (incl. custom tabs). Stored as a sibling
+  // above. 'default' = use the per-category theme; 'coffee' = force the
+  // light Coffee theme everywhere (incl. custom tabs). Stored as a sibling
   // key in the same JSONB blob, so no schema change is needed.
   surfaceTheme: 'default',
   // Per-user visibility flags for the built-in categories. Sidebar +
@@ -86,6 +97,7 @@ export function usePreferences(currentUserId: string, isDemoUser: boolean) {
       setBackgroundColors({
         ...DEFAULT_BACKGROUND_COLORS,
         ...stored,
+        surfaceTheme: normaliseSurfaceTheme(stored.surfaceTheme),
         visibleCategories: {
           ...DEFAULT_BACKGROUND_COLORS.visibleCategories,
           ...(stored.visibleCategories ?? {}),
@@ -123,6 +135,7 @@ export function usePreferences(currentUserId: string, isDemoUser: boolean) {
       setBackgroundColors({
         ...DEFAULT_BACKGROUND_COLORS,
         ...saved,
+        surfaceTheme: normaliseSurfaceTheme(saved.surfaceTheme),
         visibleCategories: {
           ...DEFAULT_BACKGROUND_COLORS.visibleCategories,
           ...(saved.visibleCategories ?? {}),
