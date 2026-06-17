@@ -168,30 +168,23 @@ export default function App() {
   // synchronously on the next page load — that's what prevents the default-
   // theme flash that used to show before Supabase preferences finished loading.
   //
-  // Only apply the Coffee surface when the user is signed in. Landing /
-  // sign-in pages are pre-auth chrome that's painted in the dark default
-  // theme — without this auth gate, logging out while Coffee was on left
-  // <html data-surface="coffee"> stuck on the landing page (whose own
-  // colours are hardcoded dark) and the page rendered with a clashing
-  // cream background.
+  // The Coffee surface also leaks to pre-auth chrome (Landing / SignIn) so
+  // those pages stay visually consistent with the user's chosen theme — they
+  // use page-chrome tokens (text-page-fg, bg-page-surface, etc.) and repaint
+  // correctly under either surface.
   useEffect(() => {
     const root = document.documentElement;
-    const applyCoffee = isCoffeeActive && auth.isSignedIn;
-    if (applyCoffee) {
+    if (isCoffeeActive) {
       root.setAttribute('data-surface', 'coffee');
     } else {
       root.removeAttribute('data-surface');
     }
     try {
-      // Only persist 'coffee' to localStorage when actually applied — this
-      // keeps main.tsx's pre-React hydration in lockstep with the gate
-      // above, so logging out then refreshing doesn't briefly re-paint the
-      // landing page in Coffee.
-      localStorage.setItem('surfaceTheme', applyCoffee ? 'coffee' : 'default');
+      localStorage.setItem('surfaceTheme', isCoffeeActive ? 'coffee' : 'default');
     } catch {
       // localStorage disabled — accept the next-load flash, app still works.
     }
-  }, [isCoffeeActive, auth.isSignedIn]);
+  }, [isCoffeeActive]);
 
   // Bound helpers
   const getItemsForSection = (sectionId: string) => getSectionContent(sectionId, items, contentType);
