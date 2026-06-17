@@ -34,6 +34,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react-swc": "^3.10.2",
     "@vitest/ui": "^4.1.9",
+    "husky": "^9.1.7",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.2",
     "vite": "^6.4.2",
@@ -46,6 +47,7 @@
     "typecheck": "tsc --noEmit",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "ngrok": "ngrok http 5173"
+    "ngrok": "ngrok http 5173",
+    "prepare": "husky"
   }
 }

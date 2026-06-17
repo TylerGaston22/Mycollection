@@ -60,8 +60,13 @@ surfaced 4 errors, all fixed:
    only because `import type` gets erased; the type came back as
    `any` so there was no type safety. Fixed to `'../../constants'`.
 
-Not yet wired into a pre-commit / CI hook — running `npm run typecheck`
-manually for now. When CI exists, add it there.
+Wired into a `pre-push` git hook via husky (added 2026-06-15): every
+`git push` now runs `npm run typecheck && npm test` before any commit
+leaves the machine. Total hook time ~14s (12s typecheck, 2s tests).
+Use `git push --no-verify` to skip in emergencies only.
+
+When CI exists later, run the same two scripts there as a second
+safety net.
 
 ### S. ~~Seed demo Gaming category with sample items~~ ✅ Done 2026-06-15
 Added `src/demo/games.ts` with 30 mixed-platform, mixed-genre,

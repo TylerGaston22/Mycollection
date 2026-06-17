@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+# Pre-push hook — runs typecheck + tests before any commit leaves the
+# machine. Catches things like missing-required-prop bugs (see todo T
+# / errors.md "Games count showed 0") that Vite+SWC silently skip.
+#
+# To skip this hook for a single push (emergency only — please don't
+# make it a habit): `git push --no-verify`.
+#
+# To debug a slow hook: add `time` in front of the commands below.
+
+set -e
+
+echo "→ typecheck"
+npm run typecheck
+
+echo "→ tests"
+npm test
