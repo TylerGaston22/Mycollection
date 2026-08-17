@@ -66,6 +66,42 @@ A running checklist of things to manually verify, plus known edge cases. Updated
 
 ---
 
+## 🆕 Recent batch — unverified (2026-08-17)
+
+### Sign in with email OR username (todo X)
+
+Backend is verified; the app-facing half is not. Already confirmed by direct testing:
+- ✓ SQL backfill ran — all 3 accounts have a username (`stilusnex`, `test`, `test1`).
+- ✓ Edge Function deployed and responding at `/functions/v1/signin`.
+- ✓ Real-username-wrong-password and nonexistent-username return **byte-identical** `{"error":"Invalid login credentials"}` / HTTP 401. No enumeration via the response.
+
+Untested — needs a real password, so it has to be done by hand:
+- [ ] Sign out. Sign in with **`stilusnex`** + correct password → signs in. **This is the thing that was broken; if only one line gets tested, make it this one.**
+- [ ] Sign in with **`stilusnex@gmail.com`** + correct password → still works (no regression on the path that already worked).
+- [ ] Sign in with **`test`** (username-only account) + its password → still works. This should never have touched the Edge Function — it resolves via the synthetic address on the first, direct attempt.
+- [ ] Wrong password with a **valid** username → generic "Invalid login credentials", no hint the account exists.
+- [ ] A username that doesn't exist → **identical** message and behaviour to the line above.
+- [ ] `demo` / `demo` still short-circuits to the demo account before any of this runs.
+- [ ] Watch **Edge Functions → `signin` → Logs** during the above: it should be invoked for `stilusnex` and NOT for `test` or for email sign-in.
+
+Deferred, with reasoning:
+- [ ] **Timing side channel.** Measured after deploy: existing-username ≈ 0.61–0.97s, nonexistent ≈ 0.44–0.72s. The existing-user path does an extra `profiles` lookup plus `getUserById` before failing, so it's measurably slower on average. Samples overlap heavily and network jitter dominates at n=4, so it's not a clean oracle — but it is a real asymmetry that enough samples could exploit statistically. Closing it means always doing a dummy password verification even when resolution fails, so both paths cost the same. Judged well past reasonable for a personal app; recorded so the decision is deliberate rather than overlooked.
+
+### Custom category icon + Add Category / Add Subcategory failure handling (todos V + W)
+- [ ] Create a custom category, pick a **non-star** icon (Trophy, Music…) → the sidebar shows that icon, not a star.
+- [ ] Same category on mobile → bottom nav shows the same icon.
+- [ ] Existing categories created before this fix → now render their stored icon on reload.
+- [ ] Create a second, third category back to back → no hang on "Creating…".
+- [ ] Force a failure (offline, or DevTools → Network → Offline) then create a category → error toast appears, dialog stays open with the typed name intact, button returns from "Creating…" to "Create Tab" and is clickable again.
+- [ ] Same offline test for **Add Subcategory** → toast, dialog stays open, no switch to a subcategory that doesn't exist.
+- [ ] Settings → Appearance → the four Tab Backgrounds pickers are gone; **Visible Categories** is still there and still toggles.
+
+### Supabase-not-configured banner (todo U)
+- [ ] `mv .env .env.bak`, restart dev server → red banner at the top naming both missing vars. Never rendered by anyone yet — the logic is unit-tested, the visuals are not.
+- [ ] Restore `.env`, restart → banner gone.
+
+---
+
 ## 🆕 Recent batch — unverified (2026-05/06)
 
 Everything below this header was shipped without manual verification at commit time. Sweep through it when you have a testing window.

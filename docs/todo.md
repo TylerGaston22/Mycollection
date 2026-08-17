@@ -115,13 +115,35 @@ that way:**
 Email accounts can already rename freely (todo Q) — their auth identity
 is their real email and doesn't move.
 
-### X. ~~Let an account sign in with EITHER its email or its username~~ ✅ Done 2026-08-17 (needs deploy)
+### Z. Manual test sweep for the 2026-08-17 batch
+Four things shipped in one session without a manual pass: sign-in by
+username (X), the custom-tab icon fix + Add Category/Subcategory failure
+handling (V, W), and the Supabase-not-configured banner (U). Automated
+coverage went in where the test environment allows, but this repo is
+node-only — no DOM, no Deno, no Postgres harness — so every UI path and
+both server-side pieces are unverified by machine.
+
+Checklist is in `docs/testing.md` under "Recent batch — unverified
+(2026-08-17)", grouped by feature with the already-verified parts marked
+off. Highest value single line: **sign in with `stilusnex` and the correct
+password.** That's the bug that started it; everything else is regression
+cover.
+
+Also recorded there rather than silently accepted: the Edge Function's
+timing side channel (existing usernames resolve measurably slower than
+missing ones, because they do more work before failing).
+
+### X. ~~Let an account sign in with EITHER its email or its username~~ ✅ Done + deployed 2026-08-17
 **Reported 2026-08-17.** An account created with a real email can sign in
 with that email but not with its username — the username just fails. Want:
 either identifier works, for any account.
 
-**Shipped — but dormant until the Edge Function is deployed and the SQL is
-run. See "Deploying todo X" in `docs/service-config.md`.**
+**Both deploy steps are done (2026-08-17).** SQL run — all 3 accounts have
+a username. Function deployed via the dashboard editor and verified live:
+a real username with a wrong password and a username that doesn't exist
+both return byte-identical `{"error":"Invalid login credentials"}` / 401,
+so the response leaks nothing. Signing in *successfully* is still
+unverified — that needs a real password. See todo Z.
 
 Built the safe option (explicitly chosen over the cheaper one):
 - `supabase/functions/signin/index.ts` — resolves the identifier AND
