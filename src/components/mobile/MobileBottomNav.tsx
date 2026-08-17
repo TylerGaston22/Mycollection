@@ -3,10 +3,11 @@
  * Edge-to-edge with safe area padding for iOS notch devices.
  */
 
-import { Star, Plus, type LucideIcon } from 'lucide-react';
+import { Plus, type LucideIcon } from 'lucide-react';
 import { CustomTab } from "../../types";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
 import { BUILT_IN_CATEGORIES } from "../../utils/builtInCategories";
+import { getTabIcon } from "../../utils/tabIcons";
 
 interface MobileBottomNavProps {
   contentType: string;
@@ -74,7 +75,7 @@ export function MobileBottomNav({
   const customTabItems: TabItem[] = customTabs.map((tab) => ({
     id: tab.id,
     label: tab.name,
-    icon: Star,
+    icon: getTabIcon(tab.icon),
     count: items.filter((item) => item.type === tab.id).length,
   }));
 

@@ -4,6 +4,46 @@ Running list of non-obvious bugs we ran into while building, with root cause + f
 
 ---
 
+## Custom category ignored the icon I picked, and the next one hung on "Creating…"
+
+**Symptom:** Two things, reported together after creating custom categories for the first time on a working `.env`:
+1. Created a category, chose an icon in the picker — the sidebar showed a **star** instead.
+2. Created a second category — the button stuck on **"Creating…"** permanently. No toast, no error, no way out but a page reload.
+
+**Root cause 1 — the icon was never read.** `AddTabDialog` wrote the chosen icon name to `custom_tabs.icon` correctly, and `useCustomTabs` loaded it back into `CustomTab.icon` correctly. The value made the full round trip and then went nowhere: both chrome surfaces hardcoded the component.
+
+```
+Sidebar.tsx          icon={Star}   // ignored tab.icon
+MobileBottomNav.tsx  icon: Star,   // ignored tab.icon
+```
+
+Nothing anywhere mapped the stored *name* (`"Trophy"`) to the *component* (`Trophy`), because you can't persist a React component — only its name — and no one had written the lookup. The picker's icon list lived as a private `availableIcons` const inside `AddTabDialog`, so the nav components had nothing to resolve against even if they'd tried.
+
+**Root cause 2 — `setIsSaving(false)` was skipped on a throw.**
+
+```js
+setIsSaving(true);
+const result = await onAdd({ ... });
+setIsSaving(false);        // never runs if onAdd throws
+```
+
+`handleSupabaseError` only sees errors Supabase *returns* in `{ data, error }`. Anything that *throws* — a dropped connection, an aborted fetch, or `data.id` on a null row — propagates straight out of the `await`, skipping the reset. `isSaving` stays `true` forever, the submit button stays disabled and stays reading "Creating…", and because the throw is unhandled the user gets no toast either. Total silence.
+
+We never pinned down what threw on that specific second attempt — the network tab wasn't open and it hasn't reproduced since. That's worth stating plainly: the fix makes the *failure mode* survivable and visible, but the trigger is still unidentified. If it recurs, there'll now be a toast naming it.
+
+**Fix:**
+- New `src/utils/tabIcons.ts` — `TAB_ICONS` (the picker list, moved out of the dialog) plus `getTabIcon(name)` resolving a stored name to a component, falling back to `Star` for unknown or missing names. Same role and shape as `builtInCategories.ts`. `AddTabDialog`, `Sidebar`, and `MobileBottomNav` all now read from it, so the list can't drift between the picker and what renders.
+- `AddTabDialog.handleSubmit` wraps the `await` in `try/catch/finally`: `finally` always clears `isSaving`, and `catch` toasts the thrown error instead of swallowing it.
+- `useCustomTabs.addCustomTab` guards `!data` explicitly rather than letting `data.id` throw.
+
+**Lesson:**
+- **A value that round-trips to the database isn't "wired up" until something renders it.** The insert worked, the select worked, the type had the field — everything looked done, and the feature was still visibly broken. Trace the value all the way to the pixel.
+- **You can't persist a component, only a key.** Any time an enum-ish choice is stored as a string, there's a lookup that has to exist somewhere. Put it next to the list of options, exported, once — not privately inside the picker that happens to have been written first.
+- **`await` + a manual "reset the flag" line is a bug waiting to happen.** If the flag is cleared on the happy path only, the first thrown error strands the UI forever. `finally` is the only correct place for it.
+- **A caught-and-toasted error and an uncaught throw look identical to the user until they don't.** `handleSupabaseError` covers returned errors thoroughly enough that it's easy to assume it covers everything. It doesn't — it never sees a throw.
+
+---
+
 ## A missing `.env` makes finished features look deleted
 
 **Symptom:** In a freshly rebuilt Codespace, "Add Category" (and by extension "Add Subcategory") appeared to have been removed. Click the button, fill in a name, submit — the dialog closes and **no category appears**. Nothing in the UI says why. The natural conclusion was that the feature had been reverted at some point and needed re-implementing.

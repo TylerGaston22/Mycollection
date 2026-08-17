@@ -74,6 +74,44 @@ mixed-status entries (a few favourites). Wired into `mockItems` via
 `src/demo/index.ts` so Try Demo now lands with a populated Gaming
 tab matching the shape of Movies/TV/Restaurants/Places.
 
+### W. ~~Hide the per-category Tab Backgrounds pickers~~ ✅ Done 2026-08-17
+The preset themes (Ghibli, Coffee, Purple Dream, Ocean Blue, …) already
+give users a decent range to try, and layering per-category background
+colours on top mostly produced clashing combinations. The four
+`ColorPicker`s in Settings → Appearance are now **commented out**, not
+deleted — stored values in `preferences.background_colors` are untouched,
+so re-enabling is uncommenting one block. No migration, no data loss.
+
+Visible Categories (todo M) stays where it is, so the Appearance tab
+remains. `ColorPicker`, `updateColor`, and the ImageIcon / Film / Tv /
+UtensilsCrossed / MapPin imports are now referenced only from inside the
+commented block — deliberately left in place, with a note in the file
+header so a tidy-up pass doesn't prune them and break the uncomment path.
+
+If we ever bring them back, they'd need a fifth picker for Games — that
+was never added when the Gaming category landed (todo L).
+
+### V. AddSectionDialog still has the pre-J anti-patterns
+Noticed while fixing the Add Category bugs. `AddSectionDialog.handleSubmit`
+is fire-and-forget — it isn't `async`, doesn't await `onAdd`, and closes
+the dialog immediately. And `useCustomSections.addCustomSection` still
+returns a **fake fallback section** with a `temp-…` id when the insert
+fails, which is exactly the bug todo J fixed for tabs: `App.tsx` then does
+`setActiveSection(newSection.id)` and switches to a subcategory that
+doesn't exist.
+
+It can't hang the way Add Category did (there's no `isSaving` flag to get
+stuck), but it fails just as silently, and worse — it leaves the UI
+pointing at a phantom section.
+
+The fix is the shape J already established, applied to sections:
+- `addCustomSection` returns `CustomSection | null`, no `temp-` fallback.
+- `handleSubmit` goes async, awaits, keeps the dialog open on failure.
+- `handleAddCustomSection` in App.tsx skips `setActiveSection` on null.
+- Wrap the await in `try/finally` from the start (see errors.md).
+
+Not done today to keep the change scoped to what was actually reported.
+
 ### U. ~~Surface "Supabase is not configured" instead of failing silently~~ ✅ (a) done 2026-08-17 / (b) still open
 On 2026-08-17 a rebuilt Codespace had no `.env` (gitignored, so it doesn't
 survive a rebuild). Every Supabase write failed, `handleSupabaseError`

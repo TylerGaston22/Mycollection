@@ -4,6 +4,7 @@
  * Lucide icons, then delegates the new tab back via onAdd.
  */
 import { useState } from 'react';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -18,43 +19,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { CustomTab } from "../../types";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
-import {
-  BookOpen,
-  Coffee,
-  Dumbbell,
-  Gamepad2,
-  GraduationCap,
-  Heart,
-  Home,
-  Lightbulb,
-  Music,
-  Palette,
-  Plane,
-  ShoppingBag,
-  Sparkles,
-  Star,
-  Trophy,
-  Zap,
-} from 'lucide-react';
-
-const availableIcons = [
-  { name: 'BookOpen', icon: BookOpen, label: 'Book' },
-  { name: 'Coffee', icon: Coffee, label: 'Coffee' },
-  { name: 'Dumbbell', icon: Dumbbell, label: 'Fitness' },
-  { name: 'Gamepad2', icon: Gamepad2, label: 'Games' },
-  { name: 'GraduationCap', icon: GraduationCap, label: 'Education' },
-  { name: 'Heart', icon: Heart, label: 'Heart' },
-  { name: 'Home', icon: Home, label: 'Home' },
-  { name: 'Lightbulb', icon: Lightbulb, label: 'Ideas' },
-  { name: 'Music', icon: Music, label: 'Music' },
-  { name: 'Palette', icon: Palette, label: 'Art' },
-  { name: 'Plane', icon: Plane, label: 'Travel' },
-  { name: 'ShoppingBag', icon: ShoppingBag, label: 'Shopping' },
-  { name: 'Sparkles', icon: Sparkles, label: 'Sparkles' },
-  { name: 'Star', icon: Star, label: 'Star' },
-  { name: 'Trophy', icon: Trophy, label: 'Trophy' },
-  { name: 'Zap', icon: Zap, label: 'Zap' },
-];
+import { TAB_ICONS, DEFAULT_TAB_ICON_NAME } from "../../utils/tabIcons";
 
 interface AddTabDialogProps {
   open: boolean;
@@ -68,7 +33,7 @@ interface AddTabDialogProps {
 
 export function AddTabDialog({ open, onOpenChange, onAdd, currentTheme }: AddTabDialogProps) {
   const [categoryTabName, setCategoryTabName] = useState('');
-  const [selectedCategoryIconName, setSelectedCategoryIconName] = useState('Star');
+  const [selectedCategoryIconName, setSelectedCategoryIconName] = useState(DEFAULT_TAB_ICON_NAME);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -77,21 +42,46 @@ export function AddTabDialog({ open, onOpenChange, onAdd, currentTheme }: AddTab
 
     // Await onAdd so we can keep the dialog open on failure (e.g. RLS
     // gap, network error). Same pattern as ItemFormDialog post-O.
+    //
+    // The try/finally is load-bearing, not defensive habit: onAdd goes
+    // out to Supabase, and anything that *throws* rather than returning
+    // an error used to skip setIsSaving(false) entirely — freezing the
+    // button on "Creating…" forever, with no toast and no way to retry
+    // short of reloading the page.
     setIsSaving(true);
-    const result = await onAdd({
-      name: categoryTabName.trim(),
-      icon: selectedCategoryIconName,
-    });
-    setIsSaving(false);
+    let result: boolean | void;
+    try {
+      result = await onAdd({
+        name: categoryTabName.trim(),
+        icon: selectedCategoryIconName,
+      });
+    } catch (error) {
+      // handleSupabaseError only sees errors Supabase *returns*. A
+      // thrown one (dropped connection, aborted fetch, a null row that
+      // blows up on property access) lands here instead.
+      let description = 'Something went wrong. Please try again.';
+      if (error instanceof Error) description = error.message;
+      toast.error('Failed to create tab', { description });
+      return;
+    } finally {
+      setIsSaving(false);
+    }
 
     // Treat undefined as legacy "success"; false explicitly means failure.
     if (result === false) return;
 
     // Reset form on success.
     setCategoryTabName('');
-    setSelectedCategoryIconName('Star');
+    setSelectedCategoryIconName(DEFAULT_TAB_ICON_NAME);
     onOpenChange(false);
   };
+
+  // House style prefers if/else over a ternary, even inline in JSX
+  // (docs/coding-standards.md §6).
+  let submitLabel = 'Create Tab';
+  if (isSaving) {
+    submitLabel = 'Creating…';
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -117,7 +107,7 @@ export function AddTabDialog({ open, onOpenChange, onAdd, currentTheme }: AddTab
             <div className="space-y-2">
               <Label>Choose an Icon</Label>
               <div className="grid grid-cols-8 gap-2">
-                {availableIcons.map(({ name: iconName, icon: IconComponent }) => {
+                {TAB_ICONS.map(({ name: iconName, icon: IconComponent }) => {
                   const isSelectedIcon = selectedCategoryIconName === iconName;
                   let iconButtonStyle: React.CSSProperties = {};
                   let iconButtonBorderClass: string;
@@ -161,7 +151,7 @@ export function AddTabDialog({ open, onOpenChange, onAdd, currentTheme }: AddTab
               disabled={!categoryTabName.trim() || isSaving}
               currentTheme={currentTheme}
             >
-              {isSaving ? 'Creating…' : 'Create Tab'}
+              {submitLabel}
             </ThemePrimaryButton>
           </DialogFooter>
         </form>

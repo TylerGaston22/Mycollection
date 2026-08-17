@@ -1,8 +1,15 @@
 /**
  * SettingsDialog – app settings with two tabs: Appearance and Account.
- * Appearance tab: per-category colour theme pickers via ColorPicker.
+ * Appearance tab: show/hide built-in categories. (The per-category
+ * background ColorPickers that used to live here are commented out —
+ * see the note above the block for why and how to bring them back.)
  * Account tab: CSV/TXT export and import, with a link to the
  * FormatGuideDialog for import formatting help.
+ *
+ * Heads-up for tidy-up passes: ColorPicker, updateColor, and the
+ * ImageIcon / Film / Tv / UtensilsCrossed / MapPin icons are referenced
+ * ONLY from inside that commented block. They're deliberately left in
+ * place so re-enabling stays a pure uncomment — don't prune them.
  */
 
 import { useEffect, useState } from 'react';
@@ -192,6 +199,15 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
             </TabsList>
 
             <TabsContent value="appearance" className="space-y-6 mt-6">
+              {/* Tab Backgrounds — hidden 2026-08-17. The preset themes
+                  (Ghibli, Coffee, Purple Dream, Ocean Blue, …) already give
+                  users a good range to try, and per-category background
+                  colours on top of them mostly produced clashing combinations.
+                  Commented out rather than deleted: the stored values in
+                  preferences.background_colors are untouched, so re-enabling
+                  is uncommenting this block — no migration, no data loss.
+                  Note it never gained a picker for the Games category. */}
+              {/*
               <div className="space-y-4">
                 <div>
                   <h4 className="mb-4 flex items-center gap-2">
@@ -205,6 +221,7 @@ export function SettingsDialog({ open, onOpenChange, items, customTabs, customSe
                 <ColorPicker label="Restaurants Background" icon={UtensilsCrossed} type="restaurant" selectedColor={backgroundColors.restaurant} onColorChange={updateColor} />
                 <ColorPicker label="Places Background" icon={MapPin} type="place" selectedColor={backgroundColors.place} onColorChange={updateColor} />
               </div>
+              */}
 
               <div className="space-y-4">
                 <div>

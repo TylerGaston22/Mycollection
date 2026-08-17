@@ -70,6 +70,17 @@ export function useCustomTabs(currentUserId: string, isDemoUser: boolean) {
       return null;
     }
 
+    // Belt-and-braces: .single() normally pairs a null row with an error,
+    // but if it ever returns neither, reading data.id throws a TypeError
+    // out of the dialog's await — which is exactly the shape that froze
+    // the button on "Creating…". Fail as a normal null instead.
+    if (!data) {
+      handleSupabaseError('Failed to create tab', {
+        message: 'The server did not return the new tab.',
+      });
+      return null;
+    }
+
     const newTab: CustomTab = { id: data.id, name: data.name, icon: data.icon };
     setCustomTabs((prev) => [...prev, newTab]);
     return newTab;

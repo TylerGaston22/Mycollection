@@ -7,8 +7,9 @@
  */
 
 import { Button } from "../ui/button";
-import { Plus, Settings, Star, User } from 'lucide-react';
+import { Plus, Settings, User } from 'lucide-react';
 import { BUILT_IN_CATEGORIES } from "../../utils/builtInCategories";
+import { getTabIcon } from "../../utils/tabIcons";
 import { UserMenu } from "./UserMenu";
 import { useTheme } from "next-themes";
 import { Item, CustomTab, CustomSection } from "../../types";
@@ -265,7 +266,7 @@ export function Sidebar({
                   <CategoryButton
                     label={tab.name}
                     count={numberOfItemsInTab}
-                    icon={Star}
+                    icon={getTabIcon(tab.icon)}
                     isActive={contentType === tab.id}
                     currentTheme={currentTheme}
                     onClick={() => handleCategoryClick(tab.id)}
