@@ -91,26 +91,46 @@ header so a tidy-up pass doesn't prune them and break the uncomment path.
 If we ever bring them back, they'd need a fifth picker for Games — that
 was never added when the Gaming category landed (todo L).
 
-### V. AddSectionDialog still has the pre-J anti-patterns
+### V. ~~AddSectionDialog still has the pre-J anti-patterns~~ ✅ Done 2026-08-17
 Noticed while fixing the Add Category bugs. `AddSectionDialog.handleSubmit`
-is fire-and-forget — it isn't `async`, doesn't await `onAdd`, and closes
-the dialog immediately. And `useCustomSections.addCustomSection` still
-returns a **fake fallback section** with a `temp-…` id when the insert
-fails, which is exactly the bug todo J fixed for tabs: `App.tsx` then does
-`setActiveSection(newSection.id)` and switches to a subcategory that
-doesn't exist.
+was fire-and-forget — not `async`, didn't await `onAdd`, closed the dialog
+immediately. And `useCustomSections.addCustomSection` returned a **fake
+fallback section** with a `temp-…` id when the insert failed, exactly the
+bug todo J fixed for tabs: `App.tsx` then did
+`setActiveSection(newSection.id)` and switched to a subcategory that
+didn't exist anywhere.
 
-It can't hang the way Add Category did (there's no `isSaving` flag to get
-stuck), but it fails just as silently, and worse — it leaves the UI
-pointing at a phantom section.
+It couldn't hang the way Add Category did (no `isSaving` flag to strand),
+but it failed just as silently, and worse — it left the UI pointing at a
+phantom section.
 
-The fix is the shape J already established, applied to sections:
-- `addCustomSection` returns `CustomSection | null`, no `temp-` fallback.
-- `handleSubmit` goes async, awaits, keeps the dialog open on failure.
-- `handleAddCustomSection` in App.tsx skips `setActiveSection` on null.
-- Wrap the await in `try/finally` from the start (see errors.md).
+Fixed with the shape J established, applied to sections:
+- `addCustomSection` returns `CustomSection | null`; the `temp-…`
+  fallback is gone, and a null row is caught explicitly rather than
+  throwing on `data.id`.
+- `handleSubmit` is async, awaits, and keeps the dialog open with the
+  typed name intact on failure. `try/catch/finally` from the start —
+  `finally` clears `isSaving`, `catch` toasts a thrown error.
+- `handleAddCustomSection` returns a boolean and skips `setActiveSection`
+  when the insert failed.
+- Button gains a "Creating…" disabled state, matching Add Category.
 
-Not done today to keep the change scoped to what was actually reported.
+No new tests — the change is in React event handlers and a Supabase hook,
+neither reachable from the node-only test environment. Covered indirectly
+by the fact that nothing else calls `addCustomSection`.
+
+### V2. AddSectionDialog hardcodes its plural nouns
+Spotted while fixing V, left alone to keep that commit focused.
+`AddSectionDialog` builds "organize your {items / TV shows / restaurants /
+places}" from a local if/else chain that predates the todo-P registry. It
+never gained a `game` branch, so the Gaming category falls through to the
+generic "items". Custom tabs do too.
+
+`getContentTypeName(contentType, true, customTabs)` in `contentHelpers.ts`
+already returns exactly this and handles all of it — the chain is
+duplicated registry logic of the kind P was meant to delete. Swap is ~5
+lines; threading `customTabs` through as a prop is the only real work,
+and App.tsx already passes it to several sibling dialogs.
 
 ### U. ~~Surface "Supabase is not configured" instead of failing silently~~ ✅ (a) done 2026-08-17 / (b) still open
 On 2026-08-17 a rebuilt Codespace had no `.env` (gitignored, so it doesn't

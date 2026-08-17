@@ -36,6 +36,8 @@ We never pinned down what threw on that specific second attempt — the network 
 - `AddTabDialog.handleSubmit` wraps the `await` in `try/catch/finally`: `finally` always clears `isSaving`, and `catch` toasts the thrown error instead of swallowing it.
 - `useCustomTabs.addCustomTab` guards `!data` explicitly rather than letting `data.id` throw.
 
+**Follow-up (same day):** `AddSectionDialog` / `addCustomSection` had the identical pair of flaws one level down — fire-and-forget submit, and a `temp-…` fallback id on failure that left `activeSection` pointing at a subcategory that was never created. Fixed to the same contract (todo V). Worth noting the pattern: **when you fix a bug in one half of a symmetrical pair, check the other half the same day.** Todo J fixed tabs in June and left sections untouched for two months, holding a live bug the whole time.
+
 **Lesson:**
 - **A value that round-trips to the database isn't "wired up" until something renders it.** The insert worked, the select worked, the type had the field — everything looked done, and the feature was still visibly broken. Trace the value all the way to the pixel.
 - **You can't persist a component, only a key.** Any time an enum-ish choice is stored as a string, there's a lookup that has to exist somewhere. Put it next to the list of options, exported, once — not privately inside the picker that happens to have been written first.

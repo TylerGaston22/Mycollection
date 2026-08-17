@@ -119,9 +119,11 @@ export default function App() {
     return true;
   };
 
-  const handleAddCustomSection = async (section: Omit<CustomSection, 'id'>) => {
+  const handleAddCustomSection = async (section: Omit<CustomSection, 'id'>): Promise<boolean> => {
     const newSection = await addSection(section);
+    if (!newSection) return false;
     setActiveSection(newSection.id);
+    return true;
   };
 
   // Cascade-delete: remove the tab, its items, and its sections, then fall back to 'item'

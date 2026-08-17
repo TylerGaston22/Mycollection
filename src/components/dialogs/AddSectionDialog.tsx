@@ -1,9 +1,14 @@
 /**
  * AddSectionDialog – modal form for creating a new subcategory.
  * Accepts a content type and delegates the new section back to the
- * parent via the onAdd callback. Resets its form state on submission.
+ * parent via the onAdd callback.
+ *
+ * Awaits onAdd and only closes/resets on success, so a failed insert
+ * leaves the dialog open with the typed name intact instead of
+ * silently vanishing. Same contract AddTabDialog uses (todo J/V).
  */
 import { useState } from 'react';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -22,13 +27,17 @@ import { ThemeConfig } from "../../utils/themeConfig";
 interface AddSectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdd: (section: Omit<CustomSection, 'id'>) => void;
+  /** Resolves to true on a successful insert; false (or undefined for
+   *  back-compat) keeps the dialog open so the user sees the failure
+   *  toast and can retry without retyping. */
+  onAdd: (section: Omit<CustomSection, 'id'>) => Promise<boolean> | void;
   contentType: string;
   currentTheme?: ThemeConfig;
 }
 
 export function AddSectionDialog({ open, onOpenChange, onAdd, contentType, currentTheme }: AddSectionDialogProps) {
   const [subcategoryName, setSubcategoryName] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   let contentTypePluralName;
   if (contentType === 'item') {
@@ -43,19 +52,44 @@ export function AddSectionDialog({ open, onOpenChange, onAdd, contentType, curre
     contentTypePluralName = 'items';
   }
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!subcategoryName.trim()) return;
 
-    onAdd({
-      name: subcategoryName.trim(),
-      contentType,
-    });
+    // Await onAdd rather than firing and closing: the insert can fail
+    // (RLS gap, network) and the dialog should stay open with the typed
+    // name intact so the user can retry. try/finally so a thrown error
+    // can't strand isSaving at true and freeze the button — see
+    // docs/errors.md for the Add Category version of exactly that.
+    setIsSaving(true);
+    let result: boolean | void;
+    try {
+      result = await onAdd({
+        name: subcategoryName.trim(),
+        contentType,
+      });
+    } catch (error) {
+      let description = 'Something went wrong. Please try again.';
+      if (error instanceof Error) description = error.message;
+      toast.error('Failed to create subcategory', { description });
+      return;
+    } finally {
+      setIsSaving(false);
+    }
+
+    // Treat undefined as legacy "success"; false explicitly means failure.
+    if (result === false) return;
 
     // Reset form
     setSubcategoryName('');
     onOpenChange(false);
   };
+
+  // if/else over a ternary, even inline in JSX (coding-standards §6).
+  let submitLabel = 'Create Subcategory';
+  if (isSaving) {
+    submitLabel = 'Creating…';
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -94,10 +128,10 @@ export function AddSectionDialog({ open, onOpenChange, onAdd, contentType, curre
             </Button>
             <ThemePrimaryButton
               type="submit"
-              disabled={!subcategoryName.trim()}
+              disabled={!subcategoryName.trim() || isSaving}
               currentTheme={currentTheme}
             >
-              Create Subcategory
+              {submitLabel}
             </ThemePrimaryButton>
           </DialogFooter>
         </form>

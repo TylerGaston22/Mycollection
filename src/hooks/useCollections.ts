@@ -140,7 +140,14 @@ export function useCustomSections(currentUserId: string, isDemoUser: boolean) {
 
   useDemoSync(storageKey, customSections, isDemoUser);
 
-  const addCustomSection = async (section: Omit<CustomSection, 'id'>): Promise<CustomSection> => {
+  /**
+   * Insert a new custom section. Returns the created CustomSection on
+   * success or null on failure — the same contract addCustomTab adopted
+   * in todo J, and for the same reason: this used to return a fake
+   * section with a `temp-…` id when the insert failed, so App.tsx would
+   * `setActiveSection` to a subcategory that didn't exist anywhere.
+   */
+  const addCustomSection = async (section: Omit<CustomSection, 'id'>): Promise<CustomSection | null> => {
     if (isDemoUser) {
       const newSection: CustomSection = { ...section, id: `section-${Date.now()}` };
       setCustomSections((prev) => [...prev, newSection]);
@@ -154,8 +161,16 @@ export function useCustomSections(currentUserId: string, isDemoUser: boolean) {
       .single();
 
     if (handleSupabaseError('Failed to create section', error)) {
-      const fallback: CustomSection = { ...section, id: `temp-${Date.now()}` };
-      return fallback;
+      return null;
+    }
+
+    // Guard the null row rather than letting data.id throw out of the
+    // caller's await — that shape is what froze Add Category's button.
+    if (!data) {
+      handleSupabaseError('Failed to create section', {
+        message: 'The server did not return the new subcategory.',
+      });
+      return null;
     }
 
     const newSection: CustomSection = { id: data.id, name: data.name, contentType: data.content_type };
