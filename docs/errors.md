@@ -4,6 +4,28 @@ Running list of non-obvious bugs we ran into while building, with root cause + f
 
 ---
 
+## A missing `.env` makes finished features look deleted
+
+**Symptom:** In a freshly rebuilt Codespace, "Add Category" (and by extension "Add Subcategory") appeared to have been removed. Click the button, fill in a name, submit — the dialog closes and **no category appears**. Nothing in the UI says why. The natural conclusion was that the feature had been reverted at some point and needed re-implementing.
+
+It hadn't. Every layer was intact and had been since todo J was closed on 2026-06-06: the Sidebar button, `SubCategoryNav`'s "Add Subcategory", both mobile entry points, `AddTabDialog` / `AddSectionDialog`, `useCustomTabs` / `useCustomSections`, and the `custom_tabs` / `custom_sections` tables with all four RLS policies. `npm run typecheck` was clean and 120 tests passed.
+
+**Root cause:** There was no `.env`. It's gitignored (correctly — it holds Supabase credentials), so it did not survive the Codespace rebuild; only `.env.example` is in the repo.
+
+Without `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`, `src/lib/supabase.ts` builds a client against empty strings. Every write fails. In `useCustomTabs.addCustomTab` the failure is caught by `handleSupabaseError`, which returns `true`, so `addCustomTab` returns `null`. App.tsx then — *correctly*, this is the todo-J fix working as designed — declines to `setContentType` to a category that doesn't exist. The result is a well-behaved no-op that is visually indistinguishable from a missing feature.
+
+The one visible thread was the test suite: `uploadAvatar.test.ts` failed with `Error: supabaseUrl is required.` while every other suite passed.
+
+**Fix:** `cp .env.example .env` and fill in the project URL and the publishable/anon key from the Supabase dashboard (Settings → API). No code change — there was never a code bug.
+
+**Lesson:**
+- **Check the environment before you read the code.** When a Supabase-backed write silently does nothing, `ls .env` is a two-second check that should come first. We spent a session reading a fully-working feature.
+- **Test as the demo user to bisect this instantly.** Demo paths (`isDemoUser`) use localStorage and never touch Supabase. If a feature works in demo but not signed-in, it's credentials or RLS — not the feature.
+- **Swallowing an error and returning `null` is correct, but it's not enough.** The J fix deliberately stopped fabricating a fake `temp-…` tab, which was right. But the user still gets no feedback distinguishing "the server rejected this" from "nothing happened". A toast on the `null` path — or better, a startup check that surfaces "Supabase is not configured" once, loudly — would have made this self-diagnosing. Worth doing; see todo U.
+- **Gitignored files are a rebuild hazard, not just a secrets concern.** Anything not in the repo is gone when the Codespace is rebuilt. `.env` is the one that bites, because its absence degrades silently rather than crashing.
+
+---
+
 ## First "Add" attempt silently fails; the second one works
 
 **Symptom:** Open the Add Item dialog, type a title, click Add → dialog closes (or stays open) but **no item appears in the list**. Reopen the dialog, type the same title again, click Add → works fine.

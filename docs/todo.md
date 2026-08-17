@@ -74,6 +74,31 @@ mixed-status entries (a few favourites). Wired into `mockItems` via
 `src/demo/index.ts` so Try Demo now lands with a populated Gaming
 tab matching the shape of Movies/TV/Restaurants/Places.
 
+### U. Surface "Supabase is not configured" instead of failing silently
+On 2026-08-17 a rebuilt Codespace had no `.env` (gitignored, so it doesn't
+survive a rebuild). Every Supabase write failed, `handleSupabaseError`
+swallowed it, `addCustomTab` returned `null`, and App.tsx correctly
+declined to switch to a category that was never created. Net effect: "Add
+Category" looked like a deleted feature. Cost a session of reading
+perfectly good code. Full writeup in `docs/errors.md`.
+
+The J fix (don't fabricate a `temp-…` tab on failure) is right and should
+stay. The gap is that the user gets no signal distinguishing "the server
+rejected this" from "nothing happened".
+
+Two layers, either or both:
+- (a) **Startup check.** `src/lib/supabase.ts` already knows when
+  `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` are missing — it falls
+  back to `''`. Surface that once, loudly (a persistent banner, not a
+  toast) rather than letting it degrade quietly. Cheapest fix, catches
+  the whole class at once.
+- (b) **Per-action feedback.** Toast on the `null` return path in
+  `addCustomTab` so a failed create says so. Narrower, but also covers
+  real RLS/network failures on a properly configured install.
+
+Prefer (a) first — it's a handful of lines and would have made this
+self-diagnosing.
+
 ### R. Per-custom-category column / field configuration
 Custom tabs created via "Add Category" inherit the FALLBACK_REGISTRY_ENTRY behaviour from `contentHelpers.ts` — title, year, posterUrl, notes, status, favourite. No Genre / Studio / Platform UI surfaces for them (they default to `isMedia: false`). That's a sensible default, but users have no way to opt in if their custom category SHOULD have those fields (e.g. a "Board Games" custom tab probably wants Platform = "Player count" or similar).
 
