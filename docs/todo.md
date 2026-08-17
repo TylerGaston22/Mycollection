@@ -74,10 +74,79 @@ mixed-status entries (a few favourites). Wired into `mockItems` via
 `src/demo/index.ts` so Try Demo now lands with a populated Gaming
 tab matching the shape of Movies/TV/Restaurants/Places.
 
-### X. Let an account sign in with EITHER its email or its username
+### Y. Let username-only accounts change their username
+Requested 2026-08-17 alongside X. Today `handleUpdateProfile` blocks the
+change outright for synthetic-email accounts, with good reason: for those
+users the username IS the auth identity — they sign in via
+`<username>@no-email.mycollection.local`. Renaming the profile row alone
+would lock them out, since the auth email would still hold the old name.
+
+So the change has to move both, together:
+1. `supabase.auth.updateUser({ email: usernameToSyntheticEmail(next) })`
+2. `profiles.username = next`
+
+**The blocker:** an email change normally requires the user to click a
+confirmation link, and the synthetic domain is deliberately unroutable —
+there is no mailbox, so the link can never arrive. Changing it without
+confirmation needs the admin API, which means routing this through an
+Edge Function the way sign-in now is (`supabase/functions/signin`). Likely
+a sibling `change-username` function that verifies the caller's JWT,
+checks availability, then updates auth email + profile as one unit.
+
+Order matters: update the auth email FIRST and only write the profile if
+that succeeded. The reverse leaves a profile claiming a username the
+account can't actually sign in with.
+
+**On "two people can't share a username or email" — already true, keep it
+that way:**
+- **Username:** `profiles_username_lower_unique` in
+  `username_constraints.sql` is a case-insensitive unique index over
+  non-empty usernames. Enforced by the database, not by app code.
+- **Email:** Supabase Auth enforces uniqueness on `auth.users.email`
+  itself.
+- These compose usefully here: because a username-only account's email is
+  derived from its username, a rename that collides fails the auth-email
+  uniqueness check *before* the profile is touched.
+- Don't add an app-level "is it taken?" check and treat it as the
+  guarantee — that's a read-then-write race. Let the constraint be the
+  arbiter and translate its error into a friendly message, which is what
+  `handleSignUp` already does with its `duplicate|unique|already` regex.
+
+Email accounts can already rename freely (todo Q) — their auth identity
+is their real email and doesn't move.
+
+### X. ~~Let an account sign in with EITHER its email or its username~~ ✅ Done 2026-08-17 (needs deploy)
 **Reported 2026-08-17.** An account created with a real email can sign in
 with that email but not with its username — the username just fails. Want:
 either identifier works, for any account.
+
+**Shipped — but dormant until the Edge Function is deployed and the SQL is
+run. See "Deploying todo X" in `docs/service-config.md`.**
+
+Built the safe option (explicitly chosen over the cheaper one):
+- `supabase/functions/signin/index.ts` — resolves the identifier AND
+  performs the sign-in server-side using the service-role key, returning a
+  session. The username → email mapping never reaches the browser. Every
+  failure path returns one identical message and status, so the response
+  can't be used to tell "no such user" from "wrong password".
+- `supabase/username_signin.sql` — backfills a username for existing email
+  accounts (only where the candidate is valid, unreserved, unambiguous and
+  unclaimed) and updates `handle_new_user` so new email signups claim one
+  at creation, inside the same transaction as the unique index.
+- `src/auth/signInWithUsername.ts` — invokes the function and installs the
+  returned session. Returns a bare boolean, never a reason.
+- `useAuth.handleSignIn` tries the existing direct path FIRST, so
+  username-only accounts keep working with no dependency on the function
+  being deployed, and only falls back for the case that used to fail.
+
+8 tests. Not verified end-to-end — that needs the function deployed.
+
+**Still open from the original writeup:** nothing blocking, but note the
+backfill deliberately skips users whose email local-part is taken,
+reserved, or collides with another account's in the same batch. Those
+accounts keep signing in by email and have no username until they set one
+in Settings. There's no UI telling them that — worth a look if anyone
+lands in that state.
 
 **Why it fails — two separate causes, both need fixing.**
 

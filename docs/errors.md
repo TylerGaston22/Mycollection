@@ -4,6 +4,25 @@ Running list of non-obvious bugs we ran into while building, with root cause + f
 
 ---
 
+## Settings showed me a username I didn't actually have
+
+**Symptom:** Settings → Account displays **Username: stilusnex**, with a Save button and helper text saying it's what shows as `@stilusnex`. Signing in with `stilusnex` fails anyway. Everything on screen says the username exists; auth disagrees.
+
+**Root cause:** `loadProfile` line 43 is `username: data.username || localPart`. That `||` is a display fallback — when `profiles.username` is empty it substitutes the local part of the email address. For `stilusnex@gmail.com` that produces exactly the string the user expected to see, so a **stored value and a derived placeholder are visually identical**.
+
+And the value genuinely was empty, on purpose. `handleSignUp` sets `storedUsername = ''` for email signups, with a comment explaining it avoids unique-constraint collisions with username-only accounts that already own that local-part. So the field was correct, the fallback was correct, and the screen was still lying — it rendered a suggestion as though it were a fact.
+
+Worth noting how close this came to being mis-diagnosed. From the code alone the conclusion was "email accounts have no username, so there's nothing to sign in with" — right. From the screenshot alone it was "the username is right there, so sign-in must be broken" — also reasonable, and wrong. Neither source was sufficient; the `||` was only visible by reading `loadProfile`.
+
+**Fix:** structural, in todo X — backfill real usernames for email accounts and claim one at signup, so the field means what it shows.
+
+**Lesson:**
+- **A fallback that's indistinguishable from the real value is a lie with extra steps.** `data.username || localPart` is a fine default for a display name. It is not fine behind an editable field with a Save button, where the user reads it as current state. Either render the placeholder differently (greyed, "not set", `placeholder=` rather than `value=`) or don't render it at all.
+- **A screenshot can disprove a code-derived conclusion, and vice versa.** When they conflict, the disagreement is the finding — don't discard either side.
+- **`||` for defaults hides emptiness; `??` at least narrows it to null/undefined.** Neither is a substitute for asking whether the caller needs to know the value was absent.
+
+---
+
 ## Custom category ignored the icon I picked, and the next one hung on "Creating…"
 
 **Symptom:** Two things, reported together after creating custom categories for the first time on a working `.env`:

@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { supabase } from '../lib/supabase';
 import { mockUsers, DEMO_USER_ID, DEMO_CREDENTIALS } from '../demo';
-import { isSyntheticEmail, isValidEmailFormat, loadProfile, resolveSignInEmail, usernameToSyntheticEmail, validateUsername } from '../auth';
+import { isSyntheticEmail, isValidEmailFormat, loadProfile, resolveSignInEmail, signInWithUsername, usernameToSyntheticEmail, validateUsername } from '../auth';
 import { handleSupabaseError } from '../utils/toastError';
 import { User } from '../types';
 
@@ -92,13 +92,43 @@ export function useAuth() {
     }
 
     // Real Supabase sign-in — accepts either an email or a bare username.
-    // Username inputs get mapped to their synthetic email address.
-    const { error } = await supabase.auth.signInWithPassword({
-      email: resolveSignInEmail(emailOrUsername),
+    //
+    // Two-step on purpose (todo X). resolveSignInEmail can only map a bare
+    // username to its SYNTHETIC address, which is the real auth identifier
+    // for username-only accounts but meaningless for accounts that signed
+    // up with a real email. Resolving those needs a lookup the browser
+    // must not be able to perform — see supabase/functions/signin.
+    //
+    // Order matters: the direct attempt runs first so username-only
+    // accounts keep working exactly as before, with no dependency on the
+    // Edge Function being deployed. Only when that fails do we fall back.
+    const directEmail = resolveSignInEmail(emailOrUsername);
+    const { error: directError } = await supabase.auth.signInWithPassword({
+      email: directEmail,
       password,
     });
 
-    if (handleSupabaseError('Sign in failed', error)) return;
+    if (!directError) {
+      toast.success('Signed in successfully!');
+      return;
+    }
+
+    // An input containing '@' was already a real email, so there's nothing
+    // left to resolve — report the original failure rather than making a
+    // pointless round trip.
+    if (emailOrUsername.includes('@')) {
+      handleSupabaseError('Sign in failed', directError);
+      return;
+    }
+
+    const resolvedViaFunction = await signInWithUsername(emailOrUsername, password);
+    if (!resolvedViaFunction) {
+      // Deliberately the generic message. Saying "no account with that
+      // username" here would rebuild the enumeration oracle the Edge
+      // Function exists to prevent.
+      toast.error('Sign in failed', { description: 'Invalid login credentials' });
+      return;
+    }
 
     // Leave showSignInPage=true so App.tsx keeps the SignInPage mounted
     // with the spinner running until data hydration completes. App.tsx

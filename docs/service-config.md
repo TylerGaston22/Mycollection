@@ -107,6 +107,41 @@ Most of what's on this page only applies to **serverless functions** (Vercel's b
 - Run arbitrary SQL as the `postgres` role (bypasses RLS). This is how we ship schema migrations (`supabase/*.sql` files).
 - **Saved queries** — name and save common queries for reuse.
 
+### Edge Functions
+- Deno functions running on Supabase's infrastructure. We use them for work
+  that needs the **service-role key**, which must never reach the browser.
+- `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are
+  injected automatically — don't add them as secrets by hand.
+- Not covered by `npm run typecheck`: `tsconfig.json`'s `include` is scoped
+  to `src/**` + `vite.config.ts`, so `supabase/functions/**` is skipped. It
+  has to be, since that code targets Deno (`Deno.serve`, `jsr:` imports)
+  and would fail a browser-targeted compile. Nothing in CI type-checks
+  those files — read them carefully.
+
+#### Deploying todo X (sign in with email OR username)
+The code is committed but **inert until both steps below are done.** Until
+then, username sign-in keeps failing exactly as it does today; nothing
+regresses, and email sign-in is unaffected.
+
+1. **Run the SQL.** Dashboard → SQL Editor → paste `supabase/username_signin.sql`
+   → Run. Prerequisite: `supabase/username_constraints.sql` must already be
+   applied (it creates the unique index this relies on). Re-runnable.
+   The verify query at the bottom of the file shows who got a username and
+   who was skipped.
+2. **Deploy the function.** Needs the Supabase CLI, which is **not**
+   installed in the Codespace:
+   ```bash
+   npm i -g supabase
+   supabase login                      # opens a browser for an access token
+   supabase link --project-ref nhwvqzffkeaiuvivukqg
+   supabase functions deploy signin
+   ```
+   Verify from the dashboard: Edge Functions → `signin` → Logs. A sign-in
+   attempt with a username should appear there.
+
+Order doesn't matter between the two, but both are required: the function
+resolves usernames the SQL is responsible for creating.
+
 ### Storage
 - File buckets with their own RLS-like policies. We don't use this yet but will when implementing profile-picture upload (todo E).
 - **Public buckets** — files served via a public URL, no auth required to read. Good for avatars, logos.
