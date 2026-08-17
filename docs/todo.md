@@ -74,6 +74,62 @@ mixed-status entries (a few favourites). Wired into `mockItems` via
 `src/demo/index.ts` so Try Demo now lands with a populated Gaming
 tab matching the shape of Movies/TV/Restaurants/Places.
 
+### X. Let an account sign in with EITHER its email or its username
+**Reported 2026-08-17.** An account created with a real email can sign in
+with that email but not with its username — the username just fails. Want:
+either identifier works, for any account.
+
+**Why it fails — two separate causes, both need fixing.**
+
+**1. Email signups never get a username at all.** `handleSignUp` in
+`useAuth.ts` sets `storedUsername = ''` for `mode === 'email'`, on purpose:
+
+> Email signups don't get a username — they identify by email, and
+> loadProfile falls back to the email's local-part for display. (Avoids
+> unique-constraint collisions when an unrelated username-only user
+> already owns the same local-part string.)
+
+So `profiles.username` is empty for these accounts. The username the user
+*thinks* they have is just the local-part of their email, derived for
+display only. There is nothing to sign in with.
+
+**2. Sign-in can't map a real username to a real email anyway.**
+`resolveSignInEmail` is a pure string heuristic: contains `@` → pass
+through as an email; otherwise → `<input>@no-email.mycollection.local`.
+That synthetic mapping only works for username-only accounts, whose auth
+email genuinely IS that synthetic address. For an email account there's no
+way to get from "someuser" to "someuser@example.com" without a database
+lookup — and `profiles` doesn't store the email (it lives in `auth.users`),
+and RLS blocks reading another user's row before you're authenticated.
+
+**What the fix needs:**
+- Backfill / start storing a real `username` for email accounts. Needs a
+  collision story, since that's exactly what the current code sidesteps —
+  probably "claim the local-part if free, otherwise prompt".
+- A way to resolve username → auth email *before* the user is signed in.
+  Realistically a `SECURITY DEFINER` Postgres function
+  (`public.email_for_username(text)`), since RLS can't allow this from the
+  client directly.
+- `resolveSignInEmail` becomes async: try the synthetic mapping, fall back
+  to the RPC, then hand the result to `signInWithPassword`.
+
+**Security tradeoff to decide before building:** any username → email
+resolver is a user-enumeration and email-disclosure vector — anyone can
+probe usernames and harvest the addresses behind them. Options: return
+only a boolean and do the sign-in server-side in an edge function (safest,
+most work); rate-limit the RPC; or accept the disclosure for a small
+personal app. **Pick this deliberately — don't let it get decided by
+whichever implementation is easiest.**
+
+**Existing accounts:** whatever we choose has to handle accounts created
+under the old rules, which have `username = ''` today. A backfill
+migration, or claim-on-next-sign-in.
+
+Note the mirror-image caveat already documented in `handleUpdateProfile`:
+username-only accounts can't rename their username, because the username
+*is* their auth identity via the synthetic email. Fixing X shouldn't
+quietly break that.
+
 ### W. ~~Hide the per-category Tab Backgrounds pickers~~ ✅ Done 2026-08-17
 The preset themes (Ghibli, Coffee, Purple Dream, Ocean Blue, …) already
 give users a decent range to try, and layering per-category background
