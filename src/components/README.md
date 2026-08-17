@@ -14,6 +14,7 @@ All React components for the app. Organized into three groups: app-level compone
 | File | Purpose |
 |------|---------|
 | `SidebarLayout.tsx` | Main app shell — fixed left sidebar with category navigation, subcategories, and user actions; right main content area with header and item grid/list |
+| `SupabaseConfigBanner.tsx` | Fixed red top banner shown when the Supabase env vars are missing. Renders `null` when configured, so App mounts it unconditionally. Non-dismissible by design — an unconfigured app silently no-ops every write |
 | `LandingPage.tsx` | Welcome screen shown on every page load before the user signs in |
 | `SignInPage.tsx` | Sign-in form (username + password). Currently accepts any input and signs the user in |
 

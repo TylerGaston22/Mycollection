@@ -10,6 +10,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useTheme } from "next-themes";
 import { SidebarLayout } from "./components/layout/SidebarLayout";
+import { SupabaseConfigBanner } from "./components/layout/SupabaseConfigBanner";
 import { LandingPage } from "./pages/LandingPage";
 import { SignInPage } from "./pages/SignInPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
@@ -408,6 +409,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Renders null unless the Supabase env vars are missing. Mounted
+          outside the auth gate so it shows on the landing / sign-in pages
+          too — that's exactly when a broken .env first bites. */}
+      <SupabaseConfigBanner />
+
       {/* Light-mode-only decorative background: Ghibli image + theme gradient.
           In dark mode, we let bg-background show through for a flat, clean look. */}
       {showDecorativeOverlays && !isDark && !isCoffeeActive && (

@@ -74,7 +74,7 @@ mixed-status entries (a few favourites). Wired into `mockItems` via
 `src/demo/index.ts` so Try Demo now lands with a populated Gaming
 tab matching the shape of Movies/TV/Restaurants/Places.
 
-### U. Surface "Supabase is not configured" instead of failing silently
+### U. ~~Surface "Supabase is not configured" instead of failing silently~~ ✅ (a) done 2026-08-17 / (b) still open
 On 2026-08-17 a rebuilt Codespace had no `.env` (gitignored, so it doesn't
 survive a rebuild). Every Supabase write failed, `handleSupabaseError`
 swallowed it, `addCustomTab` returned `null`, and App.tsx correctly
@@ -82,22 +82,36 @@ declined to switch to a category that was never created. Net effect: "Add
 Category" looked like a deleted feature. Cost a session of reading
 perfectly good code. Full writeup in `docs/errors.md`.
 
-The J fix (don't fabricate a `temp-…` tab on failure) is right and should
-stay. The gap is that the user gets no signal distinguishing "the server
+The J fix (don't fabricate a `temp-…` tab on failure) is right and stays.
+The gap was that the user got no signal distinguishing "the server
 rejected this" from "nothing happened".
 
-Two layers, either or both:
-- (a) **Startup check.** `src/lib/supabase.ts` already knows when
-  `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` are missing — it falls
-  back to `''`. Surface that once, loudly (a persistent banner, not a
-  toast) rather than letting it degrade quietly. Cheapest fix, catches
-  the whole class at once.
-- (b) **Per-action feedback.** Toast on the `null` return path in
-  `addCustomTab` so a failed create says so. Narrower, but also covers
-  real RLS/network failures on a properly configured install.
+**(a) Startup check — done.**
+- `src/utils/supabaseConfig.ts` (new): pure `findMissingEnvVars(env)`
+  returning the names of any required var that's absent, empty, or
+  whitespace-only. Whitespace counts as missing so a `.env` copied from
+  `.env.example` and left unfilled is caught too. Lives in `utils/`
+  rather than `lib/` so it's unit-testable without importing
+  `lib/supabase.ts`, which calls `createClient()` at import time.
+- `src/lib/supabase.ts`: exports `missingSupabaseEnvVars` and
+  `isSupabaseConfigured` alongside the existing `console.warn`.
+- `src/components/layout/SupabaseConfigBanner.tsx` (new): fixed red
+  top banner naming the missing vars and the fix. `z-50` clears the
+  sidebar's `z-40`. Returns `null` when configured. Deliberately
+  **non-dismissible** — this is a broken install, not a notice.
+- Mounted in App.tsx *outside* the auth gate so it shows on the landing
+  and sign-in pages, which is when a broken `.env` first bites.
+- 6 tests in `src/utils/supabaseConfig.test.ts`.
 
-Prefer (a) first — it's a handful of lines and would have made this
-self-diagnosing.
+Not visually verified in a browser — the repo has no DOM test env or
+headless driver, so the *logic* is covered by unit tests but the rendered
+banner hasn't been eyeballed. Worth a look next time the app is running
+with `.env` renamed.
+
+**(b) Per-action feedback — still open.** Toast on the `null` return path
+in `addCustomTab` so a failed create says so. Narrower than (a) but also
+covers real RLS / network failures on a properly configured install,
+which (a) can't see.
 
 ### R. Per-custom-category column / field configuration
 Custom tabs created via "Add Category" inherit the FALLBACK_REGISTRY_ENTRY behaviour from `contentHelpers.ts` — title, year, posterUrl, notes, status, favourite. No Genre / Studio / Platform UI surfaces for them (they default to `isMedia: false`). That's a sensible default, but users have no way to opt in if their custom category SHOULD have those fields (e.g. a "Board Games" custom tab probably wants Platform = "Player count" or similar).

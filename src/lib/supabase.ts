@@ -4,12 +4,31 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { findMissingEnvVars } from '../utils/supabaseConfig';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase credentials missing – real auth and persistence will not work.');
+/**
+ * Required env vars that are absent or empty. Empty array = configured.
+ *
+ * Exported so the UI can say so at startup. Without a visible signal, a
+ * missing .env is indistinguishable from a deleted feature: every write
+ * fails, handleSupabaseError swallows it, and the calling hook returns
+ * null, so the app just… does nothing. See docs/errors.md ("A missing
+ * .env makes finished features look deleted").
+ */
+export const missingSupabaseEnvVars = findMissingEnvVars({
+  VITE_SUPABASE_URL: supabaseUrl,
+  VITE_SUPABASE_ANON_KEY: supabaseAnonKey,
+});
+
+export const isSupabaseConfigured = missingSupabaseEnvVars.length === 0;
+
+if (!isSupabaseConfigured) {
+  console.warn(
+    `Supabase credentials missing (${missingSupabaseEnvVars.join(', ')}) – real auth and persistence will not work.`,
+  );
 }
 
 export const supabase = createClient(
