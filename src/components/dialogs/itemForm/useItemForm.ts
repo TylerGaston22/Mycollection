@@ -3,8 +3,8 @@
  *
  * Manages:
  *   - one piece of state per editable field (title, year, posterUrl,
- *     status, notes, platform, studio, genre, seasons, episodes,
- *     selectedSections),
+ *     status, notes, noteImages, platform, studio, genre, seasons,
+ *     episodes, selectedSections),
  *   - a `tmdbResetCount` that bumps each time the dialog opens so the
  *     TMDB autocomplete clears its in-memory results,
  *   - populate-on-open: edit mode hydrates from the existing item,
@@ -67,6 +67,9 @@ export interface ItemFormState {
   setStatus: (value: ItemStatus) => void;
   notes: string;
   setNotes: (value: string) => void;
+  /** URLs of screenshots pasted into the notes field. */
+  noteImages: string[];
+  setNoteImages: (value: string[]) => void;
   platform: string;
   setPlatform: (value: string) => void;
   studio: string;
@@ -101,6 +104,7 @@ export function useItemForm({
   const [posterUrl, setPosterUrl] = useState("");
   const [status, setStatus] = useState<ItemStatus>("watched");
   const [notes, setNotes] = useState("");
+  const [noteImages, setNoteImages] = useState<string[]>([]);
   const [platform, setPlatform] = useState("");
   const [studio, setStudio] = useState("");
   const [genre, setGenre] = useState("");
@@ -141,6 +145,7 @@ export function useItemForm({
       setPosterUrl(item.posterUrl || "");
       setStatus(item.status);
       setNotes(item.notes || "");
+      setNoteImages(item.noteImages || []);
       setPlatform(item.platform || "");
       setStudio(item.studio || "");
       setGenre(item.genre || "");
@@ -160,6 +165,7 @@ export function useItemForm({
     setPosterUrl("");
     setStatus(defaultStatusForActiveSection(liveActiveSection));
     setNotes("");
+    setNoteImages([]);
     setPlatform("");
     setStudio("");
     setGenre("");
@@ -204,6 +210,10 @@ export function useItemForm({
       posterUrl: sanitizeImageUrl(posterUrl.trim()),
       status,
       notes: notes.trim() || undefined,
+      // Always sent, even when empty — the item may have had images
+      // that the user just removed, and an omitted field wouldn't clear
+      // them (itemToRow only writes the keys that are present).
+      noteImages,
       platform: platform.trim() || undefined,
       studio: studio.trim() || undefined,
       genre: genre.trim() || undefined,
@@ -242,6 +252,8 @@ export function useItemForm({
     setStatus,
     notes,
     setNotes,
+    noteImages,
+    setNoteImages,
     platform,
     setPlatform,
     studio,

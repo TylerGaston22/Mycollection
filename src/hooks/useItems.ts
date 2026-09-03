@@ -24,6 +24,7 @@ function rowToItem(row: Record<string, unknown>): Item {
     rating: (row.rating as number) || undefined,
     favorite: row.favorite as boolean,
     notes: (row.notes as string) || undefined,
+    noteImages: (row.note_images as string[]) || undefined,
     platform: (row.platform as string) || undefined,
     studio: (row.studio as string) || undefined,
     genre: (row.genre as string) || undefined,
@@ -44,6 +45,7 @@ function itemToRow(item: Partial<Item> & { type?: string }, userId: string): Rec
   if (item.rating !== undefined) row.rating = item.rating || null;
   if (item.favorite !== undefined) row.favorite = item.favorite;
   if (item.notes !== undefined) row.notes = item.notes || null;
+  if (item.noteImages !== undefined) row.note_images = item.noteImages || [];
   if (item.platform !== undefined) row.platform = item.platform || null;
   if (item.studio !== undefined) row.studio = item.studio || null;
   if (item.genre !== undefined) row.genre = item.genre || null;

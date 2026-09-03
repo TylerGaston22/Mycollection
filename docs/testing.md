@@ -4,6 +4,44 @@ A running checklist of things to manually verify, plus known edge cases. Updated
 
 ---
 
+## 🖼 Note screenshots (just shipped)
+
+### Setup
+- [x] `supabase/note_images.sql` has been run in the SQL Editor (✓ done 2026-09-03). Verify: Storage → a `note-images` bucket exists and is public; Database → `collection_items` has a `note_images` column.
+
+### Happy path — Add/Edit dialog
+- [ ] Take a screenshot, open **Add Item**, click into **Notes**, press Cmd/Ctrl+V → a spinner tile appears, then a thumbnail. No filename text gets inserted into the note.
+- [ ] Save the item → reopen it via **Edit** → the thumbnail is still there.
+- [ ] Open the item's **detail dialog** → the screenshot shows under Notes; click it → opens large; Esc closes the lightbox but leaves the detail dialog open.
+- [ ] Grid card and list row show the small image-count badge.
+
+### Happy path — quick edit
+- [ ] Desktop list view: click an item's **Notes** cell → paste a screenshot → **Save** → badge appears on the row.
+- [ ] Mobile: **long-press** a row → same notes editor → paste or **Add image** → Save.
+
+### Other input routes
+- [ ] **Drag and drop** an image file onto the notes textarea → attaches (the textarea shows a focus ring while dragging).
+- [ ] **Add image** button → file picker → attaches. On mobile this is the reliable route; the picker offers the photo library.
+- [ ] Paste **plain text** into notes → inserts as text as usual, nothing uploads.
+- [ ] Copy a region from a web page (text + image together) and paste → the image attaches and the HTML's text is NOT dumped into the note.
+
+### Edge cases
+- [ ] Paste an image **over 5 MB** → toast "Image is too big (X MB). Max 5 MB." and nothing attaches.
+- [ ] Drop a **PDF or .txt** → ignored silently (not an image, so not treated as an attach attempt).
+- [ ] Attach **12 images**, then try a 13th → toast "A note can hold 12 images." and the **Add image** button is disabled.
+- [ ] Paste **several images at once** (multi-select drop) → each gets its own spinner tile, all attach.
+- [ ] Remove an image with its **X**, then **Cancel** the dialog → the image is still on the item (removal only commits on Save).
+- [ ] Remove the **last** image and Save → the item's badge disappears and it stays gone after a refresh (this is the case an omitted field would silently fail).
+- [ ] Add a screenshot to an item with **no typed note** → the detail dialog shows the Notes section with just the image, not "No additional details available."
+- [ ] **Demo user** (`demo` / `demo`) opens Notes → no "Add image" button, no paste hint; typing notes still works normally.
+- [ ] Attach an image, then **export JSON** and re-import it → the image comes back (URLs survive the sanitizer).
+
+### Known tradeoffs (not bugs)
+- Pasting and then cancelling the dialog leaves the uploaded file orphaned in the bucket. Nothing references it. Same tradeoff as avatars — see `supabase/note_images.sql`.
+- Deleting an item does not delete its screenshots from the bucket.
+
+---
+
 ## 🧪 Friend system (just shipped)
 
 ### Setup

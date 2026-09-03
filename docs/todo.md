@@ -15,6 +15,27 @@ Sign-up + sign-in + adding items + persistence across sign-out all verified. Ema
 ### 3. ~~`npm audit fix`~~ ✅ Done 2026-05-14
 Cleared all 4 vulnerabilities (postcss XSS, ws memory disclosure, 5 vite dev-server CVEs). Required a minor-version bump of vite from 6.3.5 → 6.4.2. Build verified clean afterward. `npm audit` now reports 0 vulnerabilities.
 
+### 4. ~~Paste screenshots into an item's notes~~ ✅ Done 2026-09-03 (SQL run)
+`supabase/note_images.sql` has been run — it added the `note_images
+text[]` column on `collection_items` and created the public
+`note-images` bucket plus its four write policies. The feature is live
+for signed-in users; still worth walking the checklist in
+[testing.md](./testing.md#-note-screenshots-just-shipped) to confirm the
+paste / drop / picker routes and the edge cases behave.
+
+Code shipped alongside it:
+- `src/utils/imageUpload.ts` — the shared primitives (MIME allowlist,
+  size-validator factory, clipboard/drop extractor, bucket upload).
+  `uploadAvatar.ts` was refactored onto it and `uploadNoteImage.ts`
+  added; both are now ~40-line wrappers that pin a bucket + a size cap.
+- `src/components/notes/` — `NotesField` (the textarea with paste, drop,
+  and Add image), `NoteImageGallery` (thumbnails + lightbox),
+  `NoteImageCount` (the badge on cards / rows).
+- `src/auth/SessionContext.tsx` — the identity `NotesField` needs for the
+  upload path, since `QuickEditDialog` sits four components below App.
+- `QuickEditDialog.onSave` now emits a `Partial<Item>` instead of a
+  `(field, value)` pair — the notes case writes two fields at once.
+
 ---
 
 ## 🟡 Worth a look soon

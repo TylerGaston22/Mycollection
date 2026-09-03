@@ -67,6 +67,9 @@ create table if not exists public.collection_items (
   rating integer check (rating is null or (rating >= 1 and rating <= 5)),
   favorite boolean not null default false,
   notes text,
+  -- Public URLs of screenshots pasted into the item's notes. The
+  -- storage bucket + its RLS live in note_images.sql — run that too.
+  note_images text[] default '{}',
   platform text,
   studio text,
   genre text,

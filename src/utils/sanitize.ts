@@ -48,6 +48,19 @@ function sanitizeString(value: unknown): string | undefined {
 }
 
 /**
+ * Sanitizes a list of image URLs (an item's pasted note screenshots).
+ * Drops anything that isn't a safe http(s) URL, and returns undefined
+ * for an empty or absent list so the field stays optional.
+ */
+function sanitizeImageUrlList(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const urls = value.filter(
+    (entry): entry is string => typeof entry === 'string' && isValidImageUrl(entry),
+  );
+  return urls.length > 0 ? urls : undefined;
+}
+
+/**
  * Validates and sanitizes a single imported Item object.
  * Returns null if the item is invalid (missing required fields).
  */
@@ -90,6 +103,7 @@ export function validateItem(item: unknown): Item | null {
     studio: sanitizeString(raw.studio),
     genre: sanitizeString(raw.genre),
     notes: sanitizeString(raw.notes),
+    noteImages: sanitizeImageUrlList(raw.noteImages),
     seasons: typeof raw.seasons === 'number' ? Math.floor(raw.seasons) : undefined,
     episodes: typeof raw.episodes === 'number' ? Math.floor(raw.episodes) : undefined,
     sections: Array.isArray(raw.sections) ? raw.sections.filter((s): s is string => typeof s === 'string') : undefined,

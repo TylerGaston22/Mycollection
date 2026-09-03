@@ -1,6 +1,7 @@
 /**
  * ItemDetailDialog – read-only detail view for a collection item.
- * Displays platform, studio, genre, season/episode counts, and notes.
+ * Displays platform, studio, genre, season/episode counts, and notes
+ * (including any screenshots pasted into them).
  * Field labels adapt to the content type (item, TV show, restaurant,
  * or place). An inline "Edit" button opens the ItemFormDialog.
  */
@@ -22,6 +23,7 @@ import { pluralize } from "../../utils/pluralize";
 import { isMediaContentType } from "../../utils/contentHelpers";
 import { Separator } from "../ui/separator";
 import { ItemFormDialog } from "./ItemFormDialog";
+import { NoteImageGallery } from "../notes";
 import { RecommendButton } from "../../recommendations/RecommendButton";
 import type { FriendSummary } from "../../friends/client";
 import type { useRecommendations } from "../../recommendations/useRecommendations";
@@ -58,7 +60,11 @@ export function ItemDetailDialog({
   // restaurants / places / custom types, even if legacy data exists on
   // those rows.
   const isMediaItem = isMediaContentType(item.type);
-  const movieHasAdditionalDetails = item.platform || (isMediaItem && (item.studio || item.genre)) || (item.type === 'tv-show' && (item.seasons || item.episodes)) || item.notes;
+  const hasNoteImages = (item.noteImages?.length ?? 0) > 0;
+  // Screenshots count as details in their own right — an item with only
+  // pasted images and no typed note should still open on the detail
+  // pane rather than the "No additional details" empty state.
+  const movieHasAdditionalDetails = item.platform || (isMediaItem && (item.studio || item.genre)) || (item.type === 'tv-show' && (item.seasons || item.episodes)) || item.notes || hasNoteImages;
 
   let contentTypeHeaderIcon = null;
   if (item.type === 'tv-show') {
@@ -143,15 +149,18 @@ export function ItemDetailDialog({
           </>
         )}
 
-        {/* Notes */}
-        {item.notes && (
+        {/* Notes — the text and any screenshots pasted alongside it. */}
+        {(item.notes || hasNoteImages) && (
           <>
             <Separator />
             <div className="space-y-2">
               <div className="text-muted-foreground">Notes</div>
-              <p className="bg-muted p-3 rounded-lg">
-                {item.notes}
-              </p>
+              {item.notes && (
+                <p className="bg-muted p-3 rounded-lg">
+                  {item.notes}
+                </p>
+              )}
+              <NoteImageGallery images={item.noteImages} itemTitle={item.title} />
             </div>
           </>
         )}

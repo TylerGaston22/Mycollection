@@ -146,7 +146,7 @@ export function MobileMainContent({
       <QuickEditDialog
         item={notesItem}
         field={notesItem ? 'notes' : null}
-        onSave={(itemId, field, value) => onItemUpdate(itemId, { [field]: value })}
+        onSave={onItemUpdate}
         onClose={() => setNotesItem(null)}
       />
     </div>

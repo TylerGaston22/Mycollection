@@ -26,6 +26,7 @@ import { StarRating } from "./StarRating";
 import { StatusBadge } from "./StatusBadge";
 import { StatusToggleMenuContent } from "./StatusToggleMenuContent";
 import type { Item } from "../../types";
+import { NoteImageCount } from "../notes";
 
 const columnHelper = createColumnHelper<Item>();
 
@@ -216,7 +217,10 @@ export function buildListViewColumns(args: BuildColumnsArgs) {
           onClick={() => onOpenQuickEdit(row.original, "notes")}
           className="hover:opacity-70 transition-opacity w-full text-left max-w-[300px] block"
         >
-          <p className="truncate text-page-fg-muted cursor-pointer">{row.original.notes || "-"}</p>
+          <p className="truncate text-page-fg-muted cursor-pointer">
+            {row.original.notes || (row.original.noteImages?.length ? "" : "-")}
+            <NoteImageCount images={row.original.noteImages} className="ml-1 text-page-fg-faint" />
+          </p>
         </button>
       ),
     }),

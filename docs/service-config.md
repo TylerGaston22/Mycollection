@@ -143,9 +143,17 @@ Order doesn't matter between the two, but both are required: the function
 resolves usernames the SQL is responsible for creating.
 
 ### Storage
-- File buckets with their own RLS-like policies. We don't use this yet but will when implementing profile-picture upload (todo E).
-- **Public buckets** — files served via a public URL, no auth required to read. Good for avatars, logos.
+- File buckets with their own RLS-like policies. Two in use, both created by SQL rather than by hand in the dashboard: `avatars` (`supabase/avatars_storage.sql`) and `note-images` (`supabase/note_images.sql`).
+- **Public buckets** — files served via a public URL, no auth required to read. Good for avatars, logos. Both of ours are public-read; *writes* are gated by RLS on `storage.objects`.
 - **Private buckets** — files require a signed URL or an authenticated request. Good for user-private files.
+- **The ownership trick** — objects are stored at `<user_id>/<file>`, and the policies check `auth.uid()::text = (storage.foldername(name))[1]`. The path itself is the ownership record, so no extra table is needed.
+- **Orphans** — nothing garbage-collects an object when the row referencing it is deleted or edited. Both buckets accept that: worst case is a few unreferenced files. Revisit if churn ever gets heavy.
+- **CSP** — the app's `img-src` already allows `https://*.supabase.co`, so a new bucket needs no `index.html` change.
+
+#### Deploying note screenshots (paste an image into an item's notes)
+Run `supabase/note_images.sql` in the SQL Editor. One file, re-runnable, does both halves: adds `note_images text[]` to `collection_items` and creates the `note-images` bucket plus its four policies.
+
+Until it's run, the paste UI still appears for signed-in users but every upload fails with an RLS error toast — the bucket doesn't exist yet. `supabase/schema.sql` also carries the column for fresh installs, but its `create table if not exists` won't add a column to a database that already exists, which is why the `alter table ... add column if not exists` lives in the migration file.
 
 ### Logs / API logs
 - Real-time log of every query against your project, with status code and duration. First place to look when "the app says it failed silently" — usually shows a 403/406 you can trace back to an RLS policy.

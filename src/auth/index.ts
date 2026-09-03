@@ -15,3 +15,5 @@ export type { UsernameValidationResult } from "./username";
 export { AUTH_INPUT_CLASS, AUTH_CARD_CLASS } from "./styles";
 export { loadProfile } from "./loadProfile";
 export { signInWithUsername } from "./signInWithUsername";
+export { SessionProvider, useSession } from "./SessionContext";
+export type { SessionValue } from "./SessionContext";

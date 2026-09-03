@@ -21,7 +21,6 @@ import { Button } from "../ui/button";
 import { ThemePrimaryButton } from "../ui/ThemePrimaryButton";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Textarea } from "../ui/textarea";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Checkbox } from "../ui/checkbox";
 import { Item, CustomSection } from "../../types";
@@ -33,6 +32,7 @@ import {
   isMediaContentType,
 } from "../../utils/contentHelpers";
 import { TmdbSearchableInput } from "../../tmdb";
+import { NotesField } from "../notes";
 import { DEFAULT_CONTENT_TYPE, type ItemStatus } from "../../constants";
 import { useItemForm } from "./itemForm/useItemForm";
 
@@ -226,11 +226,12 @@ export function ItemFormDialog({
 
             <div className="grid gap-2">
               <Label htmlFor="mf-notes">Notes</Label>
-              <Textarea
+              <NotesField
                 id="mf-notes"
-                placeholder="Add your thoughts..."
                 value={form.notes}
-                onChange={(event) => form.setNotes(event.target.value)}
+                onChange={form.setNotes}
+                images={form.noteImages}
+                onImagesChange={form.setNoteImages}
                 rows={3}
               />
             </div>

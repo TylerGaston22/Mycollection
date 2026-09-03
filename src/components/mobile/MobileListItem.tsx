@@ -9,6 +9,7 @@ import { StarRating } from "../item/StarRating";
 import { useItemActions } from "../../hooks/useItemActions";
 import { sanitizeImageUrl } from "../../utils/sanitize";
 import { useLongPress } from "../../hooks/useLongPress";
+import { NoteImageCount } from "../notes";
 
 const ERROR_IMG =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODgiIGhlaWdodD0iODgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBvcGFjaXR5PSIuMyIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIzLjciPjxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiByeD0iNiIvPjxwYXRoIGQ9Im0xNiA1OCAxNi0xOCAzMiAzMiIvPjxjaXJjbGUgY3g9IjUzIiBjeT0iMzUiIHI9IjciLz48L3N2Zz4KCg==';
@@ -94,6 +95,7 @@ export function MobileListItem({ item, onUpdate, onClick, onLongPress }: MobileL
         {item.notes && (
           <p className="text-page-fg-faint text-xs mt-1.5 line-clamp-1">{item.notes}</p>
         )}
+        <NoteImageCount images={item.noteImages} className="text-page-fg-faint text-xs mt-1.5 block" />
       </div>
     </button>
   );

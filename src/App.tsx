@@ -21,6 +21,7 @@ import { ItemDetailDialog } from "./components/dialogs/ItemDetailDialog";
 import { AddTabDialog } from "./components/dialogs/AddTabDialog";
 import { AddSectionDialog } from "./components/dialogs/AddSectionDialog";
 import { ShareDialog } from "./components/dialogs/ShareDialog";
+import { SessionProvider } from "./auth";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -231,8 +232,11 @@ export default function App() {
       );
     }
   } else {
+    // SessionProvider makes the signed-in identity (user id + demo flag)
+    // readable deep in the tree — the notes editor needs it to upload
+    // pasted screenshots, and it sits four components below here.
     mainPageContent = (
-      <>
+      <SessionProvider userId={auth.currentUserId} isDemoUser={auth.isDemoUser}>
         <SidebarLayout
           currentUser={auth.currentUser}
           items={items}
@@ -398,7 +402,7 @@ export default function App() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </>
+      </SessionProvider>
     );
   }
 

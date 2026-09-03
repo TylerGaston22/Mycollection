@@ -1,7 +1,13 @@
 /**
  * QuickEditDialog – lightweight inline edit dialog for a single field.
  * Opens when the user clicks a platform, genre, or notes cell in the
- * ListView. Uses a text input for platform/genre and a textarea for notes.
+ * ListView, and on a mobile long-press. Uses a text input for
+ * platform/genre; notes get the full NotesField so a screenshot can be
+ * pasted here too, not just in the Add/Edit dialog.
+ *
+ * onSave hands back a Partial<Item> rather than a field/value pair
+ * because the notes case writes two fields at once (the text and its
+ * attached images).
  */
 
 import { useState, useEffect } from "react";
@@ -15,14 +21,14 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Textarea } from "../ui/textarea";
+import { NotesField } from "../notes";
 import { Item } from "../../types";
 import { getContentTypeFieldConfig } from "../../utils/contentHelpers";
 
 interface QuickEditDialogProps {
   item: Item | null;
   field: 'platform' | 'genre' | 'notes' | null;
-  onSave: (movieId: string, field: string, value: string | undefined) => void;
+  onSave: (itemId: string, updates: Partial<Item>) => void;
   onClose: () => void;
 }
 
@@ -33,11 +39,13 @@ const STATIC_FIELD_CONFIG = {
 
 export function QuickEditDialog({ item, field, onSave, onClose }: QuickEditDialogProps) {
   const [currentEditFieldValue, setCurrentEditFieldValue] = useState('');
+  const [noteImages, setNoteImages] = useState<string[]>([]);
 
   useEffect(() => {
     if (!item || !field) return;
     if (field === 'notes') {
       setCurrentEditFieldValue(item.notes || '');
+      setNoteImages(item.noteImages || []);
     } else if (field === 'platform') {
       setCurrentEditFieldValue(item.platform || '');
     } else {
@@ -62,18 +70,26 @@ export function QuickEditDialog({ item, field, onSave, onClose }: QuickEditDialo
   }
 
   const handleSave = () => {
-    // Pass undefined instead of empty string so the field is cleared in the data model
-    onSave(item.id, field, currentEditFieldValue || undefined);
+    if (field === 'notes') {
+      // noteImages goes over unconditionally so removing the last image
+      // actually clears the column — an omitted key wouldn't.
+      onSave(item.id, { notes: currentEditFieldValue || undefined, noteImages });
+    } else {
+      // Pass undefined instead of empty string so the field is cleared in the data model
+      onSave(item.id, { [field]: currentEditFieldValue || undefined });
+    }
     onClose();
   };
 
   let quickEditInput;
   if (field === 'notes') {
     quickEditInput = (
-      <Textarea
+      <NotesField
         id="qe-field"
         value={currentEditFieldValue}
-        onChange={(event) => setCurrentEditFieldValue(event.target.value)}
+        onChange={setCurrentEditFieldValue}
+        images={noteImages}
+        onImagesChange={setNoteImages}
         placeholder="Add your notes here..."
         rows={4}
         autoFocus

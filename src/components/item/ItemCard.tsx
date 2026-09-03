@@ -22,6 +22,7 @@ import { sanitizeImageUrl } from "../../utils/sanitize";
 import { StarRating } from "./StarRating";
 import { StatusBadge } from "./StatusBadge";
 import { StatusToggleMenuContent } from "./StatusToggleMenuContent";
+import { NoteImageCount } from "../notes";
 
 // Base64-encoded SVG placeholder shown when a poster image fails to load
 const ERROR_IMG =
@@ -152,6 +153,7 @@ export function ItemCard({ item, onUpdate, onDelete }: MovieCardProps) {
             {item.notes}
           </p>
         )}
+        <NoteImageCount images={item.noteImages} className="text-muted-foreground text-xs mt-1 inline-block" />
       </div>
     </Card>
   );

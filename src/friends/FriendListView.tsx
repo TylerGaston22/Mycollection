@@ -41,6 +41,7 @@ function rowToItem(row: Record<string, unknown>): Item {
     rating: (row.rating as number) || undefined,
     favorite: row.favorite as boolean,
     notes: (row.notes as string) || undefined,
+    noteImages: (row.note_images as string[]) || undefined,
     platform: (row.platform as string) || undefined,
     studio: (row.studio as string) || undefined,
     genre: (row.genre as string) || undefined,

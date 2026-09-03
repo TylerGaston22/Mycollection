@@ -31,6 +31,13 @@ A personal collection tracker for movies, TV shows, restaurants, places, and use
 - Grid view (cards with posters) and table/list view (TanStack Table)
 - Mobile-specific list and navigation components
 
+### Note screenshots
+- Paste a screenshot straight into an item's Notes (Cmd/Ctrl+V), drop an image file on the notes box, or pick one with **Add image**. Works in both places notes are edited: the Add/Edit dialog and the quick-edit dialog (list-view notes cell / mobile long-press).
+- Images upload to the `note-images` Supabase Storage bucket under `<user_id>/…`, and the returned public URLs are stored in `collection_items.note_images` — the notes *text* stays plain text, so there's no markdown parser and no HTML rendering anywhere in the feature.
+- Shown as a thumbnail strip in the detail dialog (click to enlarge), with a small image-count badge on grid cards and list rows so an item with attachments is identifiable without opening it.
+- Capped at 5 MB and 12 images per note. Raster formats only — SVG is rejected, since the bucket is public-read.
+- Hidden for demo users: they have no auth identity, so the bucket's RLS would reject the write. Same rule the avatar upload follows.
+
 ### Authentication & persistence
 - Two storage modes, fully abstracted:
   - **Demo mode** — `localStorage`-backed, seeded with sample items. No backend needed.
@@ -67,7 +74,8 @@ A personal collection tracker for movies, TV shows, restaurants, places, and use
 
 ### Other hardening
 - **Content Security Policy** in `index.html` restricts `script-src` to `'self'`, `connect-src` to `'self'` + `*.supabase.co`. Blocks third-party scripts.
-- **Input sanitization** — `utils/sanitize.ts` strips HTML from user-supplied strings and validates image URLs (`isValidImageUrl` rejects `javascript:` / `data:` protocols).
+- **Input sanitization** — `utils/sanitize.ts` strips HTML from user-supplied strings and validates image URLs (`isValidImageUrl` rejects `javascript:` / `data:` protocols). Note-image URLs are re-validated on the *read* path too, not just on write — that path also serves imported JSON and other users' rows.
+- **Uploads are raster-only** — `utils/imageUpload.ts` allows PNG/JPEG/WebP/GIF and deliberately excludes SVG, which can carry script. Both storage buckets are public-read, so an accepted SVG would be a stored-XSS vector.
 - **No `dangerouslySetInnerHTML`, `innerHTML`, or `eval`** anywhere — React's default JSX escaping handles user text.
 - **Sensitive data** — no tokens or passwords in `localStorage`. Supabase manages auth tokens in its own secure storage.
 - **`.env` gitignored**; `.env.example` carries only placeholder values. Supabase publishable key is the only public credential needed in the frontend (anon key by design).
@@ -78,6 +86,12 @@ A personal collection tracker for movies, TV shows, restaurants, places, and use
 
 ### Dual-mode storage abstraction
 The challenge was supporting both demo (localStorage) and Supabase modes without scattering `if (isDemoUser)` branches everywhere. Solution: each data hook (`useItems`, `useCustomTabs`, `useCustomSections`, `usePreferences`) has a single mode-switching block at the top using two helpers from `src/demo/storage.ts` — `loadDemoData()` and `useDemoSync()`. The rest of the hook is mode-agnostic. Demo logic stays consolidated in `src/demo/`.
+
+### One context, for identity only
+The app deliberately prop-drills its data — it keeps the flow easy to follow. The single exception is `src/auth/SessionContext.tsx`, which publishes the signed-in identity (`userId`, `isDemoUser`, `canUploadImages`). Note-image upload needs the user id (it's the storage folder name, and the bucket RLS checks it) inside `QuickEditDialog`, which sits four components below `App` — App → SidebarLayout → Desktop/MobileMainContent → ListView — on both the desktop and mobile branches. Threading two props down both branches to reach one dialog costs more than it explains. Collection data still flows as props.
+
+### Shared upload primitives, thin per-bucket wrappers
+`utils/imageUpload.ts` owns the MIME allowlist, the size-limit validator factory, the clipboard/drop file extractor, and the "upload into `<userId>/` in a public bucket" call. `uploadAvatar.ts` and `uploadNoteImage.ts` are thin wrappers that pin only a bucket name and a size cap (2 MB vs 5 MB — a retina screenshot routinely exceeds the avatar limit). Everything but the upload call itself is pure, so the rules about what a user may attach are unit-tested without network mocks.
 
 ### Constants extracted, not scattered
 `src/constants.ts` defines `CONTENT_TYPES`, `ITEM_STATUSES`, `DEFAULT_CONTENT_TYPE`, `RATING_MIN`/`RATING_MAX`, and `STORAGE_KEYS` (functions that build user-scoped localStorage keys). Magic strings like `'watched'` / `'want-to-see'` are typed unions derived from the const arrays, so renaming any value gives a TypeScript error wherever it's used.
@@ -91,6 +105,7 @@ src/components/
   ├── navigation/  Sidebar, CategoryButton, SectionButton, SubCategoryNav, CategoryCountRow
   ├── layout/      SidebarLayout, MainContent
   ├── item/        ItemCard, ListView, StarRating, StatusBadge, StatusToggleMenuContent
+  ├── notes/       NotesField (paste/drop/upload), NoteImageGallery, NoteImageCount
   ├── settings/    ColorPicker, DataManagementButtons
   ├── dialogs/     All modal dialogs (form, detail, share, settings, etc.)
   ├── mobile/      Mobile-specific variants
@@ -126,7 +141,7 @@ Five tables in Supabase, all with RLS enabled and `auth.uid() = user_id` policie
 | Table | Purpose |
 |---|---|
 | `profiles` | One row per user, auto-created via `handle_new_user` trigger on `auth.users` insert |
-| `collection_items` | Polymorphic item table (movies/shows/restaurants/places/custom). `type` column drives content-type behavior. |
+| `collection_items` | Polymorphic item table (movies/shows/restaurants/places/custom). `type` column drives content-type behavior. `note_images text[]` holds the URLs of screenshots pasted into an item's notes. |
 | `custom_tabs` | User-created category tabs beyond the four built-ins |
 | `custom_sections` | Sub-sections within a tab |
 | `preferences` | Per-user theme/background JSON preferences |

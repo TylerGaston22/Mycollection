@@ -178,7 +178,7 @@ export function ListView({
       <QuickEditDialog
         item={movieBeingQuickEdited}
         field={fieldBeingQuickEdited}
-        onSave={(movieId, field, value) => onUpdate(movieId, { [field]: value })}
+        onSave={onUpdate}
         onClose={() => {
           setMovieBeingQuickEdited(null);
           setFieldBeingQuickEdited(null);

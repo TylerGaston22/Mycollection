@@ -17,6 +17,9 @@ export interface Item {
   rating?: number;
   favorite: boolean;
   notes?: string;
+  /** Public URLs of screenshots pasted into the notes — see
+   *  utils/uploadNoteImage.ts and supabase/note_images.sql. */
+  noteImages?: string[];
   platform?: string;
   studio?: string;
   genre?: string;
