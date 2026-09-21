@@ -2,6 +2,9 @@
  * DesktopMainContent – scrollable content area to the right of the sidebar.
  * Renders the page heading, Add/Share/Add-Subcategory buttons, and ListView.
  * Mobile uses MobileMainContent instead.
+ *
+ * Labels and empty-state copy come from `useMainContent`, shared with the
+ * mobile tree — this file owns only the markup.
  */
 
 import { Button } from "../ui/button";
@@ -11,7 +14,7 @@ import { Item, CustomTab, CustomSection } from "../../types";
 import { ListView } from "../item/ListView";
 import { ThemeConfig, colorToRgba } from "../../utils/themeConfig";
 import { accentColorHoverHandlers } from "../../utils/accentHover";
-import { getSectionDisplayName, getContentTypeName, getCategoryDisplayName } from "../../utils/contentHelpers";
+import { useMainContent } from "../../hooks/useMainContent";
 import { DicePicker } from "../../picker";
 
 interface DesktopMainContentProps {
@@ -44,23 +47,23 @@ export function DesktopMainContent({
   onItemClick,
   getSectionContent,
 }: DesktopMainContentProps) {
-  const itemsInActiveSection = getSectionContent(activeSection);
-
-  const activeSectionDescriptionText = getSectionDisplayName(activeSection, contentType, customSections, customTabs);
-  const currentCategoryHeadingTitle = getCategoryDisplayName(contentType, customTabs);
-  const singularTypeName = getContentTypeName(contentType, false, customTabs);
-  const pluralTypeName = getContentTypeName(contentType, true, customTabs);
-  const addButtonLabel = singularTypeName.charAt(0).toUpperCase() + singularTypeName.slice(1);
-
-  let emptyStateMessageText: string;
-  if (activeSection === 'all') {
-    emptyStateMessageText = `No ${pluralTypeName} yet. Add your first ${singularTypeName} to get started!`;
-  } else {
-    emptyStateMessageText = `No ${pluralTypeName} in this section yet.`;
-  }
+  const {
+    itemsInActiveSection,
+    isEmpty,
+    addButtonLabel,
+    emptyStateMessageText,
+    categoryHeadingTitle,
+    activeSectionDescriptionText,
+  } = useMainContent({
+    contentType,
+    activeSection,
+    customTabs,
+    customSections,
+    getSectionContent,
+  });
 
   let mainContentAreaDisplay;
-  if (itemsInActiveSection.length === 0) {
+  if (isEmpty) {
     mainContentAreaDisplay = (
       <div className="text-center py-16">
         <p className="text-page-fg-muted mb-4">{emptyStateMessageText}</p>
@@ -95,10 +98,10 @@ export function DesktopMainContent({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-page-fg mb-2 fluid-heading">{currentCategoryHeadingTitle}</h1>
+              <h1 className="text-page-fg mb-2 fluid-heading">{categoryHeadingTitle}</h1>
               <p className="text-page-fg-muted">{activeSectionDescriptionText}</p>
             </div>
-            {itemsInActiveSection.length > 0 && (
+            {!isEmpty && (
               <Button
                 onClick={onShareDialogOpen}
                 variant="ghost"

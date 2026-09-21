@@ -2,6 +2,9 @@
  * MobileMainContent – full-width content area for phone-size screens.
  * Renders the horizontal section chip nav (passed in as mobileSectionNav)
  * plus a Goodreads-style stacked list. Desktop uses DesktopMainContent.
+ *
+ * Labels, grouping, and empty-state copy come from `useMainContent`,
+ * shared with the desktop tree — this file owns only the markup.
  */
 
 import { ReactNode, useState } from 'react';
@@ -10,7 +13,7 @@ import { Plus } from 'lucide-react';
 import { Item, CustomTab, CustomSection } from "../../types";
 import { MobileListItem } from "../mobile/MobileListItem";
 import { ThemeConfig } from "../../utils/themeConfig";
-import { getContentTypeName, getWatchedLabel, getWantToSeeLabel } from "../../utils/contentHelpers";
+import { useMainContent } from "../../hooks/useMainContent";
 import { QuickEditDialog } from "../dialogs/QuickEditDialog";
 
 interface MobileMainContentProps {
@@ -29,6 +32,7 @@ interface MobileMainContentProps {
 
 export function MobileMainContent({
   customTabs,
+  customSections,
   contentType,
   activeSection,
   currentTheme,
@@ -38,102 +42,87 @@ export function MobileMainContent({
   getSectionContent,
   mobileSectionNav,
 }: MobileMainContentProps) {
-  const itemsInActiveSection = getSectionContent(activeSection);
+  const {
+    itemsInActiveSection,
+    isEmpty,
+    addButtonLabel,
+    emptyStateMessageText,
+    statusSections,
+    formatItemCount,
+  } = useMainContent({
+    contentType,
+    activeSection,
+    customTabs,
+    customSections,
+    getSectionContent,
+  });
 
   // Long-press on a row opens this notes editor inline (matches the
   // desktop ListView long-press behaviour).
   const [notesItem, setNotesItem] = useState<Item | null>(null);
 
-  const singularTypeName = getContentTypeName(contentType, false, customTabs);
-  const pluralTypeName = getContentTypeName(contentType, true, customTabs);
-  const addButtonLabel = singularTypeName.charAt(0).toUpperCase() + singularTypeName.slice(1);
-
-  let emptyStateMessageText: string;
-  if (activeSection === 'all') {
-    emptyStateMessageText = `No ${pluralTypeName} yet. Add your first ${singularTypeName} to get started!`;
-  } else {
-    emptyStateMessageText = `No ${pluralTypeName} in this section yet.`;
-  }
-
-  let mainContentAreaDisplay;
-  if (itemsInActiveSection.length === 0) {
-    mainContentAreaDisplay = (
-      <div className="text-center py-16">
-        <p className="text-page-fg-muted mb-4">{emptyStateMessageText}</p>
-        {activeSection === 'all' && (
-          <ThemePrimaryButton
-            onClick={onAddDialogOpen}
-            currentTheme={currentTheme}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add {addButtonLabel}
-          </ThemePrimaryButton>
-        )}
+  function renderRow(item: Item) {
+    return (
+      <div key={item.id} style={{ borderBottom: '1px solid var(--page-divider)' }}>
+        <MobileListItem
+          item={item}
+          onUpdate={onItemUpdate}
+          onClick={onItemClick}
+          onLongPress={setNotesItem}
+        />
       </div>
     );
-  } else if (activeSection === 'all') {
-    // Group by status section like Goodreads shelves when viewing "all"
-    const watchedItems = itemsInActiveSection.filter((m) => m.status === 'watched');
-    const wantToSeeItems = itemsInActiveSection.filter((m) => m.status === 'want-to-see');
-    const favoriteItems = itemsInActiveSection.filter((m) => m.favorite);
+  }
 
-    const sections: { label: string; items: Item[]; id: string }[] = [];
-    if (watchedItems.length > 0) {
-      sections.push({ label: getWatchedLabel(contentType), items: watchedItems, id: 'watched' });
-    }
-    if (wantToSeeItems.length > 0) {
-      sections.push({ label: getWantToSeeLabel(contentType), items: wantToSeeItems, id: 'want-to-see' });
-    }
-    if (favoriteItems.length > 0) {
-      sections.push({ label: 'Favorites', items: favoriteItems, id: 'favorites' });
-    }
-
-    mainContentAreaDisplay = (
-      <div>
-        {sections.map((section) => (
-          <div key={section.id}>
-            <div
-              className="flex items-center justify-between px-4 py-2 border-y"
-              style={{ borderColor: 'var(--page-divider)', backgroundColor: 'var(--page-surface-subtle)' }}
+  function renderMainContentArea() {
+    if (isEmpty) {
+      return (
+        <div className="text-center py-16">
+          <p className="text-page-fg-muted mb-4">{emptyStateMessageText}</p>
+          {activeSection === 'all' && (
+            <ThemePrimaryButton
+              onClick={onAddDialogOpen}
+              currentTheme={currentTheme}
             >
-              <h2 className="text-page-fg-subtle text-xs font-semibold uppercase tracking-wider">
-                {section.label}
-              </h2>
-              <span className="text-page-fg-faint text-xs">
-                {section.items.length} {section.items.length === 1 ? singularTypeName : pluralTypeName}
-              </span>
+              <Plus className="mr-2 h-4 w-4" />
+              Add {addButtonLabel}
+            </ThemePrimaryButton>
+          )}
+        </div>
+      );
+    }
+
+    // Group by status like Goodreads shelves when viewing "all".
+    if (statusSections.length > 0) {
+      return (
+        <div>
+          {statusSections.map((section) => (
+            <div key={section.id}>
+              <div
+                className="flex items-center justify-between px-4 py-2 border-y"
+                style={{ borderColor: 'var(--page-divider)', backgroundColor: 'var(--page-surface-subtle)' }}
+              >
+                <h2 className="text-page-fg-subtle text-xs font-semibold uppercase tracking-wider">
+                  {section.label}
+                </h2>
+                <span className="text-page-fg-faint text-xs">
+                  {formatItemCount(section.items.length)}
+                </span>
+              </div>
+              <div>{section.items.map(renderRow)}</div>
             </div>
-            <div>
-              {section.items.map((item) => (
-                <div key={item.id} style={{ borderBottom: '1px solid var(--page-divider)' }}>
-                  <MobileListItem
-                    item={item}
-                    onUpdate={onItemUpdate}
-                    onClick={onItemClick}
-                    onLongPress={setNotesItem}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  } else {
-    mainContentAreaDisplay = (
-      <div>
-        {itemsInActiveSection.map((item) => (
-          <div key={item.id} style={{ borderBottom: '1px solid var(--page-divider)' }}>
-            <MobileListItem
-              item={item}
-              onUpdate={onItemUpdate}
-              onClick={onItemClick}
-            />
-          </div>
-        ))}
-      </div>
-    );
+          ))}
+        </div>
+      );
+    }
+
+    return <div>{itemsInActiveSection.map(renderRow)}</div>;
   }
+
+  // No ternaries (docs/coding-standards.md #6) — QuickEditDialog treats a
+  // null field as "closed", so the two pieces of state move together.
+  let notesFieldOrClosed: 'notes' | null = null;
+  if (notesItem) notesFieldOrClosed = 'notes';
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -141,11 +130,11 @@ export function MobileMainContent({
         {mobileSectionNav}
       </div>
 
-      {mainContentAreaDisplay}
+      {renderMainContentArea()}
 
       <QuickEditDialog
         item={notesItem}
-        field={notesItem ? 'notes' : null}
+        field={notesFieldOrClosed}
         onSave={onItemUpdate}
         onClose={() => setNotesItem(null)}
       />

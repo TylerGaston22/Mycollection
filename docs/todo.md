@@ -40,6 +40,44 @@ Code shipped alongside it:
 
 ## 🟡 Worth a look soon
 
+### AA. ~~Long-press notes is dead in every subcategory on mobile~~ ✅ Done 2026-09-21
+**What it was:** `MobileMainContent` rendered `MobileListItem` in two places.
+The `activeSection === 'all'` branch passed `onLongPress={setNotesItem}`; the
+subcategory branch passed only `item`/`onUpdate`/`onClick`. `onLongPress` is
+optional on `MobileListItem`, so the omission was silent — touch-and-hold did
+nothing once you left "All", and the `QuickEditDialog` at the bottom of the file
+could never open there.
+
+**What we did:** rather than patch the one line, fixed the cause. Both branches
+now render through a single local `renderRow`, so a row can't be wired up two
+different ways, and all the derivation the two main-content components had been
+duplicating moved into `src/hooks/useMainContent.ts` — type names, add-button
+label, empty-state sentence, category heading, section description, the status
+shelves, and the "1 movie / 3 movies" count. Desktop and Mobile now differ only
+in markup, which is the part that genuinely should differ (see
+[ideas.md](./ideas.md#keeping-mobilemaincontent-and-desktopmaincontent-forked)).
+
+Fixed a second, latent bug on the way: the old "all" branch built its shelves
+and rendered whatever came back, so a section with items but no shelf matches
+would have rendered an empty `<div>`. The grouped branch is now keyed on
+`statusSections.length > 0`, and falls back to a flat list. Not reachable today
+(`ITEM_STATUSES` is exactly `watched | want-to-see`), but it was one status
+value away from being a blank screen.
+
+Shape of the extraction: the work lives in a pure `buildMainContent(options)`
+and `useMainContent` is a one-line wrapper — same split as `utils/csv.ts` +
+`useDataExportImport`, and it's what makes the derivation testable in the
+node-only Vitest environment. 9 new tests in `src/hooks/useMainContent.test.ts`
+(176 passing, up from 167). Deliberately not memoised: App rebuilds
+`getItemsForSection` on every render, so a `useMemo` keyed on it could never hit
+— noted in the file so nobody "optimises" one in later.
+
+**Still open, deliberately:** present on desktop, absent on mobile —
+`onShareDialogOpen`, `DicePicker`, `onItemDelete`, and the page heading /
+section-description block. The hook now exposes the copy for all of them, so
+adding any one to mobile is a markup change. Each may be a fine omission for a
+phone; they're listed here so the omission is a decision rather than an oversight.
+
 ### A. ~~Refresh shouldn't flash through landing → sign-in → target~~ ✅ Done 2026-05-22
 App.tsx now renders a neutral centered spinner while `auth.isLoading` is true (initial `supabase.auth.getSession()` in flight). Once the session resolves, the existing branches take over — straight to main if signed in, Landing if not. No more Landing → SignIn flash on refresh.
 

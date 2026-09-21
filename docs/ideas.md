@@ -8,6 +8,39 @@ Update this file as new ideas come up. Cross items off (or delete them) when the
 
 ## Architecture / Tech debt
 
+### Keeping MobileMainContent and DesktopMainContent forked
+**What:** Revisited 2026-09-21 — is the mobile/desktop split worth it, or should the
+desktop layout just be allowed to reflow down to phone width?
+
+**Decision: keep the fork.** It isn't one design at two widths. Desktop renders
+`ListView` — a TanStack sortable table with seven columns, click-to-sort headers,
+hover-revealed affordances, and a kebab menu per row. Mobile renders a stacked
+Goodreads-style row with a poster, a tap target, and long-press. No amount of
+responsive CSS turns a sortable table into that; it only makes the table narrow.
+`useIsMobile` already encodes the reasoning — it keys off
+`(pointer: coarse) and (hover: none)` rather than a width breakpoint, precisely so a
+500px desktop window keeps the table and a phone never gets it.
+
+**What the fork actually costs:** not duplicated JSX — duplicated *derivation*.
+Both files independently compute `singularTypeName` / `pluralTypeName`, the
+add-button label, and the empty-state sentence — identical code in both — and
+each decided for itself which affordances to wire up. That's how todo AA
+happened: long-press was wired in one branch of one file and not the other, and
+nothing failed.
+
+**Update (2026-09-21): done — see todo AA.** `src/hooks/useMainContent.ts` now
+owns every shared derivation (type names, add-button label, empty-state sentence,
+category heading, section description, status shelves, item-count formatting).
+Both components consume it and use the subset they need; each one's file is now
+markup plus a destructure. The remaining differences — Share, `DicePicker`,
+delete, the page heading block — are still desktop-only, but the copy for them
+exists in the hook, so adding any of them to mobile is a markup change and the
+omissions are now visible rather than incidental.
+
+**What's left of this idea:** nothing structural. If a third surface ever appears
+(a tablet layout, a public share page), it consumes the same hook rather than
+starting a third copy.
+
 ### Wrap content sections in `<Card>` for true theming
 **What:** MainContent's sections, ListView rows, and MobileListItem don't currently render inside a themed surface — they sit directly on the page background. Wrapping them in `<Card>` would give them proper `bg-card` backgrounds that flip with theme.
 **Why deferred:** Works today because the page bg is dark in both light and dark mode for every theme *except* Coffee. Wrapping in Cards is a UI redesign — visually different even in light mode.

@@ -59,7 +59,7 @@ A personal collection tracker for movies, TV shows, restaurants, places, and use
 - Dark mode toggle (cohesive dark blue-grey palette with bright blue accent) via the gear-icon dropdown.
 - **Coffee theme** — a one-click app-wide *light* cream theme (warm palette from `coffeecode/`) toggled from the same gear-icon dropdown, alongside per-content-type colour themes picked in Settings.
 - Tailwind palette remapping in dark mode so `slate-*` and `cyan-*` utility classes also reskin.
-- Mobile-responsive: dedicated mobile components for header, bottom-nav, list items, section nav.
+- Mobile-responsive: dedicated mobile components for header, bottom-nav, list items, section nav. The desktop table and the mobile stacked list are two information designs, not one design at two widths — `useIsMobile` picks between them on `(pointer: coarse) and (hover: none)` so a narrow *desktop* window keeps the sortable table. Everything above the markup (labels, empty-state copy, status shelves) is shared via `useMainContent`; see `docs/ideas.md`.
 - Toasts for success/failure on every mutation.
 
 ---
@@ -121,7 +121,8 @@ src/components/
 - `useCollectionStats` — memoized per-type counts
 - `useItemActions` — shared toggle/rate handlers used by grid + list views
 - `useDataExportImport` — import/export orchestration
-- `useIsMobile` — viewport detection
+- `useIsMobile` — phone detection (pointer-based, not width-based)
+- `useMainContent` — the derivation shared by DesktopMainContent + MobileMainContent
 
 ### Theme-aware styling via CSS variables
 The app has **three independent styling layers**, all driven by CSS custom properties so components never hardcode a color:
@@ -168,7 +169,7 @@ See `docs/er-diagram.md` for the full Mermaid ER diagram.
 In rough priority order — see `docs/todo.md` and `docs/ideas.md` for detail:
 
 - Address 3 npm-audit vulnerabilities before any production push
-- Mobile view polish (incomplete)
+- Mobile view polish — Share, `DicePicker`, delete, and the page-heading block are still desktop-only. `useMainContent` already supplies the copy for each, so these are markup additions, not plumbing (todo AA)
 - Username-only sign-up (no email required) — planned, schema sketched
 - Friend system (view-only list sharing) — planned, schema sketched
 - Collaborative shared lists — planned, depends on friend system

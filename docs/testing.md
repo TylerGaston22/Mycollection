@@ -4,6 +4,32 @@ A running checklist of things to manually verify, plus known edge cases. Updated
 
 ---
 
+## 📱 Mobile main-content refactor (just shipped, 2026-09-21)
+
+Needs a **real phone or a touch-emulated device** — `useIsMobile` keys off
+`(pointer: coarse) and (hover: none)`, so just narrowing a desktop window will
+keep you on the desktop table and test nothing here. In Chrome DevTools, use
+device toolbar with a phone preset (it sets a coarse pointer), not a resized window.
+
+### The bug this fixes (todo AA)
+- [ ] Open a **subcategory** (not "All") on a phone. Touch-and-hold a row for ~1s → the notes editor opens. This did nothing before the fix.
+- [ ] Same long-press still works in the **All** view.
+- [ ] Long-press then drag/scroll away → editor does NOT open (the `useLongPress` cancel path).
+- [ ] Save a note from a subcategory long-press → text persists after a reload.
+
+### Shared-derivation regressions to rule out
+The labels below now come from `useMainContent` instead of being computed twice.
+Compare each against the desktop view of the *same* category — they should match.
+- [ ] Section shelf headers in "All": Watched / Want to see / Favorites, in that order, with the per-type wording (e.g. a Restaurants category says "Been" / "Want to go", not "Watched").
+- [ ] Shelf counts read "1 movie" vs "3 movies" — singular at exactly 1.
+- [ ] A shelf with zero items is not rendered at all (no empty header bar).
+- [ ] Empty "All" view → "No movies yet. Add your first movie…" **with** the Add button.
+- [ ] Empty subcategory → "No movies in this section yet." **without** the Add button.
+- [ ] A **custom category** (e.g. one you created) uses its own name everywhere: heading, Add button, empty state, shelf counts.
+- [ ] Desktop: page heading, section subheading, Share button visibility, and the Add button label are all unchanged from before.
+
+---
+
 ## 🖼 Note screenshots (just shipped)
 
 ### Setup
