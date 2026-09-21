@@ -6,6 +6,52 @@ Newest sections at the top. Update as we adopt new services.
 
 ---
 
+## Codespaces + Claude Code
+
+Not a hosted service, but it's environment config that bites the same way — and
+the thing it protects is the only record of *why* decisions were made.
+
+### Why chat history kept disappearing
+Two independent shredders, which is why it looked random:
+
+1. **Transcript retention.** Claude Code deletes chat transcripts older than
+   `cleanupPeriodDays` (default **30**) on startup. That's what took the
+   2026-08-17 session: by 2026-09-21 it was 35 days old and gone, while the
+   2026-09-03 one survived at 18 days. Nothing was broken — it aged out.
+2. **Codespace rebuilds.** `/home/codespace` sits on the container's overlay
+   filesystem; only `/workspaces` is the persistent volume (`/dev/loop4`).
+   A rebuild takes all of `~/.claude` with it — transcripts, settings, and
+   Claude's memory files — while the repo survives untouched.
+
+```
+/             overlay    ← ~/.claude lives here (gone on rebuild)
+/workspaces   /dev/loop4 ← the persistent volume (survives)
+```
+
+### What we set
+`.claude/settings.json` (**tracked in git, on purpose**) sets
+`cleanupPeriodDays: 365`. Per the bundled settings schema: *"Number of days to
+retain chat transcripts before automatic cleanup (default: 30). Minimum 1."*
+
+It lives in the repo rather than `~/.claude/settings.json` specifically because
+of shredder #2 — a setting in the home directory would itself be erased by the
+next rebuild, taking the fix with it. In the repo it's restored the moment the
+Codespace re-clones.
+
+Settings precedence, highest wins: managed policy → `claude --settings` →
+`.claude/settings.local.json` → **`.claude/settings.json`** → `~/.claude/settings.json`.
+So a personal override still works: put it in `.claude/settings.local.json`,
+which is untracked.
+
+### What this does NOT fix
+Retention only buys time; it doesn't make chat durable. A rebuild still wipes
+every transcript regardless of `cleanupPeriodDays`, because the files are on the
+overlay. **Anything that needs to outlive the container goes in `docs/` or a
+commit message** — which is the whole reason this folder is written the way it
+is. Treat chat as a scratchpad, not a record.
+
+---
+
 ## Vercel
 
 ### Account

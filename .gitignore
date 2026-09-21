@@ -21,6 +21,10 @@ yarn-error.log*
 pnpm-debug.log*
 *.log
 
+# Claude Code — the shared .claude/settings.json IS tracked (see
+# docs/service-config.md); the personal permission allowlist is not.
+.claude/settings.local.json
+
 # Editor / OS
 .DS_Store
 .vscode/settings.json
